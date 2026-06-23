@@ -668,6 +668,19 @@ Prop names and types are verbatim from each component's props interface in `@vel
 | commentTool | `boolean` |  | Enable the in-player comment tool. |
 | shadowDom | `boolean` |  | Shadow-DOM isolation. |
 
+### VeltVideoEditor
+
+`IVeltVideoEditorProps` (extends HTML attrs)
+
+| Prop | Type | Default | Description / when to use |
+|---|---|---|---|
+| darkMode | `boolean` |  | Dark theme. |
+| variant | `string` |  | Editor wireframe variant. |
+| blob | `Blob` |  | Source recording as a `Blob` to edit. |
+| url | `string` |  | Source recording URL to edit. |
+| annotationId | `string` |  | Annotation the recording belongs to. |
+| recorderId | `string` |  | Bind to a specific recording instance. |
+
 > `VeltCommentPlayerTimeline` (`totalMediaLength`, `offset`, `shadowDom`, `videoPlayerId`, `onCommentClick`, `onReactionClick`) overlays comment/reaction markers on a media timeline. `VeltCanvasComment` (`IVeltCanvasCommentProps`): **`canvasId` (required)**, **`position` (required)**.
 
 ## Huddle

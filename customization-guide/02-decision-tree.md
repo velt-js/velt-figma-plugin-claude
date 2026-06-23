@@ -14,7 +14,7 @@ There is no single "best" layer, but there **is** a default order to reach for t
 
 ## How to use this
 
-1. Split the design into **features/surfaces** (comment dialog, comments sidebar, comment pin/bubble, notifications panel, reaction tool, …). Velt is customized **per feature**, so decide per feature.
+1. Split the design into **features/surfaces** (comment dialog, comments sidebar, comment pin/bubble, notifications panel, reaction tool, …). Velt is customized **per feature**, so decide per feature. *Not sure which Velt component a design element is?* Recognize it first with [`reference/component-definitions.md`](./reference/component-definitions.md) (design intent → component, with disambiguation for look-alikes and off-by-default flags); if nothing matches, it's host UI (ignore) or an SDK gap ([`sdk-gaps-and-blockers.md`](./sdk-gaps-and-blockers.md)).
 2. For each feature, walk the **questions** below in order. Stop at the first "yes".
 3. Record the chosen layer **and the reason**. Different features can land on different layers, and one feature can use more than one layer — that's expected (see [`approaches/combining-approaches.md`](./approaches/combining-approaches.md)).
 
@@ -67,6 +67,35 @@ There is no single "best" layer, but there **is** a default order to reach for t
                           │ yes ──────────────► HEADLESS (last resort)
                           │ no  ──────────────► re-check Q1–Q4
 ```
+
+---
+
+## After you pick a layer — the sub‑decisions (run every time)
+
+Q1–Q4 pick the **primary layer**. These five checks then refine it. Run all five for **every** surface, in order, and record each answer alongside the layer + reason — they're what turn "use wireframes" into an exact, buildable spec. None of them is a hack; each is a supported, documented branch.
+
+**S1 — Is a piece the design shows hidden by default?**
+Many features are **off by default** (reply avatars, priority, minimap, `@here`, device indicator, comment index / pin number, sidebar‑button‑on‑dialog, format toolbar, …). If the design shows one, **enable it with its prop** (e.g. `priority`, `replyAvatars`, `commentIndex`, `sidebarButtonOnCommentDialog`) — look up the exact prop in [`reference/feature-flags.md`](./reference/feature-flags.md). Enabling a documented feature is **not** a hack and is **not** a reason to escalate layers.
+
+**S2 — Does the design surface custom data?**
+Custom **statuses / priorities / categories / reactions** → configure `customStatus` / `customPriority` / `customCategory` / `customReactions` ([`reference/component-config.md`](./reference/component-config.md)). The design surfaces **your app's own data** in the comment UI → that's [context](./context.md). Neither changes the layer — they're data config layered on top.
+
+**S3 — UI‑component‑library placement (the table below).**
+If the design is built from your own component library, *where* those components sit decides wireframe vs primitive. Static shell + classes only → wireframe is OK; must stay interactive → **primitive**. See the [next section](#the-uicomponentlibrary-question-dont-miss-this).
+
+**S4 — Mix per piece?**
+A surface can combine layers: wireframe most of it + use a **leaf's** wireframe for one piece; or a **primitive** for the surface + a leaf wireframe for one part; + CSS on either. Record `layer = mixed` and the per‑piece split. Keep **one** `<VeltWireframe>` and **one** stylesheet globally ([`approaches/combining-approaches.md`](./approaches/combining-approaches.md)).
+
+**S5 — Do *you* need to control show/hide?**
+If the design requires **your** logic to decide when a piece appears (not Velt's internal condition), that's a **primitive** with `defaultCondition={false}` — wireframes have **no** equivalent ([`approaches/primitives.md`](./approaches/primitives.md)). This can flip a Q2 "wireframe" answer to a primitive; resolve it here.
+
+**S6 — Shadow‑DOM decision (whenever you wireframe or write class CSS).**
+- Wireframing a surface's **ROOT** wireframe (e.g. `VeltCommentDialogWireframe`, `VeltCommentPinWireframe`) → Velt **auto‑removes that surface's shadow DOM** → your class CSS reaches it, no flag needed.
+- Wireframing **only a nested / leaf** slot (no root wireframe for that surface) → shadow is **not** removed → set `shadowDom={false}` (or the per‑surface flag / `injectCustomCss`) for class CSS.
+- **CSS variables** (`--velt-*`) and **inline `style=""`** always work, shadow or not.
+See [`approaches/css.md`](./approaches/css.md#shadow-dom--wireframes-root-vs-nested). (Which wireframes are roots: the per‑surface map in [`reference/component-catalog.md`](./reference/component-catalog.md).)
+
+> **Output of the decision tree (per surface):** primary layer (Q1–Q4) · feature flags to enable (S1) · custom‑data config (S2) · UI‑library placement (S3) · mix split if any (S4) · escape‑hatch / `defaultCondition` (S5) · shadow handling (S6) · and the reason. That's a complete, buildable spec — resolve all of it here so the build step only executes.
 
 ---
 

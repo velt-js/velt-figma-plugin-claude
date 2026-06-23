@@ -86,6 +86,7 @@ Built‑in keys: `location`, `document`, `people`, `assigned`, `tagged`, `involv
 | `tabConfig` | `{ forYou?, documents?, all?, people? }` (each `{ name?, enable? }`) | Show/label/reorder tabs |
 | `enableSettingsAtOrganizationLevel` | `boolean` | Org‑level settings |
 | `enableCrossOrganization` | `boolean \| string \| CrossOrganizationConfig` | Cross‑org notifications |
+| **`panelVariant`** | `string` | Wireframe variant the embedded panel uses (on the **Tool**) |
 | `variant` / `darkMode` / `shadowDom` | — | Style / theme / shadow‑DOM |
 
 ## Comment Dialog — `VeltCommentDialog`
@@ -104,6 +105,33 @@ Built‑in keys: `location`, `document`, `people`, `assigned`, `tagged`, `involv
 ## Comments host — `VeltComments`
 
 Mostly feature toggles (see [`../approaches/primitives.md`](../approaches/primitives.md)), plus layout/mode flags: `floatingCommentDialog`, `inboxMode`, `inlineCommentMode`, `privateCommentMode`, `persistentCommentMode`, `multiThread`, `composerMode` (`'default'|'expanded'`), `unreadIndicatorMode` (`'minimal'|'verbose'`), `minimap` / `minimapPosition`, and granular shadow‑DOM / dark‑mode flags (`pinShadowDom`, `dialogShadowDom`, `dialogDarkMode`, `pinDarkMode`, …).
+
+## Recorder — `VeltRecorderControlPanel` & `VeltRecorderPlayer`
+
+| Prop | Values | What it does |
+|---|---|---|
+| **`mode`** | `'floating'` · `'thread'` | Control‑panel layout mode (`RecorderLayoutMode`, on `VeltRecorderControlPanel`) |
+| **`variant`** | `'default'` · `'embed'` | Player layout variant (`RecorderVariant`, on `VeltRecorderPlayer`) |
+
+## Transcription — `VeltTranscription` & `VeltSubtitles`
+
+| Prop | Values | What it does |
+|---|---|---|
+| **`mode`** (transcription) | `'floating'` · `'embed'` · `'summaryMode'` | Transcription layout mode (`TranscriptionMode`) |
+| **`mode`** (subtitles) | `'floating'` · `'embed'` | Subtitles layout mode (`SubtitlesMode`) |
+
+## Presence — `VeltPresence`
+
+| Prop | Values | What it does |
+|---|---|---|
+| **`flockMode`** | `boolean` | Flock‑mode (group/follow) layout |
+| `variant` | `string` | Wireframe variant the presence list renders |
+
+## Cursor — `VeltCursor`
+
+| Prop | Values | What it does |
+|---|---|---|
+| **`avatarMode`** | `boolean` | Render cursors as user avatars vs plain pointers |
 
 ---
 
@@ -132,7 +160,30 @@ Exact shapes:
 - **`customPriority`**: `{ id, name, color, lightColor? }[]`.
 - **`customCategory`**: `{ id, name, color }[]`.
 - **`customReactions`**: a map of emoji → `{ label, emoji }` (a `ReactionMap`).
-- **`customListDataOnAnnotation`** / **`customListDataOnComment`**: custom metadata lists that power the `CustomAnnotationDropdown` slot and comment custom lists (custom chips/dropdowns on a thread/comment).
+- **`customListDataOnAnnotation`** (a `CustomAnnotationDropdownData`): the custom chip/dropdown on a **thread** (powers the `CustomAnnotationDropdown` slot). Shape:
+  ```ts
+  {
+    type: 'single' | 'multi';               // single- vs multi-select
+    placeholder?: string;                   // default 'Select'
+    data: { id: string; label: string }[];  // the selectable options
+  }
+  ```
+  The option `id` is what a **custom sidebar filter** matches against (see the `filters` example above) — set the option on annotations via this prop, filter by the same `id`.
+- **`customListDataOnComment`** (an `AutocompleteData`): custom list on a **comment** (autocomplete‑style). Shape:
+  ```ts
+  {
+    hotkey: string;                          // trigger char, e.g. '#'
+    description?: string;
+    type: 'custom' | 'contact' | 'group';    // default 'custom'
+    data: {                                  // AutocompleteItem[]
+      id: string; name: string;
+      description?: string;
+      icon?: { url?: string; svg?: string };
+      link?: string; groupId?: string;       // groupId ties an item to a group
+    }[];
+    groups?: { id: string; name: string }[]; // optional groups
+  }
+  ```
 
 > When you build a **custom status/priority dropdown** with primitives ([`../approaches/primitives.md`](../approaches/primitives.md)), this is where the `statuses` you map over come from. When you read `{statusOptions}` / `{priorityOptions}` in a wireframe ([`wireframe-variables.md`](./wireframe-variables.md)), these are the values.
 

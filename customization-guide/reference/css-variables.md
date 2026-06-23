@@ -5,16 +5,91 @@
 - **Modern `--velt-*`** — use these.
 - **Legacy `--legacy-velt-*`** — older surfaces only.
 
-> Generated from source and exhaustive. If a `--velt-*` name isn't here, it doesn't exist.
+> Generated from source. This lists the `--velt-*` properties intended for theming; a small number of internal/feature-scoped names exist in source but are not meant to be overridden directly.
 
 ---
 
 ## Modern `--velt-*`
 
+### Active (theme-resolved) color tokens
+> These are the live tokens components actually read. Each resolves to its `--velt-light-mode-*` value (or `--velt-dark-mode-*` under `[data-velt-theme="dark"]`). Override a single token to retheme everywhere it's used; override the `light-mode`/`dark-mode` pair to retheme per theme.
+```
+--velt-accent: var(--velt-light-mode-accent) / var(--velt-dark-mode-accent)
+--velt-accent-foreground: var(--velt-*-mode-accent-foreground)
+--velt-accent-hover: var(--velt-*-mode-accent-hover)
+--velt-accent-light: var(--velt-*-mode-accent-light)
+--velt-accent-text: var(--velt-*-mode-accent-text)
+--velt-accent-transparent: var(--velt-*-mode-accent-transparent)
+--velt-animation-transparent: var(--velt-*-mode-animation-transparent)
+--velt-background-0: var(--velt-*-mode-background-0)
+--velt-background-1: var(--velt-*-mode-background-1)
+--velt-background-2: var(--velt-*-mode-background-2)
+--velt-background-3: var(--velt-*-mode-background-3)
+--velt-background-4: var(--velt-*-mode-background-4)
+--velt-background-5: var(--velt-*-mode-background-5)
+--velt-background-6: var(--velt-*-mode-background-6)
+--velt-background-7: var(--velt-*-mode-background-7)
+--velt-background-8: var(--velt-*-mode-background-8)
+--velt-background-9: var(--velt-*-mode-background-9)
+--velt-background-10: var(--velt-*-mode-background-10)
+--velt-background-transparent: var(--velt-*-mode-background-transparent)
+--velt-border-0: var(--velt-*-mode-border-0)
+--velt-border-1: var(--velt-*-mode-border-1)
+--velt-border-2: var(--velt-*-mode-border-2)
+--velt-border-3: var(--velt-*-mode-border-3)
+--velt-border-4: var(--velt-*-mode-border-4)
+--velt-border-5: var(--velt-*-mode-border-5)
+--velt-border-6: var(--velt-*-mode-border-6)
+--velt-border-7: var(--velt-*-mode-border-7)
+--velt-border-8: var(--velt-*-mode-border-8)
+--velt-border-9: var(--velt-*-mode-border-9)
+--velt-border-10: var(--velt-*-mode-border-10)
+--velt-border-transparent: var(--velt-*-mode-border-transparent)
+--velt-text-0: var(--velt-*-mode-text-0)
+--velt-text-1: var(--velt-*-mode-text-1)
+--velt-text-2: var(--velt-*-mode-text-2)
+--velt-text-3: var(--velt-*-mode-text-3)
+--velt-text-4: var(--velt-*-mode-text-4)
+--velt-text-5: var(--velt-*-mode-text-5)
+--velt-text-6: var(--velt-*-mode-text-6)
+--velt-text-7: var(--velt-*-mode-text-7)
+--velt-text-8: var(--velt-*-mode-text-8)
+--velt-text-9: var(--velt-*-mode-text-9)
+--velt-text-10: var(--velt-*-mode-text-10)
+--velt-text-11: var(--velt-*-mode-text-11)
+--velt-text-12: var(--velt-*-mode-text-12)
+--velt-black: var(--velt-*-mode-black)
+--velt-white: var(--velt-*-mode-white)
+--velt-gray: var(--velt-*-mode-gray)
+--velt-green: var(--velt-*-mode-green)
+--velt-amber: var(--velt-*-mode-amber)
+--velt-cyan: var(--velt-*-mode-cyan)
+--velt-magenta: var(--velt-*-mode-magenta)
+--velt-orange: var(--velt-*-mode-orange)
+--velt-purple: var(--velt-*-mode-purple)
+--velt-error: var(--velt-*-mode-error)
+--velt-error-foreground: var(--velt-*-mode-error-foreground)
+--velt-error-hover: var(--velt-*-mode-error-hover)
+--velt-error-light: var(--velt-*-mode-error-light)
+--velt-error-transparent: var(--velt-*-mode-error-transparent)
+--velt-success: var(--velt-*-mode-success)
+--velt-success-foreground: var(--velt-*-mode-success-foreground)
+--velt-success-hover: var(--velt-*-mode-success-hover)
+--velt-success-light: var(--velt-*-mode-success-light)
+--velt-success-transparent: var(--velt-*-mode-success-transparent)
+--velt-warning: var(--velt-*-mode-warning)
+--velt-warning-foreground: var(--velt-*-mode-warning-foreground)
+--velt-warning-hover: var(--velt-*-mode-warning-hover)
+--velt-warning-light: var(--velt-*-mode-warning-light)
+--velt-warning-transparent: var(--velt-*-mode-warning-transparent)
+```
+
 ### Spacing
 ```
+--velt-base-rem-unit: 1   (multiplier the rem() scale is built on)
 --velt-spacing-2xl: #{rem(1.5)}
 --velt-spacing-2xs: #{rem(0.125)}
+--velt-spacing-3xl: 80px
 --velt-spacing-lg: #{rem(1)}
 --velt-spacing-md: #{rem(0.75)}
 --velt-spacing-sm: #{rem(0.5)}
@@ -45,6 +120,14 @@
 --velt-font-size-sm: #{rem(0.875)}
 --velt-font-size-xl: #{rem(1.75)}
 --velt-font-size-xs: #{rem(0.75)}
+```
+
+### Font weights
+> Consumed via `font-weight: var(--velt-font-weight-N)`. No literal default in source — set to the numeric weight you want.
+```
+--velt-font-weight-400   (regular)
+--velt-font-weight-500   (medium)
+--velt-font-weight-600   (semibold)
 ```
 
 ### Icon sizes
@@ -196,6 +279,67 @@
 --velt-dark-mode-warning-transparent: rgba(255, 205, 46, 0.08)
 --velt-dark-mode-warning: #FFCD2E
 --velt-dark-mode-white: #FFFFFF
+```
+
+### Surface & text aliases
+> Semantic aliases components read in newer surfaces. Resolved from the active theme palette; no literal fallback in source.
+```
+--velt-surface-0   — base surface fill (used in color-mix for translucent surfaces)
+--velt-text-primary   — primary text color
+--velt-text-secondary-color   — secondary text color
+--velt-bg-2   — elevated background fill (e.g. composer format toolbar)
+--velt-bg-3   — higher-elevation background fill (e.g. toolbar buttons)
+--velt-hover-background   — hover background fill
+--velt-component-foreground-on-active / white   — foreground color when a component is in the active state
+```
+
+### Legacy flat aliases
+> Older flat token names still referenced in a few surfaces. Each carries a literal fallback.
+```
+--velt-bg-color: #07054C
+--velt-bg-color-active: #f44b64
+--velt-font-color: #ffffff
+--velt-font-color-active: #ffffff
+--velt-border: 1px solid #ffffff30
+--velt-border-radius: 0.5rem
+--velt-icon-size: 1rem
+--velt-padding: 6px
+--velt-error-color / #dc3545
+--velt-gray-100 / #f3f4f6
+--velt-gray-500 / #6b7280
+--velt-gray-700 / #374151
+--velt-primary-500 / #6366f1
+```
+
+### Dropdown
+> Resolved from the active theme palette.
+```
+--velt-dropdown-background: var(--velt-*-mode-background-0)
+--velt-dropdown-border: var(--velt-*-mode-border-4)
+--velt-dropdown-hover: var(--velt-*-mode-background-3)
+--velt-dropdown-accent-transparent: var(--velt-*-mode-accent-transparent)
+```
+
+### Skeleton loader
+> Set inline by the skeleton-loader component; override to size/shape loaders.
+```
+--velt-skeleton-loader-width   (default: 100%)
+--velt-skeleton-loader-height   (default: 100%)
+--velt-skeleton-loader-border-radius   (default: inherit)
+```
+
+### Comment pin
+```
+--velt-comment-pin-background-color / #2d62ff   — pin fill color
+--velt-comment-pin-transform / none   — extra transform applied to the pin
+--velt-line-clamp / 4   — max lines before comment text truncates
+```
+
+### Agent suggestion (comment AI suggestions)
+```
+--velt-agent-accent: #4495ff   — accent color for agent suggestion UI
+--velt-agent-accent-transparent: rgba(68, 149, 255, 0.2)
+--velt-agent-suggestion-max-height: 320px   — max height of the suggestion panel
 ```
 
 ### Z-index

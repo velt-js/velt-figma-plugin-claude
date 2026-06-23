@@ -55,10 +55,30 @@ If your design shows a component/feature that doesn't appear out of the box, **i
 | Dark mode (container) | `darkMode` | `enableDarkMode()` (sub‑area: `dialogDarkMode`, `pinDarkMode`, …) |
 | Context in page‑mode composer | `contextInPageModeComposer` *(on `<VeltCommentTool>`)* | `enableContextInPageModeComposer()` — see [`../context.md`](../context.md) |
 | `@here` mention | `atHereEnabled` | `contactElement.enableAtHere()` (+ `setAtHereLabel`/`setAtHereDescription`) |
+| Add‑comment / comment mode | — | `enableAddCommentMode()` (alias `enableCommentMode()`) |
+| Change detection in comment mode | `changeDetectionInCommentMode` | `enableChangeDetectionInCommentMode()` |
+| Comment to nearest allowed element | `commentToNearestAllowedElement` | `enableCommentToNearestAllowedElement()` |
+| Custom autocomplete search | `customAutocompleteSearch` | `enableCustomAutocompleteSearch()` |
+| Delete‑reply confirmation | `deleteReplyConfirmation` | `enableDeleteReplyConfirmation()` |
+| Filter comments on DOM | `filterCommentsOnDom` | `enableFilterCommentsOnDom()` |
+| Filter ghost comments in sidebar | `filterGhostCommentsInSidebar` *(on `<VeltCommentsSidebar>`)* | `enableFilterGhostCommentsInSidebar()` |
+| Force‑close all on Esc | `forceCloseAllOnEsc` | `enableForceCloseAllOnEsc()` |
+| Full‑expanded dialog | `fullExpanded` | `enableFullExpanded()` |
+| Full‑screen in sidebar | — *(sidebar prop is `fullScreen`)* | `enableFullScreenInSidebar()` |
+| Inline comment mode | `inlineCommentMode` | `enableInlineCommentMode()` |
+| Link callback | `linkCallback` | `enableLinkCallback()` |
+| Query‑params comments | `queryParamsComments` *(on `<VeltCommentsSidebar>`)* | `enableQueryParamsComments()` |
+| Resolve status — admin only | `resolveStatusAccessAdminOnly` | `enableResolveStatusAccessAdminOnly()` |
+| Sidebar custom actions | — *(sidebar prop is `customActions`)* | `enableSidebarCustomActions()` |
+| Sidebar URL navigation | — *(sidebar prop is `urlNavigation`)* | `enableSidebarUrlNavigation()` |
+| Suggestion mode | `suggestionMode` | `enableSuggestionMode()` |
+| SVG as `<img>` (screenshot) | `svgAsImg` | `enableSvgAsImg()` |
 
 ## `<VeltComments>` — ON by default (turn **off** with `={false}`)
 
 `reactions`, `attachments`, `attachmentDownload`, `status`, `userMentions`, `seenByUsers`, resolve button (`enableResolve`), `scrollToComment`, `dialogOnHover`, `floatingCommentDialog`, `commentTool`, `textComments`, `deleteOnBackspace`, `areaComment`, `bubbleOnPinHover`, `pinDrag`, ghost‑comment **indicator**, and the shadow‑DOM flags (`pinShadowDom`/`dialogShadowDom`/`sidebarShadowDom`).
+
+These are **also ON by default** — turn off with `={false}` (or the imperative `disable…()`): `anonymousEmail` (`enableAnonymousEmail()`), `draftMode` (`enableDraftMode()`), floating comments (`enableFloatingComments()` — sidebar prop is `floatingMode`), `ghostCommentsMessage` (`enableGhostCommentsMessage()`), `mobileMode` (`enableMobileMode()`), `popoverTriangleComponent` (`enablePopoverTriangleComponent()`), `recordingSummary` (`enableRecordingSummary()`, deprecated alias of recording transcription), `shortUserName` (`enableShortUserName()`).
 
 > ⚠️ **`recordings` is a CSV string, not a boolean.** Default = all on (`audio,video,screen`); set `recordings="none"` to disable, or e.g. `recordings="audio,screen"`. (Also `setRecordings()`.)
 
@@ -66,18 +86,15 @@ If your design shows a component/feature that doesn't appear out of the box, **i
 
 ## Other components
 
-**`<VeltPresence>`** — `self` is **ON** (disable with `self={false}`). Flock/follow mode is **OFF** → `flockMode` / `presenceElement.enableFlockMode()`.
+**`<VeltPresence>`** — `self` (include self in the presence list) is **ON** (disable with `self={false}`; imperative `presenceElement.enableSelf()` / `disableSelf()` — backed by the service's `includeSelf`). Flock/follow mode is **OFF** → `flockMode` / `presenceElement.enableFlockMode()`.
 **`<VeltCursor>`** — avatar‑mode cursors **OFF** → `avatarMode` (no imperative pair).
-**Notifications** (`<VeltNotificationsTool>`/`Panel`): settings UI **OFF** → `settings` / `enableSettings()`; org‑level settings **OFF** → `enableSettingsAtOrganizationLevel`; self notifications **OFF** → `selfNotifications`; read‑on‑ForYou **OFF** → `readNotificationsOnForYouTab`; cross‑org feed **OFF** → `enableCrossOrganization`.
+**`<VeltReactionTool>`** — dark mode **OFF** → `reactionElement.enableDarkMode()` (no React prop on the reaction tool).
+**Notifications** (`<VeltNotificationsTool>`/`Panel`): settings UI **OFF** → `settings` / `enableSettings()`; org‑level settings **OFF** → `enableSettingsAtOrganizationLevel` (imperative `enableSettingsAtOrganizationLevel()`, backed by the service's `enableSettingsConfigByOrganization`); self notifications **OFF** → `selfNotifications` / `enableSelfNotifications()`; read‑on‑ForYou **OFF** → `readNotificationsOnForYouTab` / `enableReadNotificationsOnForYouTab()`; cross‑org feed **OFF** → `enableCrossOrganization` / `notificationElement.enableCrossOrganization()`.
 
 ## Imperative‑only gates (no React prop — call `element.enable…()`)
 
-- **Huddle:** `huddleElement.enableCursorMode()`, `enableFlockModeOnAvatarClick()`; chat is **ON** (`disableChat()` to turn off).
-- **Selection:** live selection **OFF** → `selectionElement.enableLiveSelection()`.
-- **Recorder:** video editor **OFF** → `recorderElement.enableVideoEditor()`; also `enableOnboardingTooltip()`, `enableRetakeOnVideoEditor()`, `enablePictureInPicture()`. Countdown/transcription/playback‑on‑preview are **ON**. (Recorder dark mode + mic are **tri‑state `null`** — neither on nor off until set.)
-- **Rewriter:** feature **OFF** → `rewriterElement.enableRewriter()` (default‑UI‑on‑selection is ON).
-- **Notifications:** current‑document‑only scope → `enableCurrentDocumentOnly()`.
-- **Area:** area comment is **ON** → `areaElement.disableAreaComment()` to turn off.
+- **Recorder:** video editor **OFF** → `recorderElement.enableVideoEditor()`; also `enableOnboardingTooltip()`, `enableRetakeOnVideoEditor()`, `enablePictureInPicture()`. Countdown/transcription/playback‑on‑preview are **ON** (`disableRecordingCountdown()`, `disableRecordingTranscription()`, `disablePlaybackOnPreviewClick()`). (Recorder dark mode + mic are **tri‑state `null`** — neither on nor off until set: `enableDarkMode()`/`disableDarkMode()`, `enableRecordingMic()`/`disableRecordingMic()`.)
+- **Notifications:** current‑document‑only scope **OFF** → `notificationElement.enableCurrentDocumentOnly()`.
 
 ---
 

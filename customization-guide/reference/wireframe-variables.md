@@ -30,6 +30,15 @@ Every `{…}` token you can read inside a wireframe, **organized by component**,
 | `annotation.assignedTo` | object | data | assignee (undefined = none) | `veltIf="!{annotation.assignedTo}"` | 🔑 |
 | `annotation.resolvedByUser.name` | string | data | resolver name | `<VeltData field="annotation.resolvedByUser.name"/>` | |
 | `annotation.context.<key>` | object | data | your attached [context](../context.md) | `<VeltData field="annotation.context.label"/>` | |
+| `annotation.agent` | object | data | AI-agent author (present → agent suggestion card) | `veltIf="{annotation.agent}"` | 🔑 |
+| `annotation.sourceType` | string | data | `'agent'` when agent-authored | `veltIf="{annotation.sourceType} === 'agent'"` | 🔑 |
+| `annotation.type` / `annotation.commentType` | string | data | `'suggestion'` discriminator for agent suggestions | `veltIf="{annotation.type} === 'suggestion'"` | 🔑 |
+| `annotation.suggestion.status` | string | data | resolved state (`'accepted'`/`'rejected'`; absent = pending) | `veltIf="{annotation.suggestion.status} === 'accepted'"` | 🔑 |
+| `annotation.suggestion.resolvedBy.name` | string | data | who accepted/rejected the suggestion | `<VeltData field="annotation.suggestion.resolvedBy.name"/>` | |
+| `annotation.suggestion.resolvedAt` | number | data | resolution timestamp | — | |
+| `agentName` | string | data | agent display name (`annotation.agent.agentName`) | `<VeltData field="agentName"/>` | |
+| `agentAvatar` | string | data | agent avatar URL (truthiness → has-avatar) | `veltIf="{agentAvatar}"` | 🔑 |
+| `agentResultTitle` | string | data | agent result title (`annotation.agent.result.title`) | `<VeltData field="agentResultTitle"/>` | |
 | `commentAnnotation` / `commentAnnotations` | object/array | data | aliases of annotation(s) | — | |
 | `comment` / `commentObj` | object | data | per‑comment (thread‑card scope) | `<VeltData field="comment.from.name"/>` | |
 | `annotations` / `allAnnotations` | array | data | in‑scope / unfiltered | — | |
@@ -58,6 +67,8 @@ Every `{…}` token you can read inside a wireframe, **organized by component**,
 | `priorityOptions` / `priorityObj` | array/object | feature/iter | priority options / per‑item | `<velt-data field="priorityObj.name">` | |
 | `enableSignInButton` / `enableUpgradeButton` / `enableGhostCommentsMessage` | bool | feature | conditional buttons/banners | `veltIf="{enableSignInButton}"` | 🔑 |
 | `suggestionMode` / `moderatorMode` / `enableAutoCategorize` / `isPlanExpired` | bool | feature | modes / plan | — | 🔑 |
+| `showSuggestionModeActions` | bool | ui | show suggestion accept/reject actions | `veltIf="{showSuggestionModeActions}"` | 🔑 |
+| `commentAcceptedStatus` / `commentRejectedStatus` | object | feature | suggestion accept/reject status objects (compare `.id`) | `veltClass="'accepted': {annotation.status.id} === {commentAcceptedStatus.id}"` | |
 | `allowedFileTypes` / `allowedRecordings` / `screenSharingSupported` | array/bool | feature | attachment / recording limits | — | |
 | `recordingSummaryEnabled` / `enterKeyToSubmit` / `deleteOnBackspace` / `deleteThreadWithFirstComment` | bool | feature | misc behavior | — | 🔑 |
 | `file` (`.uploading`) / `invalidFile` (`.errorMessage`) | object | iteration | per attachment | `velt-class="'is-uploading': {file.uploading}"` | 🔑 |

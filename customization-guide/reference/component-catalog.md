@@ -4,7 +4,7 @@ Maps each comment surface to its **primitive** component and its **wireframe** f
 
 > **Companion references (use these for the complete data):**
 > - [`wireframe-components.md`](./wireframe-components.md) — all **82** wireframe components + **full** slot trees + slot input props.
-> - [`primitives.md`](./primitives.md) — all **421** primitive components (incl. every sub-component).
+> - [`primitives.md`](./primitives.md) — all **491** primitive components (incl. every sub-component).
 > - [`component-config.md`](./component-config.md) — layout/mode **props** (filter layout, embed mode, panel mode, …).
 > - [`css-classes.md`](./css-classes.md) — structural + stateful **CSS classes**.
 > - [`wireframe-variables.md`](./wireframe-variables.md) — the `{variable}` catalog.
@@ -29,9 +29,119 @@ The slot trees on this page are an orientation overview; the **complete** trees 
 | Multi‑thread dialog | `VeltMultiThreadCommentDialog` | `VeltMultiThreadCommentDialogWireframe` |
 | Inline comments section | `VeltInlineCommentsSection` | `VeltInlineCommentsSectionWireframe` |
 | Text comment | `VeltTextComment` | `VeltTextCommentToolbarWireframe` / `VeltTextCommentToolWireframe` |
+| Comments minimap | `VeltCommentsMinimap` | (no wireframe — props + CSS) |
 | Generic action button (in wireframes) | — | `VeltButtonWireframe` |
 
 Dialog dropdown sub‑wireframes also exist: `VeltCommentDialogOptionsDropdownTriggerWireframe` / `…ContentWireframe`, and the same for `Status` and `Priority` dropdowns.
+
+---
+
+## Surface lookup — props · flags · variables · refs (the one‑stop map)
+
+One entry per surface, so you can resolve everything for a surface from a single place. Each lists the **primitive**, the **root wireframe** (registering it is what turns shadow DOM off for that surface — see [`approaches/css.md`](../approaches/css.md#shadow-dom--wireframes-root-vs-nested) and decision‑tree S6), the **key props** a customization typically sets, the **off‑by‑default flags** to enable if the design shows them, and the **key `{variables}`** for dynamic markup. These are the *common* identifiers — the **exhaustive** lists are [`props.md`](./props.md), [`feature-flags.md`](./feature-flags.md), and [`wireframe-variables.md`](./wireframe-variables.md); slot trees are [`wireframe-components.md`](./wireframe-components.md). Never use a name that isn't in those (R10).
+
+> **Root‑wireframe note:** each surface's top‑level `Velt…Wireframe` below is its **root** — registering it removes that surface's own shadow DOM (class CSS reaches it). Dialog and pin are *verified in‑browser* ([`wireframe-components.md`](./wireframe-components.md) §2, §5). Nested/leaf‑only wireframes don't remove shadow — set `shadowDom={false}` there.
+
+### Comments
+
+**Comment dialog (a thread)**
+- Primitive `VeltCommentDialog` · Root `VeltCommentDialogWireframe` *(root — shadow auto‑off, verified)*
+- Key props: `annotationId`, `variant`, `commentPinType`, `readOnly`, `messageTruncation`, `fullExpanded`
+- Off‑by‑default flags: `priority`, `replyAvatars`, `commentIndex`, `sidebarButtonOnCommentDialog`, `formatOptions`
+- Key variables: `{annotation.status.id}` (`OPEN`/`IN_PROGRESS`/`RESOLVED`), `{annotation.priority.id}`, `{annotation.comments.length}`, `{annotation.unreadCount}`, `{annotation.assignedTo}`
+- Refs: [`approaches/wireframes.md`](../approaches/wireframes.md) §2 · slot tree below / [`wireframe-components.md`](./wireframe-components.md) §2. **Gotcha:** `ThreadCard` must nest in `Body → Threads`.
+
+**Comment pin**
+- Primitive `VeltCommentPin` · Root `VeltCommentPinWireframe` *(root — "replaces the whole pin", verified)*
+- Key props: `annotationId`, `variant`, `context`, `locationId`
+- Off‑by‑default flags: `commentIndex` (the on‑pin number), `deviceInfo`, `commentPinHighlighter`
+- Key variables: `{annotation.status.id}`, `{annotation.annotationIndex}`, `{annotation.annotationNumber}`, `{annotation.priority.name}`, `{annotation.unreadCount}`
+- Refs: [`wireframe-components.md`](./wireframe-components.md) §5. **Gotcha:** `Index`/`Number` slots are empty containers — print with `<velt-data field="annotation.annotationIndex">`; page‑mode comments have no index/number.
+
+**Comment bubble**
+- Primitive `VeltCommentBubble` · Root `VeltCommentBubbleWireframe`
+- Key props: `targetElementId`, `avatar`, `variant`, `commentCountType`, `annotationId`, `context`
+- Off‑by‑default flags: `bubbleOnPin` (`bubbleOnPinHover` is on by default)
+- Key variables: `{annotation.status.id}`, `{annotation.comments.length}`, `{annotation.unread}`, `{annotation.unreadCount}`
+- Refs: [`wireframe-components.md`](./wireframe-components.md) §5.
+
+**Comments sidebar (V1)**
+- Primitive `VeltCommentsSidebar` · Root `VeltCommentsSidebarWireframe`
+- Key props: `embedMode`, `variant`, `position`, `pageMode`, `filterConfig`, `filterPanelLayout`, `focusedThreadMode`, `readOnly`
+- Key variables: `{focusedAnnotation}`, `{appliedFiltersCount}`, `{unreadCommentAnnotationCount}`, `{noCommentsFound}`
+- Refs: slot tree below / [`wireframe-components.md`](./wireframe-components.md) §3 · [`component-config.md`](./component-config.md) (filters). **Gotcha:** container slots drop undeclared children — declare the full tree.
+
+**Comments sidebar (V2)**
+- Primitive `VeltCommentsSidebarV2` · Root `VeltCommentsSidebarV2Wireframe`
+- Key props: `embedMode` (string in V2), `position`, `variant`, `dialogVariant`, `filterPanelLayout`, `pageMode`, `focusedThreadMode`, `darkMode`
+- Config: `filters` / `miniFilters` / `minimalFilters`, `filterOperator` ([`component-config.md`](./component-config.md))
+- Key variables: `{focusedAnnotation}`, `{appliedFiltersCount}`, `{noCommentsFound}`
+- Refs: slot tree below / [`wireframe-components.md`](./wireframe-components.md) §4.
+
+**Sidebar toggle button**
+- Primitive `VeltSidebarButton` / `VeltCommentsSidebarButton` · Root `VeltSidebarButtonWireframe` / `VeltCommentsSidebarButtonWireframe`
+- Key props: `variant`, `position`, `sidebarVariant`, `filterPanelLayout`, `commentCountType`, `sidebarShadowDom`, `pageMode`
+- Refs: [`props.md`](./props.md).
+
+**Comment tool**
+- Primitive `VeltCommentTool` · Root `VeltCommentToolWireframe`
+- Key props: `targetElementId`, `variant`, `context`, `locationId`, `disabled`
+- Off‑by‑default flags: `contextInPageModeComposer` (on `VeltCommentTool`)
+- Refs: [`props.md`](./props.md) · [`context.md`](../context.md).
+
+**Inline comments section**
+- Primitive `VeltInlineCommentsSection` · Root `VeltInlineCommentsSectionWireframe`
+- Key props: `config`, `targetElementId`, `variant`, `dialogVariant`, `composerVariant`, `composerPosition`, `multiThread`, `fullExpanded`, `readOnly`
+- Key variables: `{annotations}`, `{filterState.filters}`, `{sortState.sortBy}`, `{featureState.readOnly}`
+- Refs: [`features/comment-surfaces.md`](../features/comment-surfaces.md).
+
+**Text comment**
+- Primitive `VeltTextComment` · Root `VeltTextCommentToolWireframe` / `VeltTextCommentToolbarWireframe`
+- Key props: `annotationId`, `multiThreadAnnotationId`
+- Key variables: `{annotation.status.id}`, `{totalComments}`, `{selectedWordsCount}`
+- Refs: [`features/comment-surfaces.md`](../features/comment-surfaces.md).
+
+**Multi‑thread comment dialog**
+- Primitive `VeltMultiThreadCommentDialog` · Root `VeltMultiThreadCommentDialogWireframe`
+- Key props: `annotationId`, `multiThreadAnnotationId`, `variant`, `commentPinType`, `dialogVariant`, `inboxMode`, `readOnly`, `context`
+- Key variables: `{filteredAnnotations}`, `{commentPinSelected}`, `{minimalFilter}`, `{noCommentsFound}`
+- Refs: [`features/comment-surfaces.md`](../features/comment-surfaces.md).
+
+**Comment composer (standalone)**
+- Primitive `VeltCommentComposer` · Root `VeltCommentComposerWireframe`
+- Key props: `variant`, `dialogVariant`, `context`, `locationId`, `documentId`, `folderId`, `targetComposerElementId`, `placeholder`, `readOnly`, `darkMode`
+- Refs: [`features/comment-surfaces.md`](../features/comment-surfaces.md).
+
+**Comments minimap**
+- Primitive `VeltCommentsMinimap` · no wireframe (style via props + CSS)
+- Key props: `position`, `targetScrollableElementId`
+- Off‑by‑default: minimap renders nothing until enabled — call `commentElement.enableMinimap()` (disable with `disableMinimap()`). Not gated by a JSX flag.
+- Refs: [`features/comment-surfaces.md`](../features/comment-surfaces.md).
+
+### Notifications
+
+**Notifications panel**
+- Primitive `VeltNotificationsPanel` · Root `VeltNotificationsPanelWireframe`
+- Key props: `tabConfig`, `panelOpenMode`, `settings`, `settingsLayout`, `variant`, `pageSize`, `darkMode`, `shadowDom`
+- Off‑by‑default flags: `settings`, `enableSettingsAtOrganizationLevel`, `selfNotifications`, `readNotificationsOnForYouTab`, `enableCrossOrganization`
+- Key variables: `{selectedTab}`, `{notification}` (`.type`/`.from.name`/`.read`/`.createdAt`/`.documentName`/`.count`), `{unreadNotificationsForYou}`, `{notificationsPanelVisible}`
+- Refs: [`features/notifications.md`](../features/notifications.md).
+
+**Notifications tool (bell)**
+- Primitive `VeltNotificationsTool` · Root `VeltNotificationsToolWireframe`
+- Key props: `tabConfig`, `panelOpenMode`, `panelVariant`, `settings`, `variant`, `panelShadowDom`, `pageSize`, `darkMode`
+- Key variables: `{unreadNotificationsForYou}`, `{notification}` (per‑item, in the panel)
+- Refs: [`features/notifications.md`](../features/notifications.md).
+
+**Notifications history**
+- Primitive `VeltNotificationsHistoryPanel` · (rendered inline; no separate root wireframe)
+- Key props: `embedMode`, `onNotificationClick`, `darkMode`
+- Refs: [`features/notifications.md`](../features/notifications.md).
+
+**Notifications bottom sheet (mobile)**
+- Internal container `velt-notifications-bottom-sheet-internal` — no public `Velt*` React wrapper; the bell/panel open mode mounts the `NotificationsPanel` inside a `MatBottomSheet` on mobile.
+- Key props: `pageSize` (passed through to the panel). The panel renders in bottom‑sheet mode (`.bottom-sheet` class) — reuses `VeltNotificationsPanelWireframe` for content.
+- Refs: [`features/notifications.md`](../features/notifications.md).
 
 ---
 
@@ -115,11 +225,16 @@ Each has a primitive + (usually) a wireframe family; see [`other-features.md`](.
 
 | Feature | Primitive(s) | Wireframe(s) |
 |---|---|---|
-| Notifications | `VeltNotificationsTool`, `VeltNotificationsPanel` | `VeltNotificationsToolWireframe`, `VeltNotificationsPanelWireframe` |
-| Reactions | `VeltReactionTool` | `VeltReactionToolWireframe`, `VeltReactionPinWireframe` |
-| Presence | `VeltPresence` | `VeltPresenceWireframe` |
+| Notifications | `VeltNotificationsTool`, `VeltNotificationsPanel`, `VeltNotificationsHistoryPanel` | `VeltNotificationsToolWireframe`, `VeltNotificationsPanelWireframe` (+ `velt-notifications-bottom-sheet-internal` mobile container — internal, no `Velt*` wrapper) |
+| Reactions | `VeltReactionTool` | `VeltReactionToolWireframe`, `VeltReactionPinWireframe`, `VeltReactionsPanelWireframe`, `VeltReactionPinTooltipWireframe` |
+| Inline reactions section | `VeltInlineReactionsSection` | `VeltInlineReactionsSectionWireframe` |
+| Presence | `VeltPresence` | `VeltPresenceWireframe`, `VeltPresenceTooltipWireframe` |
 | Cursors | `VeltCursor` | `VeltCursorPointerWireframe` |
-| Recorder | `VeltRecorderControlPanel`, `VeltRecorderPlayer`, `VeltRecorderTool` | `VeltRecorderControlPanelWireframe`, `VeltRecorderPlayerWireframe`, `VeltRecorderAudioToolWireframe`, `VeltRecorderVideoToolWireframe`, `VeltRecorderScreenToolWireframe` |
-| Autocomplete (@mentions) | `VeltAutocomplete` | `VeltAutocompleteOptionWireframe`, `VeltAutocompleteGroupOptionWireframe`, `VeltAutocompleteEmptyWireframe` |
+| Recorder | `VeltRecorderControlPanel`, `VeltRecorderPlayer`, `VeltRecorderTool`, `VeltRecorderNotes` | `VeltRecorderControlPanelWireframe`, `VeltRecorderPlayerWireframe`, `VeltRecorderPlayerExpandedWireframe`, `VeltRecorderAudioToolWireframe`, `VeltRecorderVideoToolWireframe`, `VeltRecorderScreenToolWireframe`, `VeltRecorderAllToolWireframe`, `VeltRecorderAllToolMenuWireframe`, `VeltMediaSourceSettingsWireframe` |
+| Video player | `VeltVideoPlayer`, `VeltCommentPlayerTimeline` | (no dedicated root wireframe — props + CSS) |
+| Video editor | `VeltVideoEditor` | `VeltVideoEditorPlayerWireframe` |
+| Transcription / Subtitles | (no top‑level `Velt*` primitive — rendered inside the recorder player) | `VeltTranscriptionWireframe`, `VeltSubtitlesWireframe` |
+| Activity log | `VeltActivityLog` | `VeltActivityLogWireframe` |
+| Autocomplete (@mentions) | `VeltAutocomplete` | `VeltAutocompleteOptionWireframe`, `VeltAutocompleteGroupOptionWireframe`, `VeltAutocompleteEmptyWireframe`, `VeltAutocompleteChipTooltipWireframe` |
 | Arrows / Tags | `VeltArrows` / `VeltTags` (+ `VeltArrowTool` / `VeltTagTool`) | limited / no wireframe slots (CSS + props) |
 | Areas | `velt-areas` / `velt-area-tool` (custom elements; no `Velt*` React wrapper) | none (CSS + props) |

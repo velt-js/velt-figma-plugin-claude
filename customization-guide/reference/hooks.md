@@ -15,10 +15,10 @@ Grouped by purpose: **read** (data/state you render), **mutate** (actions you ca
 | `useCommentAnnotations()` | Reactive `CommentAnnotation[]` (or `null` before load) on the current document. The main data source. Use `useCommentAnnotations() ?? []`. |
 | `useGetCommentAnnotations(query?)` | Reactive, filtered query → `GetCommentAnnotationsResponse` (`{ annotations, count, … }`), not a bare array. |
 | `useCommentAnnotationById({ annotationId })` | One annotation by id. |
-| `useGetComment()` | Reactive `Comment[]` (a list, not a single comment). |
 | `useCommentAnnotationsCount(query?)` | `GetCommentAnnotationsCountResponse` (read its `count` field), not a bare number. |
 | `useCommentModeState()` | Whether comment mode is active. |
 | `useCommentSidebarData()` | Data backing the sidebar (filters/sorted list). |
+| `useUnreadCommentCountOnCurrentDocument()` | Unread *comment* count on the current document → `UnreadCommentsCount` object `{ count } \| null`. Read `.count`. |
 | `useCurrentUser()` | The identified user. |
 | `useCurrentUserPermissions()` | Current user's permissions. |
 | `useUnreadCommentAnnotationCountOnCurrentDocument()` | Returns `UnreadCommentsCount` — an **object** `{ count } \| null`, not a number. Read `.count` (e.g. `data?.count ?? 0`). Great for badges. |
@@ -44,6 +44,8 @@ Grouped by purpose: **read** (data/state you render), **mutate** (actions you ca
 | `useAddReaction()` / `useDeleteReaction()` / `useToggleReaction()` | Reactions. |
 | `useAddAttachment()` / `useDeleteAttachment()` / `useGetAttachment()` | Attachments. |
 | `useGetLink()` / `useCopyLink()` | Deep link to a comment. |
+| `useGetComment()` | Returns `{ getComment }`; `await getComment(request)` → `Comment[]` (imperative fetch, not reactive). |
+| `useGetRecording()` / `useDeleteRecording()` | Returns `{ getRecording }` / `{ deleteRecording }`; fetch or delete a recording attached to a comment. |
 
 Most return an object with a function, e.g. `const { addComment } = useAddComment();` then `await addComment({ annotationId, comment })`.
 
@@ -55,6 +57,14 @@ Most return an object with a function, e.g. `const { addComment } = useAddCommen
 | `useCommentAddHandler()` / `useCommentUpdateHandler()` | A comment added / updated. |
 | `useCommentSelectionChangeHandler()` | Selected thread changes. |
 | `useCommentCopyLinkHandler()` | A copy‑link action. |
+| `useCommentActionCallback(action)` | Typed callback for a specific comment action (`CommentEventTypesMap[action]`). |
+| `useCommentSidebarActionButtonClick()` | A custom sidebar action‑button click → `CommentSidebarCustomActionEventData \| null`. |
+| `useCommentSidebarInit()` | Fires when the comment sidebar initializes. |
+| `useCommentDialogSidebarClickHandler()` | A click on the sidebar from a comment dialog. |
+| `useNotificationEventCallback(action)` | Typed notification event callback (`NotificationEventTypesMap[action]`). |
+| `usePresenceEventCallback(action)` | Typed presence event callback (`PresenceEventTypesMap[action]`). |
+| `useRecorderAddHandler()` | Fires when a recording is added → `RecordedData \| null`. |
+| `useServerConnectionStateChangeHandler()` | Live‑state server connection state changes → `ServerConnectionState`. |
 | `useVeltEventCallback(eventName)` | Custom events (e.g. `'veltButtonClick'` from a wireframe button). |
 
 ## Control — init, scope, imperative
@@ -64,9 +74,19 @@ Most return an object with a function, e.g. `const { addComment } = useAddCommen
 | `useVeltClient()` | The Velt client (`const { client } = useVeltClient()`); imperative API + `client.getCommentElement()`. (`useClient()` is a newer alias.) |
 | `useIdentify()` | Returns `{ identify }`; call `identify(user)`. |
 | `useSetDocuments()` / `useSetDocument()` | Return a setter: `const { setDocuments } = useSetDocuments();` then `setDocuments(documents, options)`. **Not** `useSetDocuments([...])`. |
+| `useSetDocumentId(documentId)` | Argument‑form setter for a single document id (no returned setter; pass the id directly). |
+| `useUnsetDocuments()` / `useUnsetDocumentId()` | Clear the current document(s) scope. |
+| `useSetRootDocument()` | Returns `{ setRootDocument }`; `setRootDocument(document)` sets the root document. |
+| `useSetLocation(location, appendLocation?)` | Argument‑form location setter. |
+| `useSetLocations()` | Returns `{ setLocations }`; `setLocations(locations, options)`. |
+| `useSetRootLocation()` | Returns `{ setRootLocation }`; `setRootLocation(location)`. |
+| `useSetPageInfo()` / `useClearPageInfo()` | Return `{ setPageInfo }` / `{ clearPageInfo }`; set or clear page metadata. |
+| `useHeartbeat(config?)` | Reactive `GetHeartbeatResponse` (presence heartbeat). |
+| `useSetContextProvider()` | Provide custom context to comments. |
 | `useVeltInitState()` | Whether Velt finished initializing (gate rendering on this). |
 | `useUiState()` / `useSetLiveStateData()` | Shared UI state between users. |
 | `useSubscribeCommentAnnotation()` / `useUnsubscribeCommentAnnotation()` | Subscribe to a specific annotation. |
+| `useCommentUtils()` | The underlying comment element (`CommentElement | undefined`); the imperative element backing most comment hooks. |
 
 ---
 
@@ -91,11 +111,13 @@ commentElement.setCustomStatus([{ id: "new", title: "New", color: "#FF5733" }]);
 
 | Feature | Representative hooks |
 |---|---|
-| Presence | `usePresenceUsers`, `usePresenceData`, `usePresenceUtils` |
+| Presence | `usePresenceUsers`, `usePresenceData`, `usePresenceUtils`, `usePresenceEventCallback`, `useHeartbeat` |
 | Cursors | `useCursorUsers`, `useCursorUtils` |
-| Notifications | `useNotificationsData`, `useUnreadNotificationsCount`, `useNotificationSettings`, `useNotificationUtils` |
+| Notifications | `useNotificationsData`, `useUnreadNotificationsCount`, `useNotificationSettings`, `useNotificationUtils`, `useNotificationEventCallback` |
 | Reactions | `useAddReaction`, `useToggleReaction`, `useDeleteReaction` |
-| Recorder | `useRecordings`, `useRecordingDataByRecorderId`, `useRecorderUtils`, `useRecorderEventCallback` |
+| Recorder | `useRecordings`, `useRecordingDataByRecorderId`, `useRecorderUtils`, `useRecorderEventCallback`, `useRecorderAddHandler` |
+| Activity log | `useAllActivities`, `useActivityUtils` |
+| Autocomplete | `useAutocompleteUtils`, `useAutocompleteChipClick`, `useContactList`, `useContactSelected`, `useContactUtils` |
 | Tags | `useTagAnnotations`, `useTagUtils` |
 | Views/Analytics | `useUniqueViewsByUser`, `useUniqueViewsByDate`, `useViewsUtils` |
 | Live state sync | `useLiveState`, `useLiveStateData`, `useSetLiveStateData` |

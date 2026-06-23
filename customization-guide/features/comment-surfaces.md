@@ -2,6 +2,8 @@
 
 Three comment *variants* beyond the standard dialog/sidebar. They reuse the comment data model and hooks (so the comment hooks in [`../reference/hooks.md`](../reference/hooks.md) apply), and each is **wireframed**.
 
+> **Looking for the standard comment surfaces?** The **dialog, sidebar (V1/V2), sidebar button, pin, bubble, and comment tool** aren't on this page — they're the running examples throughout the approach guides ([`../approaches/wireframes.md`](../approaches/wireframes.md), [`css.md`](../approaches/css.md), [`primitives.md`](../approaches/primitives.md)), and each has a one‑stop entry (primitive · root wireframe · key props · flags · variables · refs) in the **Surface lookup** map in [`reference/component-catalog.md`](../reference/component-catalog.md). Start there for any standard comment surface; this page is only the three variants below.
+
 ---
 
 ## Text Comment (selection‑anchored)

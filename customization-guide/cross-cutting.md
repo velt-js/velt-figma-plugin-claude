@@ -69,6 +69,8 @@ Notes: dates/relative times render in Velt's UI; if you show your own timestamps
 
 ## Testing / verifying a customization
 
+> For the full **definition of "done"** — driving each surface's states, confirming Velt's behavior is intact, the static rules scan, and the PASS/PARTIAL/FAIL/BLOCKED verdict — see [`verifying-a-customization.md`](./verifying-a-customization.md). The checklist below is the **cross‑cutting** slice of that flow (a11y/dark/RTL/responsive), applied to every surface with custom markup.
+
 **Per-surface manual checklist** (run after customizing each surface):
 
 - States: **empty**, **loading/skeleton**, **unread**, **resolved**, **private**, **filtered‑to‑zero**, long content (truncation).

@@ -3,6 +3,8 @@
 Every **stateful / conditional** `velt-*` class the SDK toggles — extracted per component, with the **condition** that applies it (the condition *is* the description: "applied when …"). Target these (override with `!important`, R9b) to style state without a wireframe or hook. Prefer the `velt-*` BEM class over the short legacy twin where both appear.
 
 > Generated from source and exhaustive for **conditional** classes. Always‑on structural classes (e.g. `velt-…--container`) aren't toggled by a condition — find them by inspecting the element (`shadowDom={false}`). Conditions reference internal SDK state expressions; read them as "applied when <expr> is truthy".
+>
+> **Count: 393 class entries** (one per `` - `velt-…` `` bullet below). If a script reports fewer, it's matching only one pattern — many entries pair a `velt-*` BEM class with its short legacy twin on the same line.
 
 ## comment
 
@@ -173,6 +175,9 @@ Every **stateful / conditional** `velt-*` class the SDK toggles — extracted pe
 - `velt-comment-pin--marker-default` — applied when `!usingCustomCommentPin`
 - `velt-comment-pin--marker-transparent` — applied when `usingCustomCommentPin`
 - `velt-comment-pin--outside-viewport` — applied when `!componentConfig.uiState.annotationDragging && isOutsideViewport`
+- `velt-comment-pin--status-default` — applied when `!customStatusesShown() && componentConfig.data.annotation?.status?.type === 'default'`
+- `velt-comment-pin--status-ongoing` — applied when `!customStatusesShown() && componentConfig.data.annotation?.status?.type === 'ongoing'`
+- `velt-comment-pin--status-terminal` — applied when `!customStatusesShown() && componentConfig.data.annotation?.status?.type === 'terminal'`
 - `velt-comment-pin-open` — applied when `componentConfig.uiState.commentPinSelected && !componentConfig.uiState.annotationDragging`
 - `velt-comment-pin-unread-comment` — applied when `isAuthenticatedUser() && componentConfig.data?.unreadCommentsMap?.[componentConfig.data.annotation?.annotationId!]`
 - `velt-display-none` — applied when `localUIStateSignal().commentPinType !== 'bubble' && componentConfig.data.commentBubbleElementAnnotationId && componentConfig.data.commentBubbleElementAnnotationId !== componentConfig.data.annotation?.annotationId`
@@ -543,6 +548,26 @@ Every **stateful / conditional** `velt-*` class the SDK toggles — extracted pe
 
 - `private-comment-mode` — applied when `componentConfig.privateCommentModeEnabled`
 
+**comment-dialog-status-dropdown-trigger**
+
+- `velt-status-dropdown-trigger--default` — applied when `!componentConfig?.featureState?.customStatusesShown && currentStatus()?.type === 'default'`
+- `velt-status-dropdown-trigger--ongoing` — applied when `!componentConfig?.featureState?.customStatusesShown && currentStatus()?.type === 'ongoing'`
+- `velt-status-dropdown-trigger--rejected` — applied when `currentStatus()?.id === constants?.CommentRejectStatus?.id`
+- `velt-status-dropdown-trigger--terminal` — applied when `!componentConfig?.featureState?.customStatusesShown && currentStatus()?.type === 'terminal'`
+
+**comment-dialog-composer-attachments-selected**
+
+- `velt-comment-dialog-composer-attachments--selected` — applied when `files() && files()!.length > 0`
+
+**inline-comments-section-filter-dropdown-content-list-item-checkbox**
+
+- `velt-inline-comments-section-filter-dropdown-content-list-item-checkbox--checked` — applied when `filter?.isSelected`
+
+**comment-dialog-thread-card-unread**
+
+- `velt-thread-card--name--unread` — applied when `shouldShow()` (unread indicator rendered)
+- `velt-thread-card--name--unread--verbose` — applied when `componentConfig?.unreadIndicatorMode === unreadIndicatorModeEnum.VERBOSE`
+
 ## reaction
 
 **reaction-pin**
@@ -825,6 +850,58 @@ Every **stateful / conditional** `velt-*` class the SDK toggles — extracted pe
 
 - `pin-dragging` — applied when `componentConfig.annotationDraging`
 
+**recorder-control-panel-action-bar (mode)**
+
+- `velt-recorder-control-panel-action-bar--thread-mode` — applied when `componentConfig.mode === 'thread' && componentConfig.recorderInitData.type !== 'screen'`
+- `velt-recorder-control-panel-action-bar--floating-mode` — applied when `!(componentConfig.mode === 'thread' && componentConfig.recorderInitData.type !== 'screen')`
+
+**recorder-control-panel-loading**
+
+- `velt-recorder-control-panel-loading--thread-mode` — applied when `componentConfig.mode === 'thread'`
+- `velt-recorder-control-panel-loading--floating-mode` — applied when `componentConfig.mode !== 'thread'`
+
+**media-source-settings-audio**
+
+- `velt-media-source-settings-audio--active` — applied when `componentConfig.isAudioPermissionOpen`
+
+**media-source-settings-video**
+
+- `velt-media-source-settings-video--active` — applied when `componentConfig.isVideoPermissionOpen`
+
+**media-source-settings-options**
+
+- `velt-media-source-settings-options--current-selected` — applied when `device.deviceId === (type === 'audio' ? componentConfig.selectedAudioDevice?.deviceId : componentConfig.selectedVideoDevice?.deviceId)`
+- `velt-media-source-settings-options--label-selected` — applied when `device.deviceId === (type === 'audio' ? componentConfig.selectedAudioDevice?.deviceId : componentConfig.selectedVideoDevice?.deviceId)`
+
+**recording-preview**
+
+- `velt-recording-preview--icon-button-off` — applied when `!componentConfig.mediaConfig.audio?.enabled`
+- `velt-recording-preview--recording-started` — applied when `componentConfig.countdownStarted`
+- `velt-recording-preview--settings-button-open` — applied when `componentConfig.isSettingsOpen`
+
+**video-editor-player**
+
+- `velt-video-editor-player--add-zoom-disabled-control` — applied when `componentConfig.isCurrentTimeInZoomSection || !componentConfig.canVideoSupportZoom`
+- `velt-video-editor-player--apply-disabled-control` — applied when `componentConfig.isLoading || componentConfig.timelineData.trim.sections.length === 0`
+- `velt-video-editor-player--close-disabled-control` — applied when `componentConfig.isLoading`
+- `velt-video-editor-player--delete-disabled-control` — applied when `componentConfig.timelineData.trim.selectedSectionIndex === -1 && componentConfig.timelineData.scale.selectedSectionIndex === -1`
+- `velt-video-editor-player--download-disabled-control` — applied when `componentConfig.isDownloading`
+- `velt-video-editor-player--preview-trim-button-active` — applied when `componentConfig.isPlayingTrimPreview`
+- `velt-video-editor-player--preview-trim-button-has-scale` — applied when `componentConfig.timelineData.scale.sections.length > 0`
+- `velt-video-editor-player--trim-disabled-control` — applied when `componentConfig.timelineData.trim.selectedSectionIndex === -1 && componentConfig.timelineData.scale.selectedSectionIndex === -1`
+
+**video-editor-player-timeline-trim-section-container**
+
+- `velt-video-editor-player-timeline-trim-section-container--image-preview` — applied when `componentConfig.annotation?.attachments?.[0]?.previewImages?.length`
+
+**video-editor-player-zoom-button**
+
+- `velt-video-editor-player-zoom-button--active` — applied when `componentConfig.showZoomDropdown[index]`
+
+**video-editor-player-zoom-button-options-list-item**
+
+- `velt-video-editor-player-zoom-button-options-list-item--selected` — applied when `option.value === componentConfig.timelineData.scale.sections[index].zoomFactor`
+
 ## transcription
 
 **subtitles-dialog**
@@ -841,6 +918,7 @@ Every **stateful / conditional** `velt-*` class the SDK toggles — extracted pe
 
 **transcription-button**
 
+- `velt-transcription-button--default` — applied when `componentConfig.showDefaultBtn`
 - `velt-transcription-button--disabled` — applied when `componentConfig.transcription && !componentConfig.transcription?.transcriptedText`
 
 **transcription-panel**
@@ -859,6 +937,7 @@ Every **stateful / conditional** `velt-*` class the SDK toggles — extracted pe
 
 **subtitles-button**
 
+- `velt-subtitles-button--default` — applied when `componentConfig.showDefaultBtn`
 - `velt-subtitles-button--disabled` — applied when `componentConfig.transcription && !componentConfig.transcription?.transcriptedText`
 
 ## activity-log
@@ -911,6 +990,10 @@ Every **stateful / conditional** `velt-*` class the SDK toggles — extracted pe
 - `velt-autocomplete-inline-option--disabled` — applied when `item?.disabled`
 - `velt-group-member-option` — applied when `item.isGroupMember`
 - `velt-group-option` — applied when `item.isGroupHeader`
+
+**autocomplete-empty**
+
+- `velt-autocomplete-empty--error` — applied when `newUserContactError` (add-contact lookup failed)
 
 **autocomplete-option-description**
 

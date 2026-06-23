@@ -97,6 +97,24 @@ function buildComment(currentUser: User, text: string, html: string): Comment {
 
 > Because you hand‑build these, **read the type** (`Comment`, `CommentAnnotation`, `User` in `@veltdev/types`) and fill every field the action needs. Missing fields are the most common headless bug.
 
+**Minimal `Comment` for `addComment` / `updateComment`** (from the `Comment` type): `commentId` (number — auto if omitted), `type` (`'text' | 'voice'`, default `'text'`), `from` (a full `User` — **required**), `commentText`, `commentHtml`, `status` (`'added' | 'updated'`), and the array fields you touch (`attachments`, `taggedUserContacts`, `reactionAnnotationIds`). `from` is the field most often missed.
+
+### What each action expects (the request object)
+
+Action hooks take a single **request object**, not loose args. The required fields per common mutation (optional ones omitted; all also accept `options?`):
+
+| Hook | Request fields (required) | Notes |
+|---|---|---|
+| `useAddCommentAnnotation` → `addCommentAnnotation` | `{ annotation: CommentAnnotation }` | Creates a new thread; build the full `CommentAnnotation`. |
+| `useAddComment` → `addComment` | `{ annotationId: string; comment: Comment }` | Adds a reply to an existing thread. Optional: `assignedTo?: User`, `assigned?: boolean`. |
+| `useUpdateComment` → `updateComment` | `{ annotationId: string; comment: Comment }` | Optional `merge?: boolean` to patch rather than replace. |
+| `useDeleteComment` → `deleteComment` | `{ annotationId: string; commentId: number }` | `commentId` is a **number**. |
+| `useResolveCommentAnnotation` → `resolveCommentAnnotation` | `{ annotationId: string }` | Toggles resolved. |
+| `useUpdateStatus` → `updateStatus` | `{ annotationId: string; status: CustomStatus }` | `status` is a full `CustomStatus` object (`{ id, name, color, type, … }`), not a string — see [`reference/component-config.md`](../reference/component-config.md). |
+| `useToggleReaction` → `toggleReaction` | `{ annotationId: string; commentId: number; reaction: { reactionId: string } }` | Optional `reaction.customReaction?`. |
+
+> Exact, current shapes are the `*Request` interfaces in `@veltdev/types` (`AddCommentRequest`, `UpdateStatusRequest`, …) — read the type if a call errors. The table is the field‑level companion to R13 ("fill every field the action needs").
+
 ---
 
 ## The cost (be honest about this)

@@ -1,8 +1,8 @@
 # Reference · Primitives (complete component list)
 
-All **421** primitive (non‑wireframe) React components the SDK exports — the full set, including the **sub‑components** that mirror each wireframe's slot tree. Mount the top‑level ones (`VeltComments`, `VeltCommentDialog`, …); compose the sub‑components to restructure layouts (see [`../approaches/primitives.md`](../approaches/primitives.md)).
+All **491** primitive (non‑wireframe) React components the SDK exports — the full set, including the **sub‑components** that mirror each wireframe's slot tree. Mount the top‑level ones (`VeltComments`, `VeltCommentDialog`, …); compose the sub‑components to restructure layouts (see [`../approaches/primitives.md`](../approaches/primitives.md)).
 
-> **Two surfaces, both complete:** these **421 React components** are the React client surface. Underneath, the SDK registers **190** public `velt-*` custom‑element tags (the vanilla/framework‑agnostic surface) — the React list is larger because many React components are composition sub‑components over the same elements. A sub‑component's wireframe twin is the same name + `Wireframe` ([`wireframe-components.md`](./wireframe-components.md)). Generated from source and exhaustive.
+> **Two surfaces, both complete:** these **491 React components** are the React client surface. Underneath, the SDK registers **190** public `velt-*` custom‑element tags (the vanilla/framework‑agnostic surface) — the React list is larger because many React components are composition sub‑components over the same elements. A sub‑component's wireframe twin is the same name + `Wireframe` ([`wireframe-components.md`](./wireframe-components.md)). Generated from source and exhaustive.
 
 
 ### Comment dialog (216)
@@ -231,6 +231,66 @@ VeltCommentsSidebar
 VeltCommentsSidebarButton
 ```
 
+### Comments sidebar (V2) (56)
+```
+VeltCommentsSidebarV2
+VeltCommentSidebarV2CloseButton
+VeltCommentSidebarV2EmptyPlaceholder
+VeltCommentSidebarV2FilterButton
+VeltCommentSidebarV2FilterButtonAppliedIcon
+VeltCommentSidebarV2FilterContainer
+VeltCommentSidebarV2FilterContainerApplyButton
+VeltCommentSidebarV2FilterContainerCloseButton
+VeltCommentSidebarV2FilterContainerGroupBy
+VeltCommentSidebarV2FilterContainerResetButton
+VeltCommentSidebarV2FilterContainerSection
+VeltCommentSidebarV2FilterContainerSectionControl
+VeltCommentSidebarV2FilterContainerSectionControlChevron
+VeltCommentSidebarV2FilterContainerSectionControlChip
+VeltCommentSidebarV2FilterContainerSectionControlChipList
+VeltCommentSidebarV2FilterContainerSectionControlSearch
+VeltCommentSidebarV2FilterContainerSectionControlValue
+VeltCommentSidebarV2FilterContainerSectionField
+VeltCommentSidebarV2FilterContainerSectionLabel
+VeltCommentSidebarV2FilterContainerSectionList
+VeltCommentSidebarV2FilterContainerSectionOption
+VeltCommentSidebarV2FilterContainerSectionOptionCheckbox
+VeltCommentSidebarV2FilterContainerSectionOptionCount
+VeltCommentSidebarV2FilterContainerSectionOptionList
+VeltCommentSidebarV2FilterContainerSectionOptionName
+VeltCommentSidebarV2FilterContainerTitle
+VeltCommentSidebarV2FilterDropdown
+VeltCommentSidebarV2FilterDropdownContent
+VeltCommentSidebarV2FilterDropdownContentList
+VeltCommentSidebarV2FilterDropdownContentListCategory
+VeltCommentSidebarV2FilterDropdownContentListCategoryContent
+VeltCommentSidebarV2FilterDropdownContentListCategoryLabel
+VeltCommentSidebarV2FilterDropdownContentListItem
+VeltCommentSidebarV2FilterDropdownContentListItemCount
+VeltCommentSidebarV2FilterDropdownContentListItemIndicator
+VeltCommentSidebarV2FilterDropdownContentListItemLabel
+VeltCommentSidebarV2FilterDropdownTrigger
+VeltCommentSidebarV2FocusedThread
+VeltCommentSidebarV2FocusedThreadBackButton
+VeltCommentSidebarV2FocusedThreadDialogContainer
+VeltCommentSidebarV2FullscreenButton
+VeltCommentSidebarV2Header
+VeltCommentSidebarV2List
+VeltCommentSidebarV2ListGroupHeader
+VeltCommentSidebarV2ListGroupHeaderChevron
+VeltCommentSidebarV2ListGroupHeaderCount
+VeltCommentSidebarV2ListGroupHeaderLabel
+VeltCommentSidebarV2ListGroupHeaderSeparator
+VeltCommentSidebarV2ListItem
+VeltCommentSidebarV2PageModeComposer
+VeltCommentSidebarV2Panel
+VeltCommentSidebarV2ResetFilterButton
+VeltCommentSidebarV2Search
+VeltCommentSidebarV2SearchIcon
+VeltCommentSidebarV2SearchInput
+VeltCommentSidebarV2Skeleton
+```
+
 ### Comments (host) / thread / bubble / pin / composer / text / multi-thread / inline (79)
 ```
 VeltCanvasComment
@@ -403,9 +463,23 @@ VeltVideoEditor
 VeltVideoPlayer
 ```
 
-### Autocomplete / @mentions (1)
+### Autocomplete / @mentions (15)
 ```
 VeltAutocomplete
+VeltAutocompleteChip
+VeltAutocompleteChipTooltip
+VeltAutocompleteChipTooltipDescription
+VeltAutocompleteChipTooltipIcon
+VeltAutocompleteChipTooltipName
+VeltAutocompleteEmpty
+VeltAutocompleteGroupOption
+VeltAutocompleteOption
+VeltAutocompleteOptionDescription
+VeltAutocompleteOptionErrorIcon
+VeltAutocompleteOptionIcon
+VeltAutocompleteOptionName
+VeltAutocompletePanel
+VeltAutocompleteTool
 ```
 
 ### Presence / Cursor (2)

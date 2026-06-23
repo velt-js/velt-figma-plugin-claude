@@ -75,3 +75,4 @@ A fast, ordered playbook for the things that actually go wrong. Find your sympto
 - **Re‑check the reference pages:** [`reference/wireframe-components.md`](./reference/wireframe-components.md) (slots/props), [`reference/wireframe-variables.md`](./reference/wireframe-variables.md) (tokens), [`reference/css-classes.md`](./reference/css-classes.md) (stateful classes), [`reference/component-config.md`](./reference/component-config.md) (props).
 - **Inspect the running UI** in DevTools (`shadowDom={false}`) to see the real elements, classes, and structure Velt rendered.
 - **Isolate** — reproduce the one surface in a minimal setup with default everything, then add your customization back piece by piece.
+- **Still nothing fixes it?** Decide whether it's even fixable: [`sdk-gaps-and-blockers.md`](./sdk-gaps-and-blockers.md) rules out the fixable causes and, if none apply, shows how to record a real SDK gap honestly rather than hacking around it (R0).

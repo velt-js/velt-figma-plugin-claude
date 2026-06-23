@@ -21,6 +21,8 @@ These are **non‑negotiable**. Each is a rule + the failure it prevents. An AI 
 
 A patchy fix that "looks right" today is worse than an honest gap — it breaks silently, misleads the next person, and violates every other rule here. When in doubt, choose the clean partial result + a comment over a complete hacky one.
 
+**When you think a goal is impossible, don't guess — run the flow.** [`sdk-gaps-and-blockers.md`](./sdk-gaps-and-blockers.md) walks you through ruling out the fixable causes (shadow DOM, specificity, wrong layer, off‑by‑default feature, custom data) and, only if none apply, recording it as a real SDK gap (the code comment above + a structured gap entry). That is the supported way to honor R0.
+
 ---
 
 ## Structural
@@ -95,7 +97,7 @@ When you hand‑build a `Comment`/`CommentAnnotation`, fill every field the acti
 A flex column that should scroll needs `min-height: 0` (and `flex: 1 1 auto`) or it collapses/overflows. Common in wireframe sidebars/panels.
 
 **R15 — Verify after each surface.**
-Don't customize five surfaces half‑way. Finish one, confirm it renders and behaves (compare against Velt's default by temporarily removing your customization), then move on.
+Don't customize five surfaces half‑way. Finish one, confirm it renders and behaves (compare against Velt's default by temporarily removing your customization), then move on. Use the step‑ordered flow in [`verifying-a-customization.md`](./verifying-a-customization.md) — drive the surface's states, confirm Velt's behavior is intact, run the static rules scan, then reach a verdict.
 
 **R16 — One component at a time. Never all at once.**
 Customize **step by step, a single component per step** — register one wireframe (or compose one primitive), get it rendering correctly, verify it, *then* start the next. Do **not** write a big batch of wireframes/primitives across many surfaces in one pass and debug them together: when something doesn't render you won't know which piece broke, and wireframe gotchas (wrong nesting, container slots dropping children, shadow‑DOM) compound. Build → verify → next. (This pairs with R15.)

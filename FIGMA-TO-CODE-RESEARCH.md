@@ -64,7 +64,37 @@
 
 ---
 
+---
+
+## Deep dive: two open-source converters (bernaferrari/FigmaToCode, the-dataface/figma2html)
+
+Both are **fully deterministic (no LLM)**. They're the clearest proof of a point the commercial blogs only imply: **the layout/spacing/asset parts of Figma→code are not a judgment problem — they're a data-extraction problem.** They read exact numbers from the Figma API and map them by fixed rules. This is the direct antidote to our "looks close but the spacing/sizing is off" symptom.
+
+### FigmaToCode (bernaferrari) — deterministic layout fidelity
+- **Normalized IR first ("AltNodes").** It never emits from the raw Figma tree — it builds a virtual tree with explicit parent pointers, promotes GROUP→FRAME, inlines pointless nesting, drops invisibles, collapses empty frames to boxes. Most "wrong layout" comes from emitting against the messy raw tree.
+- **Spacing/sizing are read as EXACT numbers, never eyeballed:** `itemSpacing`→`gap`, the four `padding*` (collapsed to the concise `8px 16px` form), and resolved `layoutSizing` (FILL/HUG/FIXED). **This is precisely our bug** — I approximated px values *by eye from screenshots* instead of reading the design's real numbers (which the Figma MCP can give us).
+- **Auto Layout → flex via a fixed enum table**, with two non-obvious rules: suppress `gap` when `SPACE_BETWEEN`; and **"fill" is axis-dependent** — `flex: 1 1 0` on the parent's primary axis vs `align-self: stretch` on the counter axis. Getting fill wrong is the #1 cause of subtly-off widths.
+- **Absolute vs flow decided by the parent's `layoutMode`** (auto-layout parent → flex child, no left/top; plain frame → absolute).
+- **Icon detection:** small vector-only subtrees are flattened to a single SVG/asset rather than reconstructed as nested boxes.
+- **The architectural lesson — go hybrid:** use *deterministic code* for layout/spacing/sizing (Figma gives exact numbers; flex has exact equivalents), and reserve the *LLM* for what's genuinely semantic — mapping nodes to Velt components, prop wiring, intent. Don't make the model do flexbox arithmetic it will approximate.
+- Honest limits: no component/semantic mapping (a button is a `<div>`), no synthesized responsiveness. (Sources: [repo](https://github.com/bernaferrari/FigmaToCode), `packages/backend/src/{altNodes,common,html}`.)
+
+### figma2html (the-dataface) — asset & text fidelity (the icon fix)
+- A deterministic exporter (Figma-native reimplementation of NYT's ai2html). Core primitive: **text-vs-art split** — real DOM text overlaid on a rasterized base, so text stays crisp/selectable.
+- **The reusable mechanism for our R17 icon gap: per-node `node.exportAsync({ format: 'SVG' })`.** figma2html flattens art into one image, but the *same primitive applied per icon/vector node* is exactly how you pull the **design's real SVGs**. The research is explicit: **don't flatten — iterate the icon/vector nodes individually, export each as SVG (strip width/height for a responsive `viewBox`), and wire them into Velt's icon slots** instead of using Velt's defaults. This is the concrete recipe for the thing the run skipped (`download_assets` exists; the run never used the exports to fill slots).
+- **Text-style extraction:** "most-frequent style as the base, inline only the deltas" + a ready Figma-text-prop → CSS table (rgba fills, line-height/letter-spacing units, italic detection, `textCase`→`text-transform`). Lift wholesale for exact type.
+- **Frame-relative % coordinates** + `transform: translate()` for alignment, avoiding text-measurement rounding drift.
+- Limits: targets static graphics, requires strict frame naming; individual icons aren't extracted (it flattens) — so we adopt its *export primitive* but invert its flatten heuristic. (Sources: [repo](https://github.com/the-dataface/figma2html), [exportAsync docs](https://www.figma.com/plugin-docs/api/properties/nodes-exportasync).)
+
+### What these two add to "what we're missing" (two more concrete gaps)
+- **GAP — we eyeballed numbers instead of reading them.** Our spacing/sizing/radius came from looking at screenshots. The deterministic converters prove these should be **read as exact values from the Figma node** and treated as ground truth the model must honor — not approximated. The Planner should extract the real `itemSpacing`/padding/sizing/radius/typography per surface and hand them to the Builder as numbers; the Judge should assert against them (the measurement approach).
+- **GAP — we never exported and used the design's real SVG assets (R17).** `download_assets` was in the plan but the build used Velt's default icons and one hand-rolled data-URI. The recipe: export every icon/glyph node as SVG and **fill the Velt icon slots with them** — the exact thing `velt-harvey-demo` does with its 10 hand-ported icon components.
+- **Refined architecture takeaway:** the plugin should be **hybrid** — *deterministic* extraction (exact tokens/spacing/sizing + per-node SVG export) feeding an *LLM* mapping step (design element → Velt slot/prop/variant/icon) feeding a *measurement* judge. We currently do an all-LLM, all-eyeball pipeline; the fidelity parts should be mechanical.
+
+---
+
 ## Sources
+**Open-source converters:** [bernaferrari/FigmaToCode](https://github.com/bernaferrari/FigmaToCode), [the-dataface/figma2html](https://github.com/the-dataface/figma2html), [Figma exportAsync](https://www.figma.com/plugin-docs/api/properties/nodes-exportasync).
 **Tools:** Builder.io Visual Copilot ([intro](https://www.builder.io/blog/figma-to-code-visual-copilot), [CLI](https://www.builder.io/blog/visual-copilot-cli), [component mapping](https://www.builder.io/blog/figma-design-system-component-mapping)); Locofy LDM ([arXiv 2507.16208](https://arxiv.org/abs/2507.16208)); Anima ([pluggable design system](https://www.animaapp.com/blog/genai/pluggable-design-system-figma-to-your-design-system-code/)); TeleportHQ ([UIDL](https://docs.teleporthq.io/uidl/), [code generators](https://github.com/teleporthq/teleport-code-generators)).
 **Figma MCP / Code Connect:** [Dev Mode MCP](https://www.figma.com/blog/introducing-figma-mcp-server/), [mcp-server-guide](https://github.com/figma/mcp-server-guide/), [Code Connect](https://developers.figma.com/docs/code-connect/), [Code Connect + MCP](https://developers.figma.com/docs/figma-mcp-server/code-connect-integration/), [Design systems & AI](https://www.figma.com/blog/design-systems-ai-mcp/), [Storybook MCP](https://tympanus.net/codrops/2025/12/09/supercharge-your-design-system-with-llms-and-storybook-mcp/).
 **Verification:** [ReLook](https://arxiv.org/html/2510.11498v1), [Design2Code](https://salt-nlp.github.io/Design2Code/) ([paper](https://arxiv.org/pdf/2403.03163)), [VISTA](https://arxiv.org/html/2605.26144), [Vadim: Playwright+Figma measurement loop](https://vadim.blog/pixel-perfect-playwright-figma-mcp/), [Applitools: image comparison right](https://applitools.com/blog/how-to-do-image-comparison-right/), [Playwright snapshots](https://playwright.dev/docs/test-snapshots), [LLM-judge bias](https://www.adaline.ai/blog/llm-as-a-judge-reliability-bias).

@@ -47,7 +47,19 @@ else {
   }
 }
 
-// 4. Component dirs (warn until populated)
+// 4. Velt Code Connect manifest — present + valid (overlays validate against the guide appendix).
+if (!(await exists("manifest/velt-codeconnect.json"))) {
+  errors.push("manifest/velt-codeconnect.json not built — run scripts/build-manifest.mjs");
+} else {
+  await readJSON("manifest/velt-codeconnect.json");
+  try {
+    execSync(`node "${path.join(ROOT, "scripts/build-manifest.mjs")}" --check-only`, { stdio: ["ignore", "pipe", "pipe"] });
+  } catch (e) {
+    errors.push("manifest check failed (overlay slot/prop drift vs guide):\n" + (e.stdout?.toString() || "") + (e.stderr?.toString() || ""));
+  }
+}
+
+// 5. Component dirs (warn until populated)
 for (const d of ["skills", "agents", "commands", "templates"]) {
   if (!(await exists(d))) warns.push(`${d}/ not present yet`);
   else {

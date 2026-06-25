@@ -1,0 +1,588 @@
+{
+  "version": {
+    "hash": "e0cbd2b87214",
+    "sha": "75ef2ec",
+    "isoTime": "2026-06-25T16:45:04.152Z",
+    "totalSlots": 770,
+    "coveredSlots": 41,
+    "components": 2
+  },
+  "components": {
+    "VeltCommentsSidebarWireframe": {
+      "name": "VeltCommentsSidebarWireframe",
+      "reactImport": "VeltCommentsSidebarWireframe",
+      "rootWireframe": "velt-comments-sidebar-wireframe",
+      "onComponent": "VeltCommentsSidebar",
+      "slots": [
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.Skeleton",
+          "tag": "velt-comments-sidebar-skeleton-wireframe",
+          "parent": null,
+          "slotType": "container",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.Panel",
+          "tag": "velt-comments-sidebar-panel-wireframe",
+          "parent": null,
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "none",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown",
+          "tag": "velt-comments-sidebar-minimal-filter-dropdown-wireframe",
+          "parent": "Panel",
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "none",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Trigger",
+          "tag": "velt-comments-sidebar-minimal-filter-dropdown-trigger-wireframe",
+          "parent": "MinimalFilterDropdown",
+          "slotType": "icon",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": [],
+          "iconHint": {
+            "glyph": "filter-lines",
+            "ancestryKeyword": "filter"
+          }
+        },
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Content",
+          "tag": "velt-comments-sidebar-minimal-filter-dropdown-content-wireframe",
+          "parent": "MinimalFilterDropdown",
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "none",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Content.SortDate",
+          "tag": "velt-comments-sidebar-minimal-filter-dropdown-content-sort-date-wireframe",
+          "parent": "Content",
+          "slotType": "menu-item",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Content.SortUnread",
+          "tag": "velt-comments-sidebar-minimal-filter-dropdown-content-sort-unread-wireframe",
+          "parent": "Content",
+          "slotType": "menu-item",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Content.FilterResolved",
+          "tag": "velt-comments-sidebar-minimal-filter-dropdown-content-filter-resolved-wireframe",
+          "parent": "Content",
+          "slotType": "menu-item",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Content.FilterAssignedToMe",
+          "tag": "velt-comments-sidebar-minimal-filter-dropdown-content-filter-assigned-to-me-wireframe",
+          "parent": "Content",
+          "slotType": "menu-item",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Content.SelectedIcon",
+          "tag": "velt-comments-sidebar-minimal-filter-dropdown-content-selected-icon-wireframe",
+          "parent": "Content",
+          "slotType": "icon",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.PageModeComposer",
+          "tag": "velt-comments-sidebar-page-mode-composer-wireframe",
+          "parent": "Panel",
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.EmptyPlaceholder",
+          "tag": "velt-comments-sidebar-empty-placeholder-wireframe",
+          "parent": "Panel",
+          "slotType": "container",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.List",
+          "tag": "velt-comments-sidebar-list-wireframe",
+          "parent": "Panel",
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentsSidebarWireframe.List.Item.DialogContainer",
+          "tag": "velt-comments-sidebar-list-item-dialog-container-wireframe",
+          "parent": "List",
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        }
+      ],
+      "hostProps": [
+        {
+          "prop": "embedMode",
+          "value": true,
+          "producesStructure": "embeds the sidebar inline in the page rather than a floating drawer"
+        },
+        {
+          "prop": "pageMode",
+          "value": true,
+          "producesStructure": "renders comments as a page-mode list with the composer at the top (not pin-anchored)"
+        },
+        {
+          "prop": "shadowDom",
+          "value": false,
+          "producesStructure": "REQUIRED to style: lets external class CSS reach inside the sidebar + the dialogs it renders"
+        },
+        {
+          "prop": "defaultMinimalFilter",
+          "value": "open",
+          "producesStructure": "initial minimal-filter selection"
+        },
+        {
+          "prop": "sortBy",
+          "value": "createdAt",
+          "producesStructure": "list ordering field"
+        },
+        {
+          "prop": "sortOrder",
+          "value": "desc",
+          "producesStructure": "list ordering direction (newest first)"
+        }
+      ],
+      "variants": []
+    },
+    "VeltCommentDialogWireframe": {
+      "name": "VeltCommentDialogWireframe",
+      "reactImport": "VeltCommentDialogWireframe",
+      "rootWireframe": "velt-comment-dialog-wireframe",
+      "onComponent": "VeltComments",
+      "slots": [
+        {
+          "reactPath": "VeltCommentDialogWireframe.Body",
+          "tag": "velt-comment-dialog-body-wireframe",
+          "parent": null,
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "none",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.Threads",
+          "tag": "velt-comment-dialog-threads-wireframe",
+          "parent": "Body",
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "none",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard",
+          "tag": "velt-comment-dialog-thread-card-wireframe",
+          "parent": "Threads",
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "none",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard.Avatar",
+          "tag": "velt-comment-dialog-thread-card-avatar-wireframe",
+          "parent": "ThreadCard",
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": "Comment.from (user.color/initial drive the avatar)",
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard.Name",
+          "tag": "velt-comment-dialog-thread-card-name-wireframe",
+          "parent": "ThreadCard",
+          "slotType": "text",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": "Comment.from.name",
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard.Time",
+          "tag": "velt-comment-dialog-thread-card-time-wireframe",
+          "parent": "ThreadCard",
+          "slotType": "text",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": "Comment.createdAt",
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard.Edited",
+          "tag": "velt-comment-dialog-thread-card-edited-wireframe",
+          "parent": "ThreadCard",
+          "slotType": "text",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": "Comment.isEdited",
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard.Draft",
+          "tag": "velt-comment-dialog-thread-card-draft-wireframe",
+          "parent": "ThreadCard",
+          "slotType": "text",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard.Unread",
+          "tag": "velt-comment-dialog-thread-card-unread-wireframe",
+          "parent": "ThreadCard",
+          "slotType": "text",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard.Message",
+          "tag": "velt-comment-dialog-thread-card-message-wireframe",
+          "parent": "ThreadCard",
+          "slotType": "text",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": "Comment.commentText/commentHtml (mentions render as .velt-mention — colour teal #227277)",
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard.Reply",
+          "tag": "velt-comment-dialog-thread-card-reply-wireframe",
+          "parent": "ThreadCard",
+          "slotType": "action",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": [],
+          "iconHint": {
+            "nearText": "Reply",
+            "glyph": "reply-arrow"
+          }
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ResolveButton",
+          "tag": "velt-comment-dialog-resolve-button-wireframe",
+          "parent": "ThreadCard",
+          "slotType": "icon",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": [],
+          "iconHint": {
+            "glyph": "check-circle",
+            "ancestryKeyword": "hover"
+          }
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.UnresolveButton",
+          "tag": "velt-comment-dialog-unresolve-button-wireframe",
+          "parent": "ThreadCard",
+          "slotType": "icon",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard.Options",
+          "tag": "velt-comment-dialog-thread-card-options-wireframe",
+          "parent": "ThreadCard",
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "none",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard.Options.Trigger",
+          "tag": "velt-comment-dialog-options-dropdown-trigger-wireframe",
+          "parent": "Options",
+          "slotType": "icon",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": [],
+          "iconHint": {
+            "glyph": "kebab",
+            "ancestryKeyword": "comment"
+          }
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard.Options.Content",
+          "tag": "velt-comment-dialog-options-dropdown-content-wireframe",
+          "parent": "Options",
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard.Options.Content.Edit",
+          "tag": "velt-comment-dialog-options-dropdown-content-edit-wireframe",
+          "parent": "Content",
+          "slotType": "menu-item",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": [],
+          "iconHint": {
+            "nearText": "Edit",
+            "glyph": "pencil"
+          }
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.CopyLink",
+          "tag": "velt-comment-dialog-copy-link-wireframe",
+          "parent": "Content",
+          "slotType": "menu-item",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": [],
+          "iconHint": {
+            "nearText": "Copy",
+            "glyph": "link"
+          }
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ThreadCard.Options.Content.Delete",
+          "tag": "velt-comment-dialog-options-dropdown-content-delete-wireframe",
+          "parent": "Content",
+          "slotType": "menu-item",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": [],
+          "iconHint": {
+            "nearText": "Delete",
+            "glyph": "trash"
+          }
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.MoreReply",
+          "tag": "velt-comment-dialog-more-reply-wireframe",
+          "parent": "Body",
+          "slotType": "action",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.MoreReply.Count",
+          "tag": "velt-comment-dialog-more-reply-count-wireframe",
+          "parent": "MoreReply",
+          "slotType": "text",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": "hidden reply count (SDK-controlled)",
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.MoreReply.Text",
+          "tag": "velt-comment-dialog-more-reply-text-wireframe",
+          "parent": "MoreReply",
+          "slotType": "text",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.ToggleReply",
+          "tag": "velt-comment-dialog-toggle-reply-wireframe",
+          "parent": "Body",
+          "slotType": "action",
+          "mustSupply": true,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.Composer",
+          "tag": "velt-comment-dialog-composer-wireframe",
+          "parent": null,
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "none",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.Composer.Avatar",
+          "tag": "velt-comment-dialog-composer-avatar-wireframe",
+          "parent": "Composer",
+          "slotType": "container",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.Composer.Input",
+          "tag": "velt-comment-dialog-composer-input-wireframe",
+          "parent": "Composer",
+          "slotType": "input",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": []
+        },
+        {
+          "reactPath": "VeltCommentDialogWireframe.Composer.ActionButton",
+          "tag": "velt-comment-dialog-composer-action-button-wireframe",
+          "parent": "Composer",
+          "slotType": "action",
+          "mustSupply": false,
+          "defaultContent": "velt",
+          "dataField": null,
+          "cssClasses": [],
+          "slotProps": [
+            {
+              "prop": "type",
+              "values": "`userMentions` · `autocomplete` · `file` · `audio` · `video` · `screen` · `submit` · `attachments` · `format`"
+            },
+            {
+              "prop": "hotkey",
+              "values": "string"
+            }
+          ]
+        }
+      ],
+      "hostProps": [
+        {
+          "prop": "shadowDom",
+          "value": false,
+          "producesStructure": "REQUIRED to style: external class CSS reaches the dialog markup"
+        },
+        {
+          "prop": "commentPlaceholder",
+          "value": "Comment or tag others with @",
+          "producesStructure": "page-mode composer placeholder"
+        },
+        {
+          "prop": "replyPlaceholder",
+          "value": "Reply...",
+          "producesStructure": "reply composer placeholder"
+        },
+        {
+          "prop": "collapsedComments",
+          "value": true,
+          "producesStructure": "collapses a long thread to first comment + a 'Show N replies' MoreReply control + last; WITHOUT this the MoreReply/overflow structure never renders (gap item 9)"
+        },
+        {
+          "prop": "collapsedRepliesPreview",
+          "value": true,
+          "producesStructure": "shows the collapsed replies preview divider (the MoreReply Count/Text slots)"
+        },
+        {
+          "prop": "paginatedContactList",
+          "value": true,
+          "producesStructure": "paginates the @mention contact list"
+        },
+        {
+          "prop": "visibilityOptions",
+          "value": true,
+          "producesStructure": "renders the VisibilityBanner / visibility dropdown"
+        }
+      ],
+      "variants": [
+        "dialog",
+        "sidebar",
+        "page-mode-composer"
+      ]
+    }
+  },
+  "recognition": [
+    {
+      "cue": "A right-side comment list panel with a 'Comments' header, a sort/filter icon, a composer input at top, and stacked comment cards",
+      "component": "VeltCommentsSidebarWireframe",
+      "hostProps": [
+        "embedMode",
+        "pageMode"
+      ],
+      "note": "page-mode embedded sidebar"
+    },
+    {
+      "cue": "A comment/thread card: small avatar, author name + timestamp, message text, a 'Reply' affordance; hover reveals resolve + kebab",
+      "component": "VeltCommentDialogWireframe.ThreadCard",
+      "note": "author as a separate ThreadCardWf using VeltCommentDialogWireframe.ThreadCard"
+    },
+    {
+      "cue": "A minimal sort/filter dropdown (Sort by date/unread, Show resolved, mentions)",
+      "component": "VeltCommentsSidebarWireframe.MinimalFilterDropdown"
+    },
+    {
+      "cue": "A kebab menu with Edit / Copy link / Delete",
+      "component": "VeltCommentDialogWireframe.ThreadCard.Options",
+      "note": "curate items via Options.Content.Edit + CopyLink + Options.Content.Delete"
+    },
+    {
+      "cue": "A 'Show N replies…' expander between the first and last comment of a thread",
+      "component": "VeltCommentDialogWireframe.MoreReply",
+      "requiresHostProps": [
+        "collapsedComments",
+        "collapsedRepliesPreview"
+      ]
+    },
+    {
+      "cue": "An empty state with an illustration and 'Be the first to comment'",
+      "component": "VeltCommentsSidebarWireframe.EmptyPlaceholder"
+    }
+  ]
+}

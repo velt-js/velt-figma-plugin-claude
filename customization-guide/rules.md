@@ -109,7 +109,16 @@ Customize **step by step, a single component per step** — register one wirefra
 If the design has an icon, glyph, or illustration, **use the design's own exported asset** (the SVG from Figma). Do **not** approximate it with hand‑written CSS shapes, Unicode glyphs, or a different icon from the app — a CSS‑drawn arrow that "looks close" is not a match and is a defect. Extract the asset during recognition and reference it; only fall back to an existing app icon when the design genuinely reuses that exact one.
 
 **R18 — Touch only the Velt customization; never change default project behavior.**
-Confine changes to `components/velt/ui-customization/` and its assets. **Do not** fix the host app's own (non‑Velt) UI even if it diverges from the design, and **do not** alter any default project behavior, config, or files outside the customization. If a host change is genuinely *required* for the customization to work (e.g. a mount point, a prop on the host component), apply it **temporarily**, verify it works, **then revert it**, and **report it to the user** as a required manual change ("add X to get this running") — never bake it into the project silently.
+Confine changes to `components/velt/ui-customization/` and its assets. **Do not** fix the host app's own (non‑Velt) UI even if it diverges from the design, and **do not** alter any default project behavior, config, or files outside the customization. If a host change is genuinely *required* for the customization to work (e.g. a mount point, a prop on the host component), apply it **temporarily**, verify it works, **then revert it**, and **report it to the user** as a required manual change ("add X to get this running") — never bake it into the project silently. *(The one standing exception: mounting `<VeltCustomization/>` once + the host props the Connect Map requires (R21) are the integration itself — apply them and report them, don't revert them.)*
+
+**R19 — Supply every `mustSupply` slot; never leave a Velt default.**
+For every slot the manifest ([`reference/manifest.md`](./reference/manifest.md)) marks `mustSupply` that the design touches, supply the design's own content — the exported SVG icon (R17), the exact label text, the explicit menu items. **Leaving a `mustSupply` slot to render Velt's default is a defect, not "close enough"** — it is the exact class of miss (filter icon, options-menu items, reply/resolve icons, empty placeholder) the Judge hard‑fails. An icon slot must contain the design's SVG, verified by identity.
+
+**R20 — Measure, don't eyeball; "looks close" is a FAIL.**
+A surface is verified by **measurement** — the rendered computed style diffed against the `designSpec`'s exact numbers, per element, per property (colour CIEDE2000 ΔE < 2, lengths ±1px, keywords exact). **There is no aggregate score** to average a miss away, and the side‑by‑side screenshot **corroborates** the measurement, never replaces it. Numbers come from the `designSpec` (read deterministically), never approximated from a screenshot.
+
+**R21 — Props‑first: structure a prop produces is never built in CSS.**
+Set every host prop/feature‑flag the Connect Map lists as `producesStructure` (e.g. `collapsedComments`+`collapsedRepliesPreview` → the `MoreReply` control, `defaultMinimalFilter`, `sortBy/Order`, placeholders, `visibilityOptions`, `shadowDom:false`) **before** writing any CSS. Reaching for CSS to fake structure a prop already produces is a defect — climb the feasibility ladder (default → prop/config → wireframe → primitive → headless) in order.
 
 ---
 
@@ -124,4 +133,7 @@ Confine changes to `components/velt/ui-customization/` and its assets. **Do not*
 - [ ] Folder structure matches the reference (R11).
 - [ ] Each surface uses the cheapest viable layer (R12).
 - [ ] Icons/assets use the design's exported SVGs, not hand‑drawn shapes (R17).
-- [ ] Only the Velt customization changed; any required host change is reverted + reported, not baked in (R18).
+- [ ] Only the Velt customization changed; required host changes (mount + Connect-Map props) applied + reported (R18).
+- [ ] Every `mustSupply` slot the design touches is supplied with the design's content — no Velt defaults left (R19).
+- [ ] Verified by **measurement** vs the `designSpec` (ΔE<2, ±1px), per element, no aggregate; "looks close" rejected (R20).
+- [ ] Host props that produce structure set **before** CSS; no CSS faking prop-produced structure (R21).

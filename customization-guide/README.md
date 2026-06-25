@@ -40,7 +40,7 @@ Read in this order. Don't skip the first three — they prevent 90% of mistakes.
 1. **[`01-overview.md`](./01-overview.md)** — the mental model + how the layers relate. *(5 min)*
 2. **[`02-decision-tree.md`](./02-decision-tree.md)** — **start here for any new design.** Pick the right layer(s) for what you're building. *(the spine of this guide)*
 3. **[`03-getting-started.md`](./03-getting-started.md)** — prerequisites, the `shadowDom` rule, and the folder structure to put your code in.
-4. **[`build-methodology.md`](./build-methodology.md)** — **HOW to build:** Step-1 design overview (every frame/state) → Step-2 build in small patches, each made pixel-perfect (inspect→override→visually-compare). The proven process. Pair with **[`build-gotchas.md`](./build-gotchas.md)** (the traps you'll hit + the fix).
+4. **[`build-methodology.md`](./build-methodology.md)** — **HOW to build:** the **extract → map → build → measure** pipeline. Extract the exact numbers + icon SVGs deterministically (**[`extraction.md`](./extraction.md)**), map each element to a real slot/prop/icon (Velt Code Connect, **[`reference/manifest.md`](./reference/manifest.md)** — props-first, supply every slot), build in small patches applying the exact numbers, then **measure** (delta table, not eyeballing). Pair with **[`build-gotchas.md`](./build-gotchas.md)** (the traps + the fix).
 5. **The approach you picked** — open the matching file in [`approaches/`](./approaches).
 6. **The feature you're customizing** — comments are covered throughout the approach guides; to resolve a specific comment **surface** (dialog, sidebar V1/V2, sidebar button, pin, bubble, comment tool) to its primitive · root wireframe · key props · flags · variables, use the **Surface lookup** map in [`reference/component-catalog.md`](./reference/component-catalog.md). For any other feature (notifications, reactions, recorder, mentions, presence/cursors, activity log, …) open its deep guide in [`features/`](./features) (index: [`other-features.md`](./other-features.md)).
 7. **Does the design need a component that isn't showing?** Check [`reference/feature-flags.md`](./reference/feature-flags.md) — many features (reply avatars, priority, minimap, @here, …) are **off by default** and just need a prop.
@@ -60,7 +60,8 @@ customization-guide/
 ├── 01-overview.md                  Mental model + the 4 layers + shadow DOM
 ├── 02-decision-tree.md             HOW TO CHOOSE a layer (or mix) — the spine
 ├── 03-getting-started.md           Prerequisites, shadowDom, folder structure
-├── build-methodology.md            HOW TO BUILD — Step-1 overview, Step-2 small pixel-perfect patches
+├── build-methodology.md            HOW TO BUILD — the extract → map → build → measure pipeline
+├── extraction.md                   Deterministic Figma extraction → the designSpec (exact numbers + icon SVGs)
 ├── build-gotchas.md                The wireframe/clone/styling traps + their fixes
 ├── approaches/
 │   ├── css.md                      Theme with variables; class overrides with !important
@@ -85,7 +86,8 @@ customization-guide/
 │   ├── behaviors.md                BEHAVIOR layer: prop defaults, how props combine, dialog state machine, variant scoping, positioning ownership
 │   ├── data-models.md              DATA layer: entity fields, which hook/event exposes each, custom-data storage, documented absences
 │   ├── hooks.md                    Headless hooks (read / mutate / control)
-│   └── _entry-contract.md          The 5-layer standard every reference entry must meet
+│   ├── _entry-contract.md          The 5-layer standard every reference entry must meet
+│   └── manifest.md                 The Velt Code Connect manifest — typed slots · mustSupply · host-props-that-produce-structure
 ├── features/                       Deep per-feature guides (non-comments)
 │   ├── notifications.md
 │   ├── reactions.md

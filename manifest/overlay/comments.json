@@ -1,0 +1,89 @@
+{
+  "_note": "Curated semantic+structural overlay for the comments surfaces. Hand-authored from the slot trees in reference/wireframe-components.md and the proven velt-harvey-demo accessors. Every `tag` is validated against the 770-slot appendix by build-manifest.mjs. reactPath = the gold-proven React dotted accessor the Builder writes; tag = the registered velt-*-wireframe element it renders.",
+  "components": [
+    {
+      "name": "VeltCommentsSidebarWireframe",
+      "reactImport": "VeltCommentsSidebarWireframe",
+      "rootWireframe": "velt-comments-sidebar-wireframe",
+      "onComponent": "VeltCommentsSidebar",
+      "hostProps": [
+        { "prop": "embedMode", "value": true, "producesStructure": "embeds the sidebar inline in the page rather than a floating drawer" },
+        { "prop": "pageMode", "value": true, "producesStructure": "renders comments as a page-mode list with the composer at the top (not pin-anchored)" },
+        { "prop": "shadowDom", "value": false, "producesStructure": "REQUIRED to style: lets external class CSS reach inside the sidebar + the dialogs it renders" },
+        { "prop": "defaultMinimalFilter", "value": "open", "producesStructure": "initial minimal-filter selection" },
+        { "prop": "sortBy", "value": "createdAt", "producesStructure": "list ordering field" },
+        { "prop": "sortOrder", "value": "desc", "producesStructure": "list ordering direction (newest first)" }
+      ],
+      "variants": [],
+      "slots": [
+        { "reactPath": "VeltCommentsSidebarWireframe.Skeleton", "tag": "velt-comments-sidebar-skeleton-wireframe", "parent": null, "slotType": "container", "mustSupply": true, "defaultContent": "velt", "_note": "loading state — supply custom skeleton cards matching the design's stacked cards" },
+        { "reactPath": "VeltCommentsSidebarWireframe.Panel", "tag": "velt-comments-sidebar-panel-wireframe", "parent": null, "slotType": "container", "mustSupply": false, "defaultContent": "none" },
+        { "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown", "tag": "velt-comments-sidebar-minimal-filter-dropdown-wireframe", "parent": "Panel", "slotType": "container", "mustSupply": false, "defaultContent": "none" },
+        { "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Trigger", "tag": "velt-comments-sidebar-minimal-filter-dropdown-trigger-wireframe", "parent": "MinimalFilterDropdown", "slotType": "icon", "mustSupply": true, "defaultContent": "velt", "iconHint": { "glyph": "filter-lines", "ancestryKeyword": "filter" }, "_note": "the filter icon — SUPPLY the design's filter-lines SVG; leaving it empty renders Velt's default glyph (gap item 1)" },
+        { "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Content", "tag": "velt-comments-sidebar-minimal-filter-dropdown-content-wireframe", "parent": "MinimalFilterDropdown", "slotType": "container", "mustSupply": false, "defaultContent": "none" },
+        { "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Content.SortDate", "tag": "velt-comments-sidebar-minimal-filter-dropdown-content-sort-date-wireframe", "parent": "Content", "slotType": "menu-item", "mustSupply": true, "defaultContent": "velt", "_note": "SUPPLY the exact label ('Sort by date') — Velt default differs from Figma" },
+        { "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Content.SortUnread", "tag": "velt-comments-sidebar-minimal-filter-dropdown-content-sort-unread-wireframe", "parent": "Content", "slotType": "menu-item", "mustSupply": true, "defaultContent": "velt" },
+        { "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Content.FilterResolved", "tag": "velt-comments-sidebar-minimal-filter-dropdown-content-filter-resolved-wireframe", "parent": "Content", "slotType": "menu-item", "mustSupply": true, "defaultContent": "velt", "_note": "label 'Show resolved comments'" },
+        { "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Content.FilterAssignedToMe", "tag": "velt-comments-sidebar-minimal-filter-dropdown-content-filter-assigned-to-me-wireframe", "parent": "Content", "slotType": "menu-item", "mustSupply": true, "defaultContent": "velt", "_note": "closest native filter to Figma's 'Only your mentions' (no native mentions filter — guide-documented)" },
+        { "reactPath": "VeltCommentsSidebarWireframe.MinimalFilterDropdown.Content.SelectedIcon", "tag": "velt-comments-sidebar-minimal-filter-dropdown-content-selected-icon-wireframe", "parent": "Content", "slotType": "icon", "mustSupply": false, "defaultContent": "velt" },
+        { "reactPath": "VeltCommentsSidebarWireframe.PageModeComposer", "tag": "velt-comments-sidebar-page-mode-composer-wireframe", "parent": "Panel", "slotType": "container", "mustSupply": false, "defaultContent": "velt", "_note": "renders the whole dialog wireframe in --page-mode-composer mode; scope card chrome off it (build-gotchas)" },
+        { "reactPath": "VeltCommentsSidebarWireframe.EmptyPlaceholder", "tag": "velt-comments-sidebar-empty-placeholder-wireframe", "parent": "Panel", "slotType": "container", "mustSupply": true, "defaultContent": "velt", "_note": "SUPPLY the design's illustration + 'Be the first to comment' copy (gate branches with velt-if {noCommentsFound}); Velt default is 'No comments to display / Clear filters' (gap item 14)" },
+        { "reactPath": "VeltCommentsSidebarWireframe.List", "tag": "velt-comments-sidebar-list-wireframe", "parent": "Panel", "slotType": "container", "mustSupply": false, "defaultContent": "velt", "_note": "list/repeater — Velt renders the loop; customize the item/dialog, not the wrapper" },
+        { "reactPath": "VeltCommentsSidebarWireframe.List.Item.DialogContainer", "tag": "velt-comments-sidebar-list-item-dialog-container-wireframe", "parent": "List", "slotType": "container", "mustSupply": false, "defaultContent": "velt" }
+      ]
+    },
+    {
+      "name": "VeltCommentDialogWireframe",
+      "reactImport": "VeltCommentDialogWireframe",
+      "rootWireframe": "velt-comment-dialog-wireframe",
+      "onComponent": "VeltComments",
+      "hostProps": [
+        { "prop": "shadowDom", "value": false, "producesStructure": "REQUIRED to style: external class CSS reaches the dialog markup" },
+        { "prop": "commentPlaceholder", "value": "Comment or tag others with @", "producesStructure": "page-mode composer placeholder" },
+        { "prop": "replyPlaceholder", "value": "Reply...", "producesStructure": "reply composer placeholder" },
+        { "prop": "collapsedComments", "value": true, "producesStructure": "collapses a long thread to first comment + a 'Show N replies' MoreReply control + last; WITHOUT this the MoreReply/overflow structure never renders (gap item 9)" },
+        { "prop": "collapsedRepliesPreview", "value": true, "producesStructure": "shows the collapsed replies preview divider (the MoreReply Count/Text slots)" },
+        { "prop": "paginatedContactList", "value": true, "producesStructure": "paginates the @mention contact list" },
+        { "prop": "visibilityOptions", "value": true, "producesStructure": "renders the VisibilityBanner / visibility dropdown" }
+      ],
+      "variants": ["dialog", "sidebar", "page-mode-composer"],
+      "slots": [
+        { "reactPath": "VeltCommentDialogWireframe.Body", "tag": "velt-comment-dialog-body-wireframe", "parent": null, "slotType": "container", "mustSupply": false, "defaultContent": "none" },
+        { "reactPath": "VeltCommentDialogWireframe.Threads", "tag": "velt-comment-dialog-threads-wireframe", "parent": "Body", "slotType": "container", "mustSupply": false, "defaultContent": "none", "_note": "ThreadCard MUST nest in Body → Threads (verified)" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard", "tag": "velt-comment-dialog-thread-card-wireframe", "parent": "Threads", "slotType": "container", "mustSupply": false, "defaultContent": "none", "_note": "per-comment row; author as a separate ThreadCardWf component (gold shape)" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard.Avatar", "tag": "velt-comment-dialog-thread-card-avatar-wireframe", "parent": "ThreadCard", "slotType": "container", "mustSupply": false, "defaultContent": "velt", "dataField": "Comment.from (user.color/initial drive the avatar)" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard.Name", "tag": "velt-comment-dialog-thread-card-name-wireframe", "parent": "ThreadCard", "slotType": "text", "mustSupply": false, "defaultContent": "velt", "dataField": "Comment.from.name" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard.Time", "tag": "velt-comment-dialog-thread-card-time-wireframe", "parent": "ThreadCard", "slotType": "text", "mustSupply": false, "defaultContent": "velt", "dataField": "Comment.createdAt" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard.Edited", "tag": "velt-comment-dialog-thread-card-edited-wireframe", "parent": "ThreadCard", "slotType": "text", "mustSupply": false, "defaultContent": "velt", "dataField": "Comment.isEdited" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard.Draft", "tag": "velt-comment-dialog-thread-card-draft-wireframe", "parent": "ThreadCard", "slotType": "text", "mustSupply": false, "defaultContent": "velt" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard.Unread", "tag": "velt-comment-dialog-thread-card-unread-wireframe", "parent": "ThreadCard", "slotType": "text", "mustSupply": false, "defaultContent": "velt" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard.Message", "tag": "velt-comment-dialog-thread-card-message-wireframe", "parent": "ThreadCard", "slotType": "text", "mustSupply": false, "defaultContent": "velt", "dataField": "Comment.commentText/commentHtml (mentions render as .velt-mention — colour teal #227277)" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard.Reply", "tag": "velt-comment-dialog-thread-card-reply-wireframe", "parent": "ThreadCard", "slotType": "action", "mustSupply": true, "defaultContent": "velt", "iconHint": { "nearText": "Reply", "glyph": "reply-arrow" }, "_note": "the 'Reply' affordance — supply the curved reply-arrow SVG + label" },
+        { "reactPath": "VeltCommentDialogWireframe.ResolveButton", "tag": "velt-comment-dialog-resolve-button-wireframe", "parent": "ThreadCard", "slotType": "icon", "mustSupply": true, "defaultContent": "velt", "iconHint": { "glyph": "check-circle", "ancestryKeyword": "hover" }, "_note": "hover resolve — supply the circled-check ResolveIcon; gate to root comment via velt-if {i}===0 (gap item 7)" },
+        { "reactPath": "VeltCommentDialogWireframe.UnresolveButton", "tag": "velt-comment-dialog-unresolve-button-wireframe", "parent": "ThreadCard", "slotType": "icon", "mustSupply": true, "defaultContent": "velt", "_note": "reopen icon, shown on a resolved thread" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard.Options", "tag": "velt-comment-dialog-thread-card-options-wireframe", "parent": "ThreadCard", "slotType": "container", "mustSupply": false, "defaultContent": "none" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard.Options.Trigger", "tag": "velt-comment-dialog-options-dropdown-trigger-wireframe", "parent": "Options", "slotType": "icon", "mustSupply": true, "defaultContent": "velt", "iconHint": { "glyph": "kebab", "ancestryKeyword": "comment" }, "_note": "kebab — supply the design's KebabIcon" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard.Options.Content", "tag": "velt-comment-dialog-options-dropdown-content-wireframe", "parent": "Options", "slotType": "container", "mustSupply": false, "defaultContent": "velt", "_note": "SUPPLY explicit items to curate the menu to Edit/Copy link/Delete; leaving empty renders Velt's default 4 items (gap item 8)" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard.Options.Content.Edit", "tag": "velt-comment-dialog-options-dropdown-content-edit-wireframe", "parent": "Content", "slotType": "menu-item", "mustSupply": true, "defaultContent": "velt", "iconHint": { "nearText": "Edit", "glyph": "pencil" }, "_note": "PencilIcon + 'Edit'" },
+        { "reactPath": "VeltCommentDialogWireframe.CopyLink", "tag": "velt-comment-dialog-copy-link-wireframe", "parent": "Content", "slotType": "menu-item", "mustSupply": true, "defaultContent": "velt", "iconHint": { "nearText": "Copy", "glyph": "link" }, "_note": "LinkIcon + 'Copy link' — dialog-level slot placed inside Options.Content (gold pattern)" },
+        { "reactPath": "VeltCommentDialogWireframe.ThreadCard.Options.Content.Delete", "tag": "velt-comment-dialog-options-dropdown-content-delete-wireframe", "parent": "Content", "slotType": "menu-item", "mustSupply": true, "defaultContent": "velt", "iconHint": { "nearText": "Delete", "glyph": "trash" }, "_note": "TrashIcon + 'Delete' (danger red #d72830)" },
+        { "reactPath": "VeltCommentDialogWireframe.MoreReply", "tag": "velt-comment-dialog-more-reply-wireframe", "parent": "Body", "slotType": "action", "mustSupply": true, "defaultContent": "velt", "_note": "the 'Show N replies…' expander; only renders when collapsedComments+collapsedRepliesPreview are set (gap item 9)" },
+        { "reactPath": "VeltCommentDialogWireframe.MoreReply.Count", "tag": "velt-comment-dialog-more-reply-count-wireframe", "parent": "MoreReply", "slotType": "text", "mustSupply": false, "defaultContent": "velt", "dataField": "hidden reply count (SDK-controlled)" },
+        { "reactPath": "VeltCommentDialogWireframe.MoreReply.Text", "tag": "velt-comment-dialog-more-reply-text-wireframe", "parent": "MoreReply", "slotType": "text", "mustSupply": false, "defaultContent": "velt" },
+        { "reactPath": "VeltCommentDialogWireframe.ToggleReply", "tag": "velt-comment-dialog-toggle-reply-wireframe", "parent": "Body", "slotType": "action", "mustSupply": true, "defaultContent": "velt", "_note": "static '↩ Reply' affordance; slot overwrites inner markup — supply ReplyArrowIcon + 'Reply'" },
+        { "reactPath": "VeltCommentDialogWireframe.Composer", "tag": "velt-comment-dialog-composer-wireframe", "parent": null, "slotType": "container", "mustSupply": false, "defaultContent": "none" },
+        { "reactPath": "VeltCommentDialogWireframe.Composer.Avatar", "tag": "velt-comment-dialog-composer-avatar-wireframe", "parent": "Composer", "slotType": "container", "mustSupply": false, "defaultContent": "velt" },
+        { "reactPath": "VeltCommentDialogWireframe.Composer.Input", "tag": "velt-comment-dialog-composer-input-wireframe", "parent": "Composer", "slotType": "input", "mustSupply": false, "defaultContent": "velt", "slotPropsHint": "placeholder/commentplaceholder/replyplaceholder" },
+        { "reactPath": "VeltCommentDialogWireframe.Composer.ActionButton", "tag": "velt-comment-dialog-composer-action-button-wireframe", "parent": "Composer", "slotType": "action", "mustSupply": false, "defaultContent": "velt", "slotPropsHint": "type=submit (the send button; NOT 'send'). idle disabled → dark enabled" }
+      ]
+    }
+  ],
+  "recognition": [
+    { "cue": "A right-side comment list panel with a 'Comments' header, a sort/filter icon, a composer input at top, and stacked comment cards", "component": "VeltCommentsSidebarWireframe", "hostProps": ["embedMode", "pageMode"], "note": "page-mode embedded sidebar" },
+    { "cue": "A comment/thread card: small avatar, author name + timestamp, message text, a 'Reply' affordance; hover reveals resolve + kebab", "component": "VeltCommentDialogWireframe.ThreadCard", "note": "author as a separate ThreadCardWf using VeltCommentDialogWireframe.ThreadCard" },
+    { "cue": "A minimal sort/filter dropdown (Sort by date/unread, Show resolved, mentions)", "component": "VeltCommentsSidebarWireframe.MinimalFilterDropdown" },
+    { "cue": "A kebab menu with Edit / Copy link / Delete", "component": "VeltCommentDialogWireframe.ThreadCard.Options", "note": "curate items via Options.Content.Edit + CopyLink + Options.Content.Delete" },
+    { "cue": "A 'Show N replies…' expander between the first and last comment of a thread", "component": "VeltCommentDialogWireframe.MoreReply", "requiresHostProps": ["collapsedComments", "collapsedRepliesPreview"] },
+    { "cue": "An empty state with an illustration and 'Be the first to comment'", "component": "VeltCommentsSidebarWireframe.EmptyPlaceholder" }
+  ]
+}

@@ -1,7 +1,7 @@
 # Velt customization — run report
 
-**Run:** `{runId}` · **Guide version:** `{guideVersion.sha}` ({guideVersion.isoTime})
-**Figma:** `{figmaNode}` · **Target repo:** `{targetRepo}` · **Chosen plan:** {per-surface layers}
+**Run:** `{runId}` · **Guide version:** `{guideVersion.sha}` · **Manifest version:** `{manifestVersion.hash}`
+**Figma:** `{figmaNode}` · **Target repo:** `{targetRepo}` · **Extraction:** {rest | mcp-fallback} · **Chosen plan:** {per-surface layers}
 
 ## Coverage — estimated vs actual
 
@@ -10,6 +10,20 @@
 | {surface} | {layer} | matched/partial/blocked | {m}/{t} | {est}% | {actual}% | {links} |
 
 **Overall actual coverage:** ~{n}% · **Tokens:** {n} ({per-phase breakdown})
+
+## Connect Map (design → Velt slot/prop/icon)
+
+| Element | Slot (reactPath) | Supplied (`fillWith`) | Host props set |
+|---|---|---|---|
+| {element} | {reactPath} | {SVG / text / markup} | {prop=value, …} |
+
+## Measured fidelity (final delta tables)
+
+Per surface × state, the Judge's delta table (empty = matched; tolerances ΔE<2 / ±1px). Any residual row is a remaining diff, not a pass.
+
+| Surface · state | Element | Property | Spec | Rendered | Pass |
+|---|---|---|---|---|---|
+| {surface}·{state} | {element} | {prop} | {spec} | {rendered} | ✓/✗ |
 
 ## Blocked / partial (needs attention)
 

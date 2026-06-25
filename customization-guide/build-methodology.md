@@ -6,6 +6,17 @@ This is the **process** (the decision tree picks the *layer*; this says *how to 
 
 **Build in small patches, each made pixel-perfect before the next. Never build the whole design in one pass.** A run that registers every wireframe + writes all the CSS at once and then "judges the surface at 90%" is the failure mode. Instead: one element → match it to the pixel → next element. Small, verified, compounding.
 
+## The pipeline: extract → map → build → measure
+
+Fidelity is a **data** problem, not a judgment one. Don't look-and-style; run this pipeline:
+
+1. **Extract** (deterministic) — produce the `designSpec`: exact spacing/sizing/radius/typography/colours + the design's exported icon SVGs ([`extraction.md`](./extraction.md)). Numbers are read, never eyeballed.
+2. **Map** (Velt Code Connect) — for each element, decide the real slot/prop/variant/icon from the manifest ([`reference/manifest.md`](./reference/manifest.md)): **props-first** (structure a prop produces is never CSS) and **supply every `mustSupply` slot** (the design's SVG/text, never a Velt default).
+3. **Build** — execute that map: wireframe files + an `icons/` file from the exported SVGs, host props set, the `designSpec`'s exact `cssDecls` applied to the real classes.
+4. **Measure** — the Judge diffs rendered computed styles against the `designSpec`, per element, per property ([`verifying-a-customization.md`](./verifying-a-customization.md)); "looks close" is a FAIL.
+
+Step 1 below is the design overview that feeds extract+map; Step 2 is build; the measured loop closes it.
+
 ---
 
 ## Step 1 — Design overview (read EVERY frame before building anything)
@@ -32,11 +43,13 @@ Pick **one surface** (dialog or sidebar — dialog first is usually easiest). Th
 
 **a. Build the structure, slot by slot.** Declare the wireframe tree for that surface (full container trees — containers drop undeclared children). Get it *rendering* before styling.
 
-**b. Style element by element — the inspect→override→compare loop (this is the core).** For each element, in a small patch:
+**a2. Supply every slot + set props first.** Before styling, fill every `mustSupply` slot from the Connect Map (the design's exported SVG icon, the exact label, the explicit menu items — never a Velt default), and set the host props that produce structure (`collapsedComments`+`collapsedRepliesPreview`, `defaultMinimalFilter`, placeholders, `shadowDom:false`, …). Structure from a prop is never built in CSS.
+
+**b. Style element by element — apply the EXACT numbers (this is the core).** For each element, in a small patch:
    1. **Render** the surface in the live app (shadow off so class CSS reaches), with seeded data so the element actually shows.
-   2. **Inspect the LIVE rendered element** (not the hidden registry template — those `*-wireframe` tags are 0-size copies). Find its real Velt class (`.velt-thread-card--name/--time/--message`, `.s-user-avatar-container`, `.velt-composer--submit-button`, …).
-   3. There IS default Velt styling that won't match the design — find the exact class and **override it with `!important`** (R9b). Don't guess values; measure the Figma frame.
-   4. **Compare the live render to the Figma frame, side by side, pixel to pixel** — border, radius, background, color, spacing, alignment, position, typography, icon. Iterate until it matches. *Then* move to the next element.
+   2. **Inspect the LIVE rendered element** (not the hidden registry template — those `*-wireframe` tags are 0-size copies) to find its real Velt class (`.velt-thread-card--name/--time/--message`, `.s-user-avatar-container`, `.velt-composer--submit-button`, …).
+   3. **Apply the Connect Map's `cssDecls` for that element** (the exact numbers from the `designSpec`) to that class, overriding Velt's default with `!important` (R9b). **Don't re-measure or eyeball — the numbers are already exact in the `designSpec`.**
+   4. The Judge then **measures** the rendered computed style against the `designSpec` (ΔE<2, ±1px) and returns a delta table; close any failing rows. *Then* the next element.
 
 **c. Interactivity & states.** Then handle hover/active states: e.g. resolve + kebab hidden by default, revealed on card hover; keep them visible while the options dropdown is open (the "active" case — hover OR a button under action). Fix empty-control gaps (`display:none` on an empty unresolve button). Composer collapsed→expanded→max-height→scroll. Hidden scrollbars (`scrollbar-width:none`).
 
@@ -50,4 +63,4 @@ Pick **one surface** (dialog or sidebar — dialog first is usually easiest). Th
 
 ## The build↔judge loop is PER PATCH, not per surface
 
-After each small patch (an element styled, a state handled), the [Judge](./verifying-a-customization.md) checks **that piece** by **visual side-by-side vs the Figma frame** — pixel to pixel. A piece isn't done until a designer couldn't tell it apart. Then the next patch. (See the gotchas you'll hit in [`build-gotchas.md`](./build-gotchas.md).)
+After each small patch (an element styled, a state handled), the [Judge](./verifying-a-customization.md) checks **that piece** by **measurement** — the delta table diffing rendered computed styles against the `designSpec` (colour ΔE<2, lengths ±1px), plus the `mustSupply`/icon-identity gate. No aggregate score; a piece isn't done until its delta table is empty across its states. Then the next patch. (See the gotchas you'll hit in [`build-gotchas.md`](./build-gotchas.md).)

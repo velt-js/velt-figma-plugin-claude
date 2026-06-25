@@ -2,7 +2,7 @@
 
 A customization is **done** when three things are true, in this order: it **matches the design**, Velt's **behavior is still intact**, and the code is **rule‑compliant**. This page is the step‑ordered flow for confirming all three on **one surface** — the executable companion to R15 (verify after each surface) and R16 (one surface at a time).
 
-> **Golden rule of verification:** compare **intent, not pixels.** Velt's rendering engine differs from a design tool's, so exact pixel parity is never the bar. The bar is: *would a designer looking at both agree this is the same design?* — layout/order, colors that trace to a token, shape, spacing, badges, typography, and the right look per state.
+> **Golden rule of verification: MEASURE, don't eyeball — and name every difference.** Fidelity is a measurement problem. Diff the rendered **computed styles** against the `designSpec`'s exact numbers, per element, per property, with tolerances (lengths **±1px**, colour **CIEDE2000 ΔE < 2**, keywords exact, font-family by family name). A surface passes only when **every** measured property of **every** element passes in **every** state — there is **no aggregate score** to hide a miss behind, and **"looks close" is a FAIL**. (Tolerances exist only because Velt's engine differs sub-pixel from a design tool — not to permit visible differences.) The screenshot side-by-side **corroborates** the measurement; it never replaces it.
 
 Run this flow **per surface**, finish it, then move to the next surface. Don't batch (R16).
 
@@ -33,16 +33,16 @@ For each visual goal, render the surface in each **state** the design covers and
 
 Capture each state as evidence. A visual goal with states `["default","resolved"]` is only checkable once you've driven both.
 
-### Step 2 — Visual check (match the design)
+### Step 2 — Measured visual check (match the design)
 
-For each visual goal, compare the rendered state against the design reference:
+For each state, run the **delta probe** rather than eyeballing — this is the gate:
 
-- **Layout & order** — are the pieces present, in the right order, nested correctly?
-- **Color** — every color must trace to a `--velt-*` token (or a documented class override). A color that matches by accident but isn't token‑backed will break in dark mode — fail it.
-- **Shape / radius / spacing**, **badges & counts**, **typography**.
-- **Per‑state look** — the design's resolved/unread/selected/empty looks, not just the default.
+1. Assemble the spec list from the Connect Map / `designSpec`: `[{ name, selector, expected: <cssDecls> }]` for every styled element **and every `mustSupply` slot** (see [`reference/manifest.md`](./reference/manifest.md)).
+2. Inject `BROWSER_PROBE` (from `scripts/delta-compare.mjs`) via the browser tool — it reads each **live** node's `getComputedStyle`/`getBoundingClientRect` (never the 0-size `*-wireframe` template) and returns a per-element, per-property **delta table** + verdict (colour by CIEDE2000, lengths ±1px, keywords exact).
+3. **Hard gates:** any console error / unbuilt page / mapped element with `width===0` ⇒ `BLOCKED`/`FAIL`. Every `mustSupply` slot must be **present and carry the design's content** — an icon slot must contain the design's exported SVG (compare identity), not a Velt default or hand-drawn glyph (R17 FAIL).
+4. **Colours still must trace to a `--velt-*` token / documented class** (an accidentally-matching hard-coded colour breaks in dark mode — fail it even if ΔE passes).
 
-Mark each visual goal **met** / **not met** with its evidence. Judge **intent**, not pixels (golden rule above).
+The delta table's failing rows ARE the feedback. Mark the goal **met** only when the table is empty for every state; otherwise **not met**, listing each `{element, property, spec, rendered}` diff.
 
 ### Step 3 — Behavior check (Velt still works)
 

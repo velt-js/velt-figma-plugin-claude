@@ -12,10 +12,36 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { compareDecls, verdictOf } from "../scripts/delta-compare.mjs";
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const GUIDE = path.join(ROOT, "guide");
 const EXPECTED_DIR = path.join(ROOT, "golden", "expected");
+const CALIB_DIR = path.join(ROOT, "golden", "calibration");
+
+// Calibrate the measurement Judge engine: a known-GOOD render (vs the velt-harvey-demo spec)
+// must PASS, a known-BAD render must FAIL with named diffs. Proves the delta engine is strict.
+async function calibrateJudge() {
+  const spec = JSON.parse(await fs.readFile(path.join(CALIB_DIR, "spec.json"), "utf8"));
+  const run = async (file) => {
+    const rendered = JSON.parse(await fs.readFile(path.join(CALIB_DIR, file), "utf8"));
+    const els = spec.map((s, i) => ({
+      name: s.name,
+      present: rendered[i]?.present !== false,
+      table: rendered[i]?.present === false ? [] : compareDecls(s.expected, rendered[i].rendered || {}),
+    }));
+    return verdictOf(els);
+  };
+  const good = await run("rendered-good.json");
+  const bad = await run("rendered-bad.json");
+  const problems = [];
+  if (good.verdict !== "PASS") problems.push(`known-GOOD render should PASS but got ${good.verdict}: ${JSON.stringify(good.diffs)}`);
+  if (bad.verdict !== "FAIL") problems.push(`known-BAD render should FAIL but got ${bad.verdict}`);
+  if (bad.diffs.length < 3) problems.push(`known-BAD render should surface multiple named diffs, got ${bad.diffs.length}`);
+  if (problems.length) { for (const p of problems) console.error("  ✗ judge-calibration: " + p); return false; }
+  console.log(`✓ Judge engine calibrated — GOOD render PASSes; BAD render FAILs with ${bad.diffs.length} named diffs (${bad.diffs.map((d) => d.element + "/" + d.property).slice(0, 4).join(", ")}…)`);
+  return true;
+}
 
 async function guideText() {
   // concatenate all guide/reference + key guide pages once, for fast substring checks
@@ -58,15 +84,19 @@ async function main() {
   }
 
   console.log("\n--- E2E checklist (run with the live plugin + Chrome + the playground) ---");
-  console.log("  1. In sdk/: `npx ng serve --port 4200` → http://localhost:4200 (the golden playground).");
-  console.log("  2. Install this plugin; connect figma-desktop + claude-in-chrome MCPs.");
-  console.log("  3. /velt-customize against a Figma frame replicating each golden design.");
-  console.log("  4. At the coverage gate, confirm the recommended layer (wireframe for both).");
-  console.log("  5. Assert: Judge verdict == expectedVerdict (PASS) with evidence, and a clean rules scan.");
-  console.log("  6. Assert: the playground still reproduces both designs (visual regression of the loop itself).");
+  console.log("  1. Serve the target app; connect figma-desktop + claude-in-chrome MCPs.");
+  console.log("  2. (optional) `node scripts/figma-extract.mjs token status` — REST extraction if a token is set, else MCP fallback.");
+  console.log("  3. /velt-customize against the Figma frame → Planner EXTRACTS a designSpec + emits a Connect Map.");
+  console.log("  4. At the coverage gate, confirm the recommended layer (wireframe).");
+  console.log("  5. Build executes the Connect Map: every mustSupply slot supplied (icons from exported SVGs), host props set, exact cssDecls applied.");
+  console.log("  6. Judge MEASURES: per-element delta tables vs the designSpec (ΔE<2, ±1px) — PASS only when empty across all states + mustSupply/icon gates pass.");
+  console.log("  7. Acceptance: re-running on harvey-playground reproduces the velt-harvey-demo shape (3 wireframe components + icons/ + host props) and every one of the 16 items in PLUGIN-RUN-GAP-ANALYSIS.md now passes.");
 
-  if (failed) { console.error(`\n✗ golden offline guard FAILED for ${failed} design(s)`); process.exit(1); }
-  console.log(`\n✓ golden offline guard passed (${fixtures.length} designs; all identifiers still valid in the guide)`);
+  const calibrated = await calibrateJudge();
+  if (!calibrated) failed++;
+
+  if (failed) { console.error(`\n✗ golden offline guard FAILED for ${failed} check(s)`); process.exit(1); }
+  console.log(`\n✓ golden offline guard passed (${fixtures.length} designs + Judge calibration; all identifiers valid in the guide)`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

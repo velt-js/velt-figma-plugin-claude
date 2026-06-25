@@ -11,7 +11,9 @@ const client = Velt; // or Snippyly
 client.getCommentElement().on('addCommentAnnotation').subscribe((event) => { /* ... */ });
 ```
 
-React equivalent: each feature exposes a `use<Feature>EventCallback` hook (e.g. `useCommentEventCallback('addCommentAnnotation')`) that returns the latest event payload — same string event names.
+React equivalent: each feature subscribes via its `use<Feature>EventCallback('<eventName>')` hook (e.g. `useCommentEventCallback('addCommentAnnotation')`, `useRecorderEventCallback('recordingDone')`, `usePresenceEventCallback('multipleUsersOnline')`, `useNotificationEventCallback('settingsUpdated')`, `useLiveStateSyncEventCallback('accessRequested')`, `useSuggestionEventCallback('suggestionCreated')`, `useCrdtEventCallback('updateData')`) that returns the latest event payload — same string event names. **Exception — Rewriter has no `use…EventCallback` hook:** subscribe via `useAIRewriterUtils()` → `rewriterElement.on('textSelected').subscribe(...)` (there is no `useRewriterEventCallback`).
+
+Payload entity shapes referenced below (`CommentAnnotation`, `Comment`, `User`, `UserContact`, `CustomStatus`, `CustomPriority`, `ReactionAnnotation`, `RecordedData`, etc.) are documented in [`data-models.md`](./data-models.md). Every event carries a `metadata` field (`VeltEventMetadata`: timestamp, document/organization/location context).
 
 | Feature | Accessor |
 |---|---|
@@ -29,50 +31,52 @@ React equivalent: each feature exposes a `use<Feature>EventCallback` hook (e.g. 
 
 ## Comments — `client.getCommentElement().on(...)`
 
-| Event name (string) | Payload type | Description |
+All Comments events carry `annotationId` (string), `commentAnnotation` ([`CommentAnnotation`](./data-models.md)), and `metadata` (`VeltEventMetadata`) unless noted otherwise.
+
+| Event name (string) | Payload type | When it fires + payload + gotcha |
 |---|---|---|
-| `addCommentAnnotation` | `AddCommentAnnotationEvent` | A new comment annotation is created. Payload includes `annotationId`, `commentAnnotation`, `metadata`, an `addContext(context)` callback to attach custom context, and optional `elementRef.xpath`. |
-| `addCommentAnnotationDraft` | `AddCommentAnnotationDraftEvent` | A new annotation composer is opened but abandoned without sending the first comment (draft). Payload has `metadata` + `addContext(context)`. |
-| `approveCommentAnnotation` | `ApproveCommentAnnotationEvent` | An annotation is approved. |
-| `acceptCommentAnnotation` | `AcceptCommentAnnotationEvent` | An annotation suggestion is accepted; includes `actionUser` and optional `replaceContentHtml`/`replaceContentText`. |
-| `rejectCommentAnnotation` | `RejectCommentAnnotationEvent` | An annotation suggestion is rejected; includes `actionUser` and optional replace content. |
-| `subscribeCommentAnnotation` | `SubscribeCommentAnnotationEvent` | A user subscribes to an annotation thread. |
-| `unsubscribeCommentAnnotation` | `UnsubscribeCommentAnnotationEvent` | A user unsubscribes from an annotation thread. |
-| `deleteCommentAnnotation` | `DeleteCommentAnnotationEvent` | An entire annotation is deleted. |
-| `assignUser` | `AssignUserEvent` | A user is assigned to an annotation; payload carries `assignedTo` (`UserContact`). |
-| `updatePriority` | `UpdatePriorityEvent` | Annotation priority changes; payload has `newPriority`/`oldPriority` (`CustomPriority`). |
-| `updateStatus` | `UpdateStatusEvent` | Annotation status changes; payload has `newStatus`/`oldStatus` (`CustomStatus`). |
-| `updateAccess` | `UpdateAccessEvent` | Annotation access mode changes; `newAccessMode`/`oldAccessMode` (`CommentAccessMode`). |
-| `resolveComment` | `ResolveCommentEvent` | An annotation is resolved. |
-| `addComment` | `AddCommentEvent` | A comment (reply) is added to an annotation; payload has `commentId` + `comment`. |
-| `addCommentDraft` | `AddCommentDraftEvent` | A reply composer on an existing annotation is abandoned without sending; `comment` is a draft snapshot of unsent content. |
-| `updateComment` | `UpdateCommentEvent` | An existing comment is edited; payload has `commentId` + `comment`. |
-| `deleteComment` | `DeleteCommentEvent` | A single comment is deleted. |
-| `addAttachment` | `AddAttachmentEvent` | Attachment(s) added to a comment; `attachments` is `AddAttachmentResponse[]`. |
-| `deleteAttachment` | `DeleteAttachmentEvent` | An attachment is removed from a comment. |
-| `deleteRecording` | `DeleteRecordingEvent` | A recording attached to a comment is deleted; payload has `recording` (`RecordedData`). |
-| `copyLink` | `CopyLinkEvent` | A user copies the deep link to a comment; payload has `link`. |
-| `addReaction` | `AddReactionEvent` | A reaction is added to a comment; payload has `reaction` (`ReactionAnnotation`). |
-| `deleteReaction` | `DeleteReactionEvent` | A reaction is removed from a comment. |
-| `toggleReaction` | `ToggleReactionEvent` | A reaction is toggled on/off on a comment. |
-| `commentSidebarDataInit` | `CommentSidebarDataInitEvent` | Comment sidebar data is first initialized. |
-| `commentSidebarDataUpdate` | `CommentSidebarDataUpdateEvent` | Comment sidebar data updates. |
-| `autocompleteSearch` | `AutocompleteSearchEvent` | User types in the mention/autocomplete field; payload has `searchText`, `type` (`'contact' \| 'custom' \| 'group'`), and the raw `event`. Use to drive custom autocomplete data sources. |
-| `composerClicked` | `ComposerClickedEvent` | The comment composer is clicked/focused. |
-| `composerTextChange` | `ComposerTextChangeEvent` | Composer text changes; payload has `text`, `annotation`, `targetComposerElementId`. |
-| `linkClicked` | `LinkClickedEvent` | A link inside a comment is clicked; payload has `text`, `link`, `commentAnnotation`, `commentId`. |
-| `commentPinClicked` | `CommentPinClickedEvent` | A comment pin is clicked. |
-| `commentBubbleClicked` | `CommentBubbleClickedEvent` | A comment bubble is clicked. |
-| `commentToolClick` | `CommentToolClickEvent` | The comment tool (add-comment mode) is clicked; payload has `context` + `targetElementId`. |
-| `commentToolClicked` | `CommentToolClickedEvent` | Past-tense variant of `commentToolClick`. |
-| `sidebarButtonClick` | `SidebarButtonClickEvent` | The sidebar toggle button is clicked. |
-| `sidebarButtonClicked` | `SidebarButtonClickedEvent` | Past-tense variant of `sidebarButtonClick`. |
-| `attachmentDownloadClicked` | `AttachmentDownloadClickedEvent` | A user clicks to download an attachment; payload has `attachment`. |
-| `commentSaved` | `CommentSavedEvent` | A comment is persisted/saved. |
-| `commentSaveTriggered` | `CommentSaveTriggeredEvent` | A comment save is triggered (before completion). |
-| `visibilityOptionClicked` | `VisibilityOptionClickedEvent` | A visibility option is selected; payload has `visibility` (`CommentVisibilityOptionType`) + optional `users`. |
-| `suggestionAccepted` | `SuggestionAcceptEvent` | An agent/comment suggestion is accepted; payload has `actionUser`. |
-| `suggestionRejected` | `SuggestionRejectEvent` | An agent/comment suggestion is rejected; payload has `actionUser` + optional `rejectReason`. |
+| `addCommentAnnotation` | `AddCommentAnnotationEvent` | **Fires:** after the first comment of a brand-new annotation (pin/thread) is persisted to the DB. Emission is deferred until that first comment saves, so an empty pin never fires it. **Payload:** `annotationId`, `commentAnnotation`, optional `elementRef.xpath`, plus an `addContext(context)` callback. **Gotcha:** `addContext` is available **only** here and on `addCommentAnnotationDraft` — call it synchronously to attach custom context at creation time. |
+| `addCommentAnnotationDraft` | `AddCommentAnnotationDraftEvent` | **Fires:** when a new-annotation composer is opened but **before** any text is persisted (the empty-pin draft state). **Payload:** `metadata` + `addContext(context)` callback. **Gotcha:** draft-only — fires before persist; if the user sends, `addCommentAnnotation` fires next. `addContext` available here. |
+| `approveCommentAnnotation` | `ApproveCommentAnnotationEvent` | **Fires:** after a user approves an annotation and `approved = true` is persisted. **Payload:** `annotationId`, `commentAnnotation`. **Gotcha:** distinct from `acceptCommentAnnotation` (which is for suggestion-type annotations). |
+| `acceptCommentAnnotation` | `AcceptCommentAnnotationEvent` | **Fires:** after a suggestion-type annotation is accepted and the terminal status is persisted. **Payload:** `actionUser` ([`User`](./data-models.md)), optional `replaceContentHtml`/`replaceContentText`. **Gotcha:** fires after persist; replace-content fields are present only when the suggestion carried replacement text. |
+| `rejectCommentAnnotation` | `RejectCommentAnnotationEvent` | **Fires:** after a suggestion-type annotation is rejected and the terminal status is persisted. **Payload:** `actionUser`, optional `replaceContentHtml`/`replaceContentText`. **Gotcha:** fires after persist. |
+| `subscribeCommentAnnotation` | `SubscribeCommentAnnotationEvent` | **Fires:** after a user subscribes to a thread; the `subscribedUsers` map is updated and persisted. **Payload:** `annotationId`, `commentAnnotation`. **Gotcha:** controls who receives notifications for the thread. |
+| `unsubscribeCommentAnnotation` | `UnsubscribeCommentAnnotationEvent` | **Fires:** after a user unsubscribes; the `unsubscribedUsers` map is updated and persisted. **Payload:** `annotationId`, `commentAnnotation`. |
+| `deleteCommentAnnotation` | `DeleteCommentAnnotationEvent` | **Fires:** after an entire annotation is deleted (requires author or admin). **Payload:** `annotationId`, `commentAnnotation` (pre-deletion snapshot). **Gotcha:** also fires as a cascade when the **last** comment of a thread is deleted — so a `deleteComment` on the final comment is followed by this event. |
+| `assignUser` | `AssignUserEvent` | **Fires:** after a user is assigned to an annotation and `assignedTo` is persisted. **Payload:** `assignedTo` ([`UserContact`](./data-models.md)), `annotationId`, `commentAnnotation`. |
+| `updatePriority` | `UpdatePriorityEvent` | **Fires:** after annotation priority changes and is persisted. **Payload:** `newPriority`/`oldPriority` ([`CustomPriority`](./data-models.md) \| undefined). **Gotcha:** `oldPriority`/`newPriority` may be undefined when priority is cleared. |
+| `updateStatus` | `UpdateStatusEvent` | **Fires:** after annotation status changes and is persisted; sets `statusUpdatedByUserId`. **Payload:** `newStatus`/`oldStatus` ([`CustomStatus`](./data-models.md)). **Gotcha:** resolving uses the dedicated resolved status — for resolve-specific logic prefer `resolveComment`. |
+| `updateAccess` | `UpdateAccessEvent` | **Fires:** after an admin changes the annotation access mode and it is persisted. **Payload:** `newAccessMode`/`oldAccessMode` (`CommentAccessMode` \| undefined). **Gotcha:** requires private-comment permission; values may be undefined when access is reset. |
+| `resolveComment` | `ResolveCommentEvent` | **Fires:** after a user clicks resolve and the resolved status is persisted. **Payload:** `annotationId`, `commentAnnotation`. **Gotcha:** a specialization of a status change — listen here rather than filtering `updateStatus`. |
+| `addComment` | `AddCommentEvent` | **Fires:** after a reply is added to an **existing** annotation and persisted. **Payload:** `commentId` (number) + `comment` ([`Comment`](./data-models.md)). **Gotcha:** fires after `addCommentAnnotation` for the very first comment, so `commentAnnotation.comments` already includes the new comment. |
+| `addCommentDraft` | `AddCommentDraftEvent` | **Fires:** when a reply composer on an existing annotation is abandoned without sending (click-outside / deselect). **Payload:** `comment` with `isDraft = true` (snapshot of the unsent content) + `annotationId`. **Gotcha:** draft-only — content is never persisted; do not treat as a sent reply. |
+| `updateComment` | `UpdateCommentEvent` | **Fires:** after an existing comment is edited and persisted (requires author or admin); sets `isEdited`/`editedAt`. **Payload:** `commentId` + updated `comment`. **Gotcha:** editing a comment to empty cascades to `deleteComment`. Editor identity beyond author is not separately surfaced. |
+| `deleteComment` | `DeleteCommentEvent` | **Fires:** after a single comment is deleted and persisted. **Payload:** `commentId` + `comment` (pre-deletion snapshot). **Gotcha:** deleting the last comment in a thread cascades to a `deleteCommentAnnotation` event. |
+| `addAttachment` | `AddAttachmentEvent` | **Fires:** after attachment file(s) are uploaded and the comment is persisted. **Payload:** `attachments` (`AddAttachmentResponse[]`), `commentId`. **Gotcha:** fires after upload completes (size limits apply); not on file selection. |
+| `deleteAttachment` | `DeleteAttachmentEvent` | **Fires:** after an attachment is removed from a comment and persisted (requires author or admin). **Payload:** `commentId`, `attachment` (deleted). |
+| `deleteRecording` | `DeleteRecordingEvent` | **Fires:** after a voice/video recording attached to a comment is deleted and persisted (requires author or admin). **Payload:** `recording` ([`RecordedData`](./data-models.md)), `commentId`. **Gotcha:** this is the Comments-feature delete event; the Recorder feature has its own `deleteRecording` (see below). |
+| `copyLink` | `CopyLinkEvent` | **Fires:** when a user copies the deep link to a comment. **Payload:** `link` (string), `annotationId`, `commentAnnotation`. **Gotcha:** `link` is always populated. |
+| `addReaction` | `AddReactionEvent` | **Fires:** after an emoji reaction is added and persisted (action type `add`). **Payload:** `reaction` ([`ReactionAnnotation`](./data-models.md)), `commentId`. |
+| `deleteReaction` | `DeleteReactionEvent` | **Fires:** after a reaction is removed and persisted (action type `delete`). **Payload:** `reaction`, `commentId`. |
+| `toggleReaction` | `ToggleReactionEvent` | **Fires:** after a reaction click with no explicit add/delete intent resolves (auto-toggle) and is persisted. **Payload:** `reaction`, `commentId`. **Gotcha:** distinct from `addReaction`/`deleteReaction` — use this when reacting via a single toggle control. |
+| `commentSidebarDataInit` | `CommentSidebarDataInitEvent` | **Fires:** once, when sidebar data is first loaded for the session/page. **Payload:** `commentAnnotations` (`CommentAnnotation[]`), `systemFilteredAnnotations`, `unreadCommentAnnotationsMap`, `buttonContext`, `customFilters`. **Gotcha:** initial emission only — subsequent changes come through `commentSidebarDataUpdate`. |
+| `commentSidebarDataUpdate` | `CommentSidebarDataUpdateEvent` | **Fires:** on every subsequent sidebar data change (new comments, filter/status change). **Payload:** same shape as the init event. **Gotcha:** fires repeatedly; deduped on the annotation id-set to avoid infinite loops, but mutating sidebar data from the handler can still re-trigger it. |
+| `autocompleteSearch` | `AutocompleteSearchEvent` | **Fires:** on each keystroke in the mention/autocomplete field. **Payload:** `searchText`, `type` (`'contact' \| 'custom' \| 'group'`), raw `event` (keyboard/input event). **Gotcha:** fires per keystroke — debounce before querying a custom data source. |
+| `composerClicked` | `ComposerClickedEvent` | **Fires:** when the composer field is clicked/focused. **Payload:** optional `commentAnnotation`. |
+| `composerTextChange` | `ComposerTextChangeEvent` | **Fires:** on each input change in the composer. **Payload:** `text`, `annotation` (`CommentAnnotation`), `targetComposerElementId`. **Gotcha:** text is unsent draft content; backs the `getComposerData` API. |
+| `linkClicked` | `LinkClickedEvent` | **Fires:** when a hyperlink inside comment text is clicked. **Payload:** `text`, `link`, `commentId` (number), `commentAnnotation`. |
+| `commentPinClicked` | `CommentPinClickedEvent` | **Fires:** when a comment pin/marker on the canvas is clicked. **Payload:** `annotationId`, `commentAnnotation`. |
+| `commentBubbleClicked` | `CommentBubbleClickedEvent` | **Fires:** when a comment bubble indicator is clicked. **Payload:** `annotationId`, `commentAnnotation`. |
+| `commentToolClick` | `CommentToolClickEvent` | **Fires:** when the comment tool (add-comment mode) is invoked. **Payload:** `context` (object \| null) + `targetElementId` (string \| null). **Gotcha:** emitted simultaneously with `commentToolClicked` with an identical payload — subscribe to only one. |
+| `commentToolClicked` | `CommentToolClickedEvent` | **Fires:** same trigger and payload as `commentToolClick` (past-tense alias). **Gotcha:** duplicate of `commentToolClick`; pick one to avoid double handling. |
+| `sidebarButtonClick` | `SidebarButtonClickEvent` | **Fires:** when the sidebar toggle button is clicked. **Payload:** `metadata` only. **Gotcha:** emitted simultaneously with `sidebarButtonClicked` — subscribe to only one. |
+| `sidebarButtonClicked` | `SidebarButtonClickedEvent` | **Fires:** same trigger and payload as `sidebarButtonClick` (past-tense alias). **Gotcha:** duplicate of `sidebarButtonClick`. |
+| `attachmentDownloadClicked` | `AttachmentDownloadClickedEvent` | **Fires:** when a user clicks to download an attachment. **Payload:** `attachment`, `annotationId`, `commentAnnotation`. |
+| `commentSaved` | `CommentSavedEvent` | **Fires:** after a **new** annotation (newly-added status) is persisted. **Payload:** `annotationId`, `commentAnnotation`. **Gotcha:** does NOT fire for edits, reactions, or metadata changes — only first save of a new comment. |
+| `commentSaveTriggered` | `CommentSaveTriggeredEvent` | **Fires:** when a save is initiated (send button pressed), **before** persistence completes. **Payload:** `annotationId`, `commentAnnotation`. **Gotcha:** pair with `commentSaved` (fires after persist) — this is the pre-persist signal. |
+| `visibilityOptionClicked` | `VisibilityOptionClickedEvent` | **Fires:** when a visibility option is selected. **Payload:** `visibility` (`CommentVisibilityOptionType`) + optional `users` ([`User[]`](./data-models.md), for the restricted option). **Gotcha:** `users` is present only for the restricted/private selection. |
+| `suggestionAccepted` | `SuggestionAcceptEvent` | **Fires:** after an agent/comment suggestion is accepted and `status = 'accepted'` is persisted (or `'stale'` if the target is no longer resolvable). **Payload:** `actionUser`. **Gotcha:** this is the Comments-thread suggestion accept; distinct from the Suggestions-feature `suggestionApproved` (see below). |
+| `suggestionRejected` | `SuggestionRejectEvent` | **Fires:** after an agent/comment suggestion is rejected and `status = 'rejected'` is persisted. **Payload:** `actionUser` + optional `rejectReason` (string \| null). **Gotcha:** distinct from the Suggestions-feature `suggestionRejected`. |
 
 > Common payload fields across these events: `annotationId`, `commentAnnotation` (`CommentAnnotation`), and `metadata` (`VeltEventMetadata`). Deprecated payloads (`CommentAddEventData`, `CommentEvent`, `CommentUpdateEventData`, `CommentSuggestionEventData`) are excluded — they are not in the active event map.
 
@@ -80,102 +84,108 @@ React equivalent: each feature exposes a `use<Feature>EventCallback` hook (e.g. 
 
 ## Recorder / Transcription — `client.getRecorderElement().on(...)`
 
-| Event name (string) | Payload type | Description |
+Recorder data events extend `RecorderData`: `recorderId` (string), `from` (`User \| null`), `metadata`, `assets` (`RecorderDataAsset[]`), `transcription` (`RecorderDataTranscription`). See [`../data-models.md`](./data-models.md) for `RecordedData`/recorder shapes.
+
+| Event name (string) | Payload type | When it fires + payload + gotcha |
 |---|---|---|
-| `transcriptionDone` | `TranscriptionDoneEvent` | Transcription of a recording completes. |
-| `recordingDone` | `RecordingDoneEvent` | A recording is finished and uploaded/saved. |
-| `recordingDoneLocal` | `RecordingDoneLocalEvent` | A recording is finished locally (before upload). |
-| `recordingEditDone` | `RecordingEditDoneEvent` | Editing of an existing recording completes. |
-| `deleteRecording` | `RecordingDeleteEvent` | A recording is deleted. |
-| `recordingStarted` | `RecordingStartedEvent` (`{ type: 'audio'\|'video'\|'screen' }`) | Recording starts. |
-| `recordingPaused` | `RecordingPausedEvent` | Recording is paused. |
-| `recordingResumed` | `RecordingResumedEvent` | Recording resumes. |
-| `recordingCancelled` | `RecordingCancelledEvent` | Recording is cancelled. |
-| `recordingStopped` | `RecordingStoppedEvent` | Recording is stopped. |
-| `recordingSaveInitiated` | `RecordingSaveInitiatedEvent` | Save of a recording begins; payload has `type` (`'edit'\|'record'`), `message`, optional `annotationId`. |
-| `error` | `RecordingErrorEvent` | A recording error occurs; payload has `type`, `message`, optional `recorderId`/`url`. |
+| `transcriptionDone` | `TranscriptionDoneEvent` | **Fires:** after server-side transcription of an uploaded recording completes. **Payload:** `RecorderData` + `transcription` (transcript segments, `vttFileUrl`, content summary). **Gotcha:** only fires when transcription is enabled and the recording has an audio track. |
+| `recordingDone` | `RecordingDoneEvent` | **Fires:** after the recording is saved and **uploaded to cloud storage**; final asset URLs are available. **Payload:** `RecorderData` with `assets[0].url` = persistent cloud URL. **Gotcha:** fires after `recordingDoneLocal`; use this (not the local event) for any URL you persist. |
+| `recordingDoneLocal` | `RecordingDoneLocalEvent` | **Fires:** immediately after the annotation is saved, **before** cloud upload completes. **Payload:** `RecorderData` whose asset URL is still a local blob URL. **Gotcha:** the blob URL is temporary (invalid after the tab closes) — for immediate UI feedback only. |
+| `recordingEditDone` | `RecordingEditDoneEvent` | **Fires:** after a user finishes editing/trimming an existing recording and the edited version is persisted. **Payload:** `RecorderData` with updated `assets`; version history tracked. **Gotcha:** reflects the latest edit version. |
+| `deleteRecording` | `RecordingDeleteEvent` | **Fires:** after a recording is deleted and the deletion is persisted. **Payload:** `RecorderData` of the deleted recording. **Gotcha:** the Recorder-feature delete event; the Comments feature emits its own `deleteRecording` (see Comments above). |
+| `recordingStarted` | `RecordingStartedEvent` (`{ type: 'audio'\|'video'\|'screen' }`) | **Fires:** when the user clicks record and the media stream starts, before any media is captured. **Payload:** `type` of stream. **Gotcha:** `type` reflects the requested stream (e.g. `screen` may also capture audio). |
+| `recordingPaused` | `RecordingPausedEvent` (`{ type }`) | **Fires:** when an active recording is paused; the stream stays open. **Payload:** `type`. **Gotcha:** paused state is in-memory only and not persisted. |
+| `recordingResumed` | `RecordingResumedEvent` (`{ type }`) | **Fires:** when a paused recording resumes; a new duration segment starts. **Payload:** `type`. |
+| `recordingCancelled` | `RecordingCancelledEvent` (`{ type }`) | **Fires:** when the user discards a recording before saving. **Payload:** `type`. **Gotcha:** no recording annotation is created. |
+| `recordingStopped` | `RecordingStoppedEvent` (`{ type }`) | **Fires:** when the user stops recording and the media stream ends — **before** save/upload. **Payload:** `type`. **Gotcha:** not yet persisted; `recordingDone` fires later after save/upload. |
+| `recordingSaveInitiated` | `RecordingSaveInitiatedEvent` | **Fires:** when a save begins (save button in recorder or video editor), **before** the annotation is persisted. **Payload:** `type` (`'edit'\|'record'`), `message`, optional `annotationId`. **Gotcha:** `annotationId` is present only for edit saves, not new recordings. **TS:** this event is emitted at runtime but is **not a key of `RecorderEventTypesMap`**, so `.on('recordingSaveInitiated')` won't type-check — cast the action or use `// @ts-expect-error`. |
+| `error` | `RecordingErrorEvent` | **Fires:** on any recorder error (stream init failure, permission denied, upload failure) — at any point in the lifecycle. **Payload:** `type`, `message`, optional `recorderId`/`url`. **Gotcha:** `recorderId` is present only when the error is tied to a specific recorder element. **TS:** emitted at runtime but **not a key of `RecorderEventTypesMap`**, so `.on('error')` won't type-check — cast the action or use `// @ts-expect-error`. |
 
 ---
 
 ## Presence — `client.getPresenceElement().on(...)`
 
-| Event name (string) | Payload type | Description |
+| Event name (string) | Payload type | When it fires + payload + gotcha |
 |---|---|---|
-| `multipleUsersOnline` | `PresenceMultipleUsersOnlineEvent` (`{ users: PresenceUser[] }`) | Fires when the set of online users changes; gives the full online user list. |
-| `userStateChange` | `PresenceUserStateChangeEvent` (`{ user: PresenceUser; state: string }`) | A single user's presence state changes. |
+| `multipleUsersOnline` | `PresenceMultipleUsersOnlineEvent` (`{ users: PresenceUser[] }`) | **Fires:** once per session, when a second user first comes online (user count goes from 1 to 2+). **Payload:** `users` — the full list of online users with state. **Gotcha:** fires **only once** per session; later joins do NOT re-fire it. Use `userStateChange` for per-join notifications. |
+| `userStateChange` | `PresenceUserStateChangeEvent` (`{ user: PresenceUser; state: string }`) | **Fires:** on every change to a single user's presence state. **Payload:** `user`, `state` (`'active'` / `'inactive'` / `'offline'`). **Gotcha:** fires for network disconnects too — `state` can become `'offline'` from connectivity loss without an explicit user action. |
 
 ---
 
 ## Notifications — `client.getNotificationElement().on(...)`
 
-| Event name (string) | Payload type | Description |
+| Event name (string) | Payload type | When it fires + payload + gotcha |
 |---|---|---|
-| `settingsUpdated` | `SettingsUpdatedEvent` (`{ settings: NotificationSettingsConfig; isMutedAll: boolean }`) | A user updates their notification settings (e.g. mute-all toggled). |
+| `settingsUpdated` | `SettingsUpdatedEvent` (`{ settings: NotificationSettingsConfig; isMutedAll: boolean }`) | **Fires:** after a user changes notification settings (inbox/email preference, or the mute-all toggle) and the change is persisted. **Payload:** `settings` (preference keys → `'ALL'`/`'NONE'`/`'MINE'`), `isMutedAll` (mute-all state). **Gotcha:** fires after persist; triggered both by per-channel option changes and the mute-all toggle. |
 
 ---
 
 ## Live State Sync (single-editor mode / access requests) — `client.getLiveStateSyncElement().on(...)`
 
-| Event name (string) | Payload type | Description |
+`AccessRequestEvent` carries `viewer`/`editor` ([`User`](./data-models.md) \| undefined), `timestamp`, `status`, and optional presence counts (`totalUsers`, `presenceClientUserIds`). `SEMEvent` carries `editor`/`viewer`, `timestamp`, `role`, and the same presence counts.
+
+| Event name (string) | Payload type | When it fires + payload + gotcha |
 |---|---|---|
-| `accessRequested` | `AccessRequestEvent` | A viewer requests edit access. |
-| `accessRequestCanceled` | `AccessRequestEvent` | An access request is cancelled. |
-| `accessAccepted` | `AccessRequestEvent` | An access request is accepted. |
-| `accessRejected` | `AccessRequestEvent` | An access request is rejected. |
-| `editorAssigned` | `SEMEvent` | A user becomes the editor (single-editor mode). |
-| `viewerAssigned` | `SEMEvent` | A user becomes a viewer. |
-| `editorOnDifferentTabDetected` | `SEMEvent` | The editor is detected on a different tab. |
+| `accessRequested` | `AccessRequestEvent` | **Fires:** when a viewer (non-editor) requests edit access in single-editor mode. **Payload:** `viewer`, `editor`, `status: 'requested'`, `timestamp`. **Gotcha:** delivered **only to the current editor** (the user whose `userId === editor.userId`). |
+| `accessRequestCanceled` | `AccessRequestEvent` | **Fires:** when a pending access request is withdrawn by the viewer. **Payload:** `viewer`, `editor`, `status: 'canceled'`, `timestamp`. **Gotcha:** delivered only to the editor; requires a prior pending request. |
+| `accessAccepted` | `AccessRequestEvent` | **Fires:** when the requester becomes the editor (access granted). **Payload:** `viewer`, `editor`, `status: 'accepted'`, `timestamp`. **Gotcha:** an implicit transition (the requester now holds the editor role), delivered to the requester — not a discrete "accept" button action. |
+| `accessRejected` | `AccessRequestEvent` | **Fires:** when a pending request clears without the requester becoming editor (timeout / editor closes tab). **Payload:** `viewer`, `editor`, `status: 'rejected'`, `timestamp`. **Gotcha:** inferred from the state transition, delivered to the requester. |
+| `editorAssigned` | `SEMEvent` | **Fires:** when the current user becomes editor **on this tab**. **Payload:** `editor`, `role: 'editor'`, `timestamp`. **Gotcha:** fires only when the editor is active on the current tab (tabs are tracked by session id). |
+| `viewerAssigned` | `SEMEvent` | **Fires:** when the current user is assigned the viewer role. **Payload:** `viewer`, `role: 'viewer'`, `timestamp`. |
+| `editorOnDifferentTabDetected` | `SEMEvent` | **Fires:** when the current user is the editor but on a **different** tab than the active one. **Payload:** `editor`, `role: 'editorOnDifferentTab'`, `timestamp`. **Gotcha:** signals a single-editor conflict — same user editing across multiple tabs; detected via session-id comparison. |
 
 ---
 
 ## Rewriter (AI text actions) — `client.getRewriterElement().on(...)`
 
-| Event name (string) | Payload type | Description |
+| Event name (string) | Payload type | When it fires + payload + gotcha |
 |---|---|---|
-| `textSelected` | `TextSelectedEvent` (`{ selectionId; text; targetTextRange }`) | Text is selected for an AI rewrite/ask-AI action. |
+| `textSelected` | `TextSelectedEvent` (`{ selectionId; text; targetTextRange }`) | **Fires:** on pointer/key release after a non-empty text selection (not on every `selectionchange`). **Payload:** `selectionId` (generated id), `text` (selected string), `targetTextRange` (DOM location: ancestor xpath, occurrence, full/class xpaths). **Gotcha:** selections that include Velt components are filtered out; the selection is stored for later retrieval (`getStoredSelection`). |
 
 ---
 
 ## Suggestions — `client.getSuggestionElement().on(...)`
 
-| Event name (string) | Payload type | Description |
+Suggestion events carry a `suggestion` object (`annotationId`, `targetId`, `oldValue`, `newValue`, `summary`, `status`, `createdBy`/`resolvedBy` ([`User`](./data-models.md)), timestamps) and a top-level `timestamp`.
+
+| Event name (string) | Payload type | When it fires + payload + gotcha |
 |---|---|---|
-| `suggestionCreated` | `SuggestionCreatedEvent` | A new suggestion is created. Actor on `suggestion.createdBy`. |
-| `suggestionApproved` | `SuggestionApprovedEvent` | A suggestion is approved. Actor on `suggestion.resolvedBy`. |
-| `suggestionRejected` | `SuggestionRejectedEvent` | A suggestion is rejected. |
-| `suggestionStale` | `SuggestionStaleEvent` | A suggestion becomes stale (target content changed). |
-| `targetEditStart` | `TargetEditStartEvent` | An edit of a suggestion's target begins. |
-| `targetEditCommit` | `TargetEditCommitEvent` | A target edit is committed; payload has `details` + a pre-bound `commitSuggestion()` builder. |
+| `suggestionCreated` | `SuggestionCreatedEvent` | **Fires:** when a tagged element edit is committed (focusout for text, change for atomic inputs) and a diff is detected, after the customer's commit handler or a `commitSuggestion` call. **Payload:** `suggestion` (status `'pending'`, `oldValue` from focus snapshot, `newValue` from commit, actor on `suggestion.createdBy`), `timestamp`. **Gotcha:** if there's no diff between snapshot and committed value, it does NOT fire. |
+| `suggestionApproved` | `SuggestionApprovedEvent` | **Fires:** after the owner approves and the suggestion is persisted with status `'accepted'`. **Payload:** `suggestion` (`status: 'accepted'`, actor on `suggestion.resolvedBy`, `driftDetected` flag), `timestamp`. **Gotcha:** the stale check runs first — if the target can't be resolved, `suggestionStale` fires instead. A forward-only guard prevents double-approval across tabs. |
+| `suggestionRejected` | `SuggestionRejectedEvent` | **Fires:** after the owner rejects and the suggestion is persisted with status `'rejected'`. **Payload:** `suggestion` (`status: 'rejected'`, `rejectReason` string \| null, `resolvedBy`), `timestamp`. **Gotcha:** distinct from the Comments-feature `suggestionRejected`; forward-only guard applies. |
+| `suggestionStale` | `SuggestionStaleEvent` | **Fires:** during the approve flow when the target element can no longer be found in the DOM. **Payload:** `suggestion` (`status: 'stale'`, `resolvedBy` may be null), `timestamp`. **Gotcha:** lets the customer dismiss without a state change; does not run the drift check. |
+| `targetEditStart` | `TargetEditStartEvent` | **Fires:** at focusin of a tagged element, after the value snapshot is captured, before the customer's start callback. **Payload:** `details` (`targetId`, `oldValue`, `newValue` initially equal, `element`), `timestamp`. **Gotcha:** informational; do not retain the `element` pointer past the handler. |
+| `targetEditCommit` | `TargetEditCommitEvent` | **Fires:** after focusout/change when a diff is detected, after the customer's commit handler. **Payload:** `details` (`targetId`, `oldValue` from snapshot, `newValue` live read, `element`), a pre-bound `commitSuggestion()` builder, `timestamp`. **Gotcha:** if the customer's handler already committed, `commitSuggestion()` is an idempotent no-op; subscribers may call it only when the handler returned no result. |
 
 ---
 
 ## CRDT — `client.getCrdtElement().on(...)`
 
-| Event name (string) | Payload type | Description |
+| Event name (string) | Payload type | When it fires + payload + gotcha |
 |---|---|---|
-| `updateData` | `CrdtUpdateDataEvent` | CRDT data updates; payload has `methodName`, `uniqueId`, `timestamp`, `source` (`'internal'\|'external'`), and `payload` (`id`, `data`, `lastUpdatedBy`, `sessionId`, `lastUpdate`). |
+| `updateData` | `CrdtUpdateDataEvent` | **Fires:** after the database successfully persists the updated CRDT state (only on a successful write). **Payload:** `methodName: 'updateData'`, `uniqueId`, `timestamp`, `source` (`'internal'` local write \| `'external'` remote write), and `payload` (`id`, `data`, `lastUpdatedBy` userId, `sessionId`, `lastUpdate` ISO timestamp). **Gotcha:** fires before the webhook is triggered; the event payload is unencrypted (encryption happens at the DB layer). Use `source` to distinguish local vs remote-originated updates. |
 
 ---
 
 ## Core (resolvers, button clicks, lifecycle)
 
-Client-level core events (resolver hooks, init/user lifecycle, button clicks). Resolver events deliver a `BaseResolverEvent<…>` whose nested `event` field is itself a sub-event string union (request formed / triggered / result / error / result-from-cache).
+Client-level core events (resolver hooks, init/user lifecycle, button clicks). These are subscribed at the client level rather than through a `use<Feature>EventCallback` hook. Resolver events deliver a `BaseResolverEvent<…>` whose nested `event` field is itself a sub-event string union representing the resolver round-trip lifecycle: **request formed** (request built, no call yet) → **triggered** (resolver/provider invoked) → **result** (success) | **error** (timeout/rejection) | **result-from-cache** (served from in-memory cache, skipping the call). Each sub-event shares a `uniqueId` so you can correlate the stages of one round-trip; `methodName`/`moduleName` identify the call source.
 
-| Event name (string) | Payload type | Description |
+| Event name (string) | Payload type | When it fires + payload + gotcha |
 |---|---|---|
-| `permissionProvider` | `PermissionProviderEvent` | Permission-provider resolver lifecycle. |
-| `userResolver` | `UserResolverEvent` | User-resolution resolver lifecycle. |
-| `commentResolver` | `CommentResolverEvent` | Comment-resolution + save/delete resolver lifecycle (self-hosting). |
-| `attachmentResolver` | `AttachmentResolverEvent` | Attachment save/delete resolver lifecycle. |
-| `reactionResolver` | `ReactionResolverEvent` | Reaction resolution + save/delete resolver lifecycle. |
-| `recorderResolver` | `RecorderResolverEvent` | Recorder resolution + save/delete resolver lifecycle. |
-| `notificationResolver` | `NotificationResolverEvent` | Notification resolution + delete resolver lifecycle. |
-| `activityResolver` | `ActivityResolverEvent` | Activity resolution + save resolver lifecycle. |
-| `veltButtonClick` | `VeltButtonClickEvent` | A `<velt-button>` (custom Velt UI button) is clicked. Returns `buttonContext.clickedButtonId`. |
-| `userUpdate` | `UserUpdateEvent` (`User \| null`) | The identified user is updated (or cleared). |
-| `initUpdate` | `InitUpdateEvent` | Document/location init lifecycle; `methodName` ∈ `setDocuments`/`setDocumentId`/`setLocation`/`addLocation`/`removeLocation`/… |
-| `documentInit` | `DocumentInitEvent` (`boolean \| undefined`) | Fires when the document is initialized. |
-| `error` | `ErrorEvent` | A core SDK error; payload has `event`, `sourceMethod`, `documentIds`, `userId`, `error`, `code`, `message`, `source`. |
+| `permissionProvider` | `PermissionProviderEvent` | **Fires:** through each stage of the permission-resolver round-trip (formed → triggered → result/error/from-cache), and on revoke transitions (document unset, user logout). **Payload:** `event` (sub-event), `methodName`/`moduleName`, `source`, `uniqueId`, `timestamp`, `payload`. **Gotcha:** fires multiple times per resolution — branch on `event` to find the stage. |
+| `userResolver` | `UserResolverEvent` | **Fires:** through each stage of user resolution (auth provider, get-users, single-editor users, etc.). **Payload:** `event` (sub-event), `methodName`/`moduleName`, `uniqueId`, `payload` (`request`/`result`/`error`). **Gotcha:** fires once per sub-event stage, not once per resolution. |
+| `commentResolver` | `CommentResolverEvent` | **Fires:** through each stage of comment-annotation resolve and save/delete (self-hosting). **Payload:** `event` (sub-event), `methodName`/`moduleName` (`getCommentAnnotations`/`getNotifications`/…), `uniqueId`, `payload` (`request`/`result`/`error`). **Gotcha:** save/delete operations emit their own sub-event chains; bulk resolves emit one chain per batch, not per item. |
+| `attachmentResolver` | `AttachmentResolverEvent` | **Fires:** through the save/delete attachment round-trip (formed → triggered → result/error). **Payload:** `event`, `methodName` (`saveAttachment`/`deleteAttachment`/`uploadToResolver`), `uniqueId`, `payload` (`attachment`/`attachmentId`/`error`). **Gotcha:** no cache sub-event (unconfirmed). |
+| `reactionResolver` | `ReactionResolverEvent` | **Fires:** through reaction fetch/save/delete stages, including a from-cache result. **Payload:** `event`, `methodName`/`moduleName` (`getReactionAnnotations`), `uniqueId`, `payload` (`request`/`result`/`error`). **Gotcha:** a resolver timeout fires the error sub-event and rejects the promise (unrecoverable). |
+| `recorderResolver` | `RecorderResolverEvent` | **Fires:** through recorder annotation resolve/save/delete stages (mirrors the reaction resolver). **Payload:** `event`, `methodName`/`moduleName` (`getRecorderAnnotations`), `uniqueId`, `payload` (`request`/`result`/`error`). **Gotcha:** results can be served from cache. |
+| `notificationResolver` | `NotificationResolverEvent` | **Fires:** through notification fetch/delete stages. **Payload:** `event`, `methodName` (`resolveNotifications`/`deleteNotification`/`formatResponse`), `moduleName` (`getNotifications`), `uniqueId`, `payload`. **Gotcha:** `formatResponse` sub-event marks the result-projection step. |
+| `activityResolver` | `ActivityResolverEvent` | **Fires:** through activity fetch/save stages, including a from-cache result. **Payload:** `event`, `methodName` (`resolveActivities`/`saveActivity`/`formatResponse`), `moduleName` (`getActivities`), `uniqueId`, `payload`. **Gotcha:** save operations emit their own sub-event chain. |
+| `veltButtonClick` | `VeltButtonClickEvent` | **Fires:** when a `<velt-button>` (custom Velt UI button) is clicked, at the button-service layer before any action handler. **Payload:** `buttonContext` (`id`/`clickedButtonId`, optional `type`/`groupId`), `data` (context extracted from the button config), plus optional context entities (`commentAnnotation`, `notification`, `comment`, lists, `metadata`). **Gotcha:** use `buttonContext.clickedButtonId` to dispatch on which button fired. |
+| `userUpdate` | `UserUpdateEvent` (`User \| null`) | **Fires:** when the identified user changes — after `identify()` succeeds (hydrated `User`) or on logout/unidentify (`null`). **Payload:** the `User` object or `null`. **Gotcha:** fires after the auth token is verified; a `null` payload means the user was cleared. |
+| `initUpdate` | `InitUpdateEvent` | **Fires:** on each document/location mutation API call. **Payload:** `event`/`methodName` ∈ `setDocuments`/`setDocumentId`/`setLocation`/`addLocation`/`removeLocation`/…, `source`, `payload` (document/location data when applicable). **Gotcha:** the payload shape varies by `methodName`; whether it fires before or after persist depends on the method (unconfirmed per-method). |
+| `documentInit` | `DocumentInitEvent` (`boolean \| undefined`) | **Fires:** whenever SDK init readiness changes — `true` when authenticated user + documents set + IAM allow are all satisfied, `false` when any precondition clears (logout, doc unset). **Payload:** boolean readiness. **Gotcha:** not a one-time event — fires on every state transition; consecutive duplicate emissions are suppressed. |
+| `error` | `ErrorEvent` | **Fires:** on core SDK errors (auth retry exhaustion, document load failure, permission error), from auth/document/resolver services. **Payload:** optional `event`, `sourceMethod`, `documentIds`, `userId`, `error`, `code`, `message`, `source`. **Gotcha:** fields are sparse/optional; `sourceMethod` identifies the failing call. |
 
 ---
 

@@ -4,7 +4,7 @@ How to read live state inside a wireframe. Used by [`approaches/wireframes.md`](
 
 This page is the **syntax** (operators, nested access, the three usage forms). For the **complete variable catalog** (every `{name}`, grouped by feature, with the 🔑 state flags) see [`wireframe-variables.md`](./wireframe-variables.md).
 
-> **If a name isn't in [`wireframe-variables.md`](./wireframe-variables.md), it doesn't exist** — the token resolves to `undefined`. Never invent variable names.
+> A token not in [`wireframe-variables.md`](./wireframe-variables.md) resolves to `undefined` — only use names listed there ([source-of-truth invariant](./_entry-contract.md)).
 
 ---
 

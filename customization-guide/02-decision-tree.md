@@ -9,6 +9,7 @@ There is no single "best" layer, but there **is** a default order to reach for t
 > 2. **Wireframes are the default for structural customization.** Prefer them. Drop to CSS if you only need theming; escalate to **primitives** only when you need full control / your own UI component library / your own interactivity (or to customize a *leaf* piece); use **headless** only as a last resort.
 > 3. **CSS is always available** and layers on top of every other approach (override with `!important`).
 > 4. **You can mix layers — even on the same surface** (e.g. a `VeltCommentDialog` primitive *and* a wireframe for parts of it).
+> 5. **Mind positioning (a second axis).** Some surfaces are **anchored** — Velt's host computes their on‑page position (the floating **pin dialog**, comment **pins**, **bubbles**, **cursors**, **minimap**). For these, dropping **below wireframes forfeits Velt's anchoring engine**; prefer wireframes + CSS and escalate only if a positioning path is *verified* feasible. **Statically‑placed** surfaces (sidebar, inline section, notifications panel) carry no such penalty. See [`reference/behaviors.md`](./reference/behaviors.md).
 
 ---
 
@@ -19,6 +20,8 @@ There is no single "best" layer, but there **is** a default order to reach for t
 3. Record the chosen layer **and the reason**. Different features can land on different layers, and one feature can use more than one layer — that's expected (see [`approaches/combining-approaches.md`](./approaches/combining-approaches.md)).
 
 > **Before customizing:** if the design needs a piece that isn't showing by default (reply avatars, priority, minimap, @here, device badge, …), check [`reference/feature-flags.md`](./reference/feature-flags.md) — it's likely an existing feature behind a prop. And if the design surfaces *your app's data* in the comment UI, that's [context](./context.md).
+>
+> **Three references make these decisions confident — use them:** [`reference/behaviors.md`](./reference/behaviors.md) for **how a prop behaves and how props combine** (defaults, interactions, the dialog state machine, variant→context scoping, positioning ownership); [`reference/data-models.md`](./reference/data-models.md) for **what data exists** (fields, which hook/event exposes each, custom‑data storage, and documented **absences**); [`reference/component-definitions.md`](./reference/component-definitions.md) for **what a component is *for*** (right‑tool / wrong‑tool). Together they let you give a definitive supported / not‑supported verdict instead of a guess.
 
 ---
 
@@ -72,7 +75,7 @@ There is no single "best" layer, but there **is** a default order to reach for t
 
 ## After you pick a layer — the sub‑decisions (run every time)
 
-Q1–Q4 pick the **primary layer**. These five checks then refine it. Run all five for **every** surface, in order, and record each answer alongside the layer + reason — they're what turn "use wireframes" into an exact, buildable spec. None of them is a hack; each is a supported, documented branch.
+Q1–Q4 pick the **primary layer**. These checks (S1–S8) then refine it. Run all of them for **every** surface, in order, and record each answer alongside the layer + reason — they're what turn "use wireframes" into an exact, buildable spec. None of them is a hack; each is a supported, documented branch.
 
 **S1 — Is a piece the design shows hidden by default?**
 Many features are **off by default** (reply avatars, priority, minimap, `@here`, device indicator, comment index / pin number, sidebar‑button‑on‑dialog, format toolbar, …). If the design shows one, **enable it with its prop** (e.g. `priority`, `replyAvatars`, `commentIndex`, `sidebarButtonOnCommentDialog`) — look up the exact prop in [`reference/feature-flags.md`](./reference/feature-flags.md). Enabling a documented feature is **not** a hack and is **not** a reason to escalate layers.
@@ -95,7 +98,13 @@ If the design requires **your** logic to decide when a piece appears (not Velt's
 - **CSS variables** (`--velt-*`) and **inline `style=""`** always work, shadow or not.
 See [`approaches/css.md`](./approaches/css.md#shadow-dom--wireframes-root-vs-nested). (Which wireframes are roots: the per‑surface map in [`reference/component-catalog.md`](./reference/component-catalog.md).)
 
-> **Output of the decision tree (per surface):** primary layer (Q1–Q4) · feature flags to enable (S1) · custom‑data config (S2) · UI‑library placement (S3) · mix split if any (S4) · escape‑hatch / `defaultCondition` (S5) · shadow handling (S6) · and the reason. That's a complete, buildable spec — resolve all of it here so the build step only executes.
+**S7 — Anchored surface? (positioning ownership.)**
+If the surface is **anchored** (pin dialog, pins, bubbles, cursors, minimap), Velt's host owns its on‑page position — the dialog component itself only *requests* re‑anchoring and has no position input. **Wireframes keep that positioning for free; primitives/headless mean *you* own it**, which for a pin‑anchored dialog may not even be feasible via the public API. Treat this as a strong reason to stay at wireframes; escalate only after a positioning path is *verified* feasible. Statically‑placed surfaces have no penalty. See [`reference/behaviors.md`](./reference/behaviors.md).
+
+**S8 — Confirm against the data, then give a definitive verdict.**
+Before concluding a goal needs **primitives/headless** — or is **not possible** — confirm in [`reference/data-models.md`](./reference/data-models.md) that the required fields/events exist. If they do → feasible via headless; say so. If they're a documented **absence** → genuinely not achievable client‑side; say *that*. State the **first layer that achieves the goal** (default behavior → prop/config → wireframe → primitive → headless) as a **definitive verdict** — never "maybe / try / likely". If the guide doesn't cover it, that's an **unknown to verify against ground truth** (the live SDK / running app), not a reason to hedge or to declare impossible.
+
+> **Output of the decision tree (per surface):** primary layer (Q1–Q4) · feature flags to enable (S1) · custom‑data config (S2) · UI‑library placement (S3) · mix split if any (S4) · escape‑hatch / `defaultCondition` (S5) · shadow handling (S6) · positioning ownership (S7) · data‑confirmed definitive verdict (S8) · and the reason. That's a complete, buildable spec — resolve all of it here so the build step only executes.
 
 ---
 

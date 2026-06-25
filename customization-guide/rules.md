@@ -69,16 +69,19 @@ Velt injects styles at runtime with high specificity. Class/element overrides (n
 
 ## Identifiers
 
-**R10 — Never invent names.**
-CSS variables, CSS classes, wireframe slots, `{…}` variables, component props, and hook names must come from the reference pages:
+**R10 — Never invent — verify instead.**
+CSS variables, CSS classes, wireframe slots, `{…}` variables, component props, hook names, **data fields, prop behaviors, and component intent** must come from the reference pages:
 - CSS vars → [`reference/css-variables.md`](./reference/css-variables.md)
 - CSS classes → [`reference/css-classes.md`](./reference/css-classes.md)
 - Wireframe components & slots (+ slot props) → [`reference/wireframe-components.md`](./reference/wireframe-components.md)
 - `{…}` variables → [`reference/wireframe-tokens.md`](./reference/wireframe-tokens.md) (syntax) + [`reference/wireframe-variables.md`](./reference/wireframe-variables.md) (catalog)
-- Component / layout props → [`reference/component-config.md`](./reference/component-config.md)
-- Hooks → [`reference/hooks.md`](./reference/hooks.md)
+- Component / layout props → [`reference/component-config.md`](./reference/component-config.md) · prop **behavior & interactions** → [`reference/behaviors.md`](./reference/behaviors.md)
+- Hooks → [`reference/hooks.md`](./reference/hooks.md) · **data fields / events / custom‑data storage** → [`reference/data-models.md`](./reference/data-models.md)
+- What a component is **for** (right/wrong tool) → [`reference/component-definitions.md`](./reference/component-definitions.md)
 
 If a name isn't there, it doesn't exist (a wrong `{…}` resolves to `undefined`; a wrong prop/hook is a no‑op or error). To confirm a class on a specific rendered element, inspect it in DevTools (`shadowDom={false}`).
+
+**The guide is the first source of truth — but its *silence* is not a verdict.** If the guide doesn't cover something or you're uncertain, **don't guess, don't hedge, and don't declare it impossible** — *verify against ground truth* in this order: the Velt Docs MCP / official Velt docs → the live SDK's actual behavior/types → an empirical test in the running app. Then state the verified fact with certainty (and ideally feed it back into the guide). Inventing a name and treating "not in the guide" as "not possible" are the two opposite failures this rule prevents.
 
 ---
 
@@ -102,6 +105,12 @@ Don't customize five surfaces half‑way. Finish one, confirm it renders and beh
 **R16 — One component at a time. Never all at once.**
 Customize **step by step, a single component per step** — register one wireframe (or compose one primitive), get it rendering correctly, verify it, *then* start the next. Do **not** write a big batch of wireframes/primitives across many surfaces in one pass and debug them together: when something doesn't render you won't know which piece broke, and wireframe gotchas (wrong nesting, container slots dropping children, shadow‑DOM) compound. Build → verify → next. (This pairs with R15.)
 
+**R17 — Icons/assets come from the design, never hand‑drawn.**
+If the design has an icon, glyph, or illustration, **use the design's own exported asset** (the SVG from Figma). Do **not** approximate it with hand‑written CSS shapes, Unicode glyphs, or a different icon from the app — a CSS‑drawn arrow that "looks close" is not a match and is a defect. Extract the asset during recognition and reference it; only fall back to an existing app icon when the design genuinely reuses that exact one.
+
+**R18 — Touch only the Velt customization; never change default project behavior.**
+Confine changes to `components/velt/ui-customization/` and its assets. **Do not** fix the host app's own (non‑Velt) UI even if it diverges from the design, and **do not** alter any default project behavior, config, or files outside the customization. If a host change is genuinely *required* for the customization to work (e.g. a mount point, a prop on the host component), apply it **temporarily**, verify it works, **then revert it**, and **report it to the user** as a required manual change ("add X to get this running") — never bake it into the project silently.
+
 ---
 
 ## Quick gate before shipping
@@ -111,6 +120,8 @@ Customize **step by step, a single component per step** — register one wirefra
 - [ ] No interactive React inside wireframes (R4).
 - [ ] `shadowDom={false}` where styled; no `display:none` feature‑hiding (R6, R7).
 - [ ] One stylesheet; dark values scoped (R8, R9).
-- [ ] Every identifier verified against [`reference/`](./reference) (R10).
+- [ ] Every identifier/behavior/data fact verified against [`reference/`](./reference); unknowns verified against ground truth, never guessed (R10).
 - [ ] Folder structure matches the reference (R11).
 - [ ] Each surface uses the cheapest viable layer (R12).
+- [ ] Icons/assets use the design's exported SVGs, not hand‑drawn shapes (R17).
+- [ ] Only the Velt customization changed; any required host change is reverted + reported, not baked in (R18).

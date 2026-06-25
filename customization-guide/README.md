@@ -40,12 +40,13 @@ Read in this order. Don't skip the first three — they prevent 90% of mistakes.
 1. **[`01-overview.md`](./01-overview.md)** — the mental model + how the layers relate. *(5 min)*
 2. **[`02-decision-tree.md`](./02-decision-tree.md)** — **start here for any new design.** Pick the right layer(s) for what you're building. *(the spine of this guide)*
 3. **[`03-getting-started.md`](./03-getting-started.md)** — prerequisites, the `shadowDom` rule, and the folder structure to put your code in.
-4. **The approach you picked** — open the matching file in [`approaches/`](./approaches).
-5. **The feature you're customizing** — comments are covered throughout the approach guides; to resolve a specific comment **surface** (dialog, sidebar V1/V2, sidebar button, pin, bubble, comment tool) to its primitive · root wireframe · key props · flags · variables, use the **Surface lookup** map in [`reference/component-catalog.md`](./reference/component-catalog.md). For any other feature (notifications, reactions, recorder, mentions, presence/cursors, activity log, …) open its deep guide in [`features/`](./features) (index: [`other-features.md`](./other-features.md)).
-6. **Does the design need a component that isn't showing?** Check [`reference/feature-flags.md`](./reference/feature-flags.md) — many features (reply avatars, priority, minimap, @here, …) are **off by default** and just need a prop.
-7. **[`reference/`](./reference)** — look up exact CSS variables, wireframe tokens/variables, component/slot names, and hooks while you build.
-8. **[`rules.md`](./rules.md)** — the non‑negotiables. Read once; re‑check before you ship.
-9. **[`verifying-a-customization.md`](./verifying-a-customization.md)** — after each surface, confirm it matches the design, behavior is intact, and the rules pass. The definition of "done".
+4. **[`build-methodology.md`](./build-methodology.md)** — **HOW to build:** Step-1 design overview (every frame/state) → Step-2 build in small patches, each made pixel-perfect (inspect→override→visually-compare). The proven process. Pair with **[`build-gotchas.md`](./build-gotchas.md)** (the traps you'll hit + the fix).
+5. **The approach you picked** — open the matching file in [`approaches/`](./approaches).
+6. **The feature you're customizing** — comments are covered throughout the approach guides; to resolve a specific comment **surface** (dialog, sidebar V1/V2, sidebar button, pin, bubble, comment tool) to its primitive · root wireframe · key props · flags · variables, use the **Surface lookup** map in [`reference/component-catalog.md`](./reference/component-catalog.md). For any other feature (notifications, reactions, recorder, mentions, presence/cursors, activity log, …) open its deep guide in [`features/`](./features) (index: [`other-features.md`](./other-features.md)).
+7. **Does the design need a component that isn't showing?** Check [`reference/feature-flags.md`](./reference/feature-flags.md) — many features (reply avatars, priority, minimap, @here, …) are **off by default** and just need a prop.
+8. **[`reference/`](./reference)** — the dictionary: look up exact CSS variables, classes, wireframe slots/tokens, props, **behaviors** ([`reference/behaviors.md`](./reference/behaviors.md)), **data fields/events** ([`reference/data-models.md`](./reference/data-models.md)), and hooks while you build. You *look things up* here — you don't read it cover to cover.
+9. **[`rules.md`](./rules.md)** — the non‑negotiables. Read once; re‑check before you ship.
+10. **[`verifying-a-customization.md`](./verifying-a-customization.md)** — after each surface, confirm it matches the design, behavior is intact, and the rules pass. The definition of "done".
 
 When stuck: **[`debugging.md`](./debugging.md)** (symptom → fix), **[`sdk-gaps-and-blockers.md`](./sdk-gaps-and-blockers.md)** (fixable problem vs. real SDK gap — and how to record a gap honestly), **[`patterns-and-tips.md`](./patterns-and-tips.md)** (proven recipes), **[`context.md`](./context.md)** (attach/read your own data on comments), **[`cross-cutting.md`](./cross-cutting.md)** (a11y/i18n/RTL/responsive/testing), and **[`edge-cases-and-limitations.md`](./edge-cases-and-limitations.md)**.
 
@@ -59,6 +60,8 @@ customization-guide/
 ├── 01-overview.md                  Mental model + the 4 layers + shadow DOM
 ├── 02-decision-tree.md             HOW TO CHOOSE a layer (or mix) — the spine
 ├── 03-getting-started.md           Prerequisites, shadowDom, folder structure
+├── build-methodology.md            HOW TO BUILD — Step-1 overview, Step-2 small pixel-perfect patches
+├── build-gotchas.md                The wireframe/clone/styling traps + their fixes
 ├── approaches/
 │   ├── css.md                      Theme with variables; class overrides with !important
 │   ├── wireframes.md               Your layout, Velt's behavior (deepest section)
@@ -78,8 +81,11 @@ customization-guide/
 │   ├── component-config.md         Layout/mode props (filter layout, embed, …) + custom data
 │   ├── feature-flags.md            Hidden-by-default features → the prop/method to enable
 │   ├── component-catalog.md        Components ↔ primitives ↔ wireframe slots (map)
-│   ├── component-definitions.md    DESIGN INTENT → component (recognition catalog): what each is, how to recognize it, availability
-│   └── hooks.md                    Headless hooks (read / mutate / control)
+│   ├── component-definitions.md    DESIGN INTENT → component (recognition catalog): what each is, FOR/wrong-tool, anchored-vs-static
+│   ├── behaviors.md                BEHAVIOR layer: prop defaults, how props combine, dialog state machine, variant scoping, positioning ownership
+│   ├── data-models.md              DATA layer: entity fields, which hook/event exposes each, custom-data storage, documented absences
+│   ├── hooks.md                    Headless hooks (read / mutate / control)
+│   └── _entry-contract.md          The 5-layer standard every reference entry must meet
 ├── features/                       Deep per-feature guides (non-comments)
 │   ├── notifications.md
 │   ├── reactions.md
@@ -107,7 +113,7 @@ customization-guide/
 0. **Recognize first — map design → component.** Before the decision tree, identify *which Velt component* each design element is, whether it's available, and what to enable, using the recognition catalog [`reference/component-definitions.md`](./reference/component-definitions.md) (design intent / visual+positional cue → component, with disambiguation for look-alikes and off-by-default flags). When two components match, confirm with the user; when nothing matches, it's host UI (ignore) or an SDK gap ([`sdk-gaps-and-blockers.md`](./sdk-gaps-and-blockers.md)) — don't force a mapping.
 1. **Then run the decision tree** ([`02-decision-tree.md`](./02-decision-tree.md)) against each recognized surface. It outputs a layer (or a per‑feature mix) plus a reason.
 2. **Honor [`rules.md`](./rules.md) as hard constraints.** They are non‑negotiable (e.g. one `<VeltWireframe>` per app; `shadowDom={false}` when styling; no interactive React inside a wireframe). Above all, **R0 — no hacky/patchy fixes**: if a goal isn't achievable cleanly within the supported APIs, switch layers or leave a clear code comment about the blocker; never fake it with brittle DOM/timing hacks. Clean, correct code only.
-3. **Only use real identifiers — never invent one.** The [`reference/`](./reference) pages are **generated from source**: every modern `--velt-*` (+ legacy) variable ([`css-variables`](./reference/css-variables.md)), stateful classes with their conditions, per component ([`css-classes`](./reference/css-classes.md)), all wireframes + slot trees ([`wireframe-components`](./reference/wireframe-components.md)), all primitives ([`primitives`](./reference/primitives.md)), the full `{variable}` catalog ([`wireframe-variables`](./reference/wireframe-variables.md)), every `<VeltComments>` **prop** ([`props`](./reference/props.md)) + layout/mode props ([`component-config`](./reference/component-config.md)), off‑by‑default **feature flags** ([`feature-flags`](./reference/feature-flags.md)), hooks ([`hooks`](./reference/hooks.md)), and the design‑intent **recognition catalog** ([`component-definitions`](./reference/component-definitions.md)). If a name isn't in these, it doesn't exist. (To confirm a class on a specific rendered element, inspect it with `shadowDom={false}` — see [`debugging.md`](./debugging.md).)
+3. **Only use real identifiers — never invent one.** The [`reference/`](./reference) pages are **generated from source**: every modern `--velt-*` (+ legacy) variable ([`css-variables`](./reference/css-variables.md)), stateful classes with their conditions, per component ([`css-classes`](./reference/css-classes.md)), all wireframes + slot trees ([`wireframe-components`](./reference/wireframe-components.md)), all primitives ([`primitives`](./reference/primitives.md)), the full `{variable}` catalog ([`wireframe-variables`](./reference/wireframe-variables.md)), every `<VeltComments>` **prop** ([`props`](./reference/props.md)) + layout/mode props ([`component-config`](./reference/component-config.md)), off‑by‑default **feature flags** ([`feature-flags`](./reference/feature-flags.md)), hooks ([`hooks`](./reference/hooks.md)), and the design‑intent **recognition catalog** ([`component-definitions`](./reference/component-definitions.md)). **If a name isn't in these, it doesn't exist** — never invent one; to confirm where a class lands on a rendered element, inspect it with `shadowDom={false}` ([`debugging.md`](./debugging.md)). This rule is stated canonically once — the [source‑of‑truth invariant](./reference/_entry-contract.md) — for every reference page.
 4. **Each approach file is self‑contained and step‑ordered** — follow it without cross‑guessing.
 5. **Match the folder structure in [`03-getting-started.md`](./03-getting-started.md)** so output stays consistent across designs.
 6. **Verify each surface before moving on** ([`verifying-a-customization.md`](./verifying-a-customization.md)): drive its states, confirm Velt's behavior is intact, run the static rules scan, then emit a verdict (PASS / PARTIAL / FAIL / BLOCKED). One surface at a time (R16).

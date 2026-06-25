@@ -4,7 +4,7 @@ The hooks you use to build custom UI ([`approaches/headless.md`](../approaches/h
 
 Grouped by purpose: **read** (data/state you render), **mutate** (actions you call), **events** (callbacks), **control** (init/scope/imperative). This lists the commonly‑used comment hooks plus a brief map of other features; the SDK exports many more hooks following the same naming, but everything you need for the patterns in this guide is here.
 
-> **Don't invent hook names.** If it's not exported by `@veltdev/react`, it doesn't exist.
+> Exhaustive over `@veltdev/react`'s hook exports — a hook not listed here doesn't exist ([source-of-truth invariant](./_entry-contract.md)).
 
 ---
 
@@ -116,6 +116,7 @@ commentElement.setCustomStatus([{ id: "new", title: "New", color: "#FF5733" }]);
 | Notifications | `useNotificationsData`, `useUnreadNotificationsCount`, `useNotificationSettings`, `useNotificationUtils`, `useNotificationEventCallback` |
 | Reactions | `useAddReaction`, `useToggleReaction`, `useDeleteReaction` |
 | Recorder | `useRecordings`, `useRecordingDataByRecorderId`, `useRecorderUtils`, `useRecorderEventCallback`, `useRecorderAddHandler` |
+| Suggestions | `useSuggestions`, `useSuggestionUtils`, `usePendingSuggestion`, `useStartSuggestion`, `useCommitSuggestion`, `useEnableSuggestionMode` / `useDisableSuggestionMode`, `useSuggestionModeState`, `useSuggestionEventCallback` |
 | Activity log | `useAllActivities`, `useActivityUtils` |
 | Autocomplete | `useAutocompleteUtils`, `useAutocompleteChipClick`, `useContactList`, `useContactSelected`, `useContactUtils` |
 | Tags | `useTagAnnotations`, `useTagUtils` |

@@ -256,7 +256,7 @@ Beyond `veltIf`/`veltClass`/`variant`, these slots accept extra props:
 
 ## Appendix — all 770 wireframe slot elements (complete)
 
-The **authoritative, exhaustive** list — every `velt-*-wireframe` element the SDK registers (from the component registry). Each is a fillable slot. In React, top‑level ones are `Velt*Wireframe` components; nested ones are dotted accessors on their parent (e.g. `velt-comment-dialog-thread-card-avatar-wireframe` → `VeltCommentDialogWireframe.ThreadCard.Avatar`). If a `-wireframe` element isn't here, it doesn't exist.
+The **authoritative, exhaustive** list — every `velt-*-wireframe` element the SDK registers (from the component registry). Each is a fillable slot. In React, top‑level ones are `Velt*Wireframe` components; nested ones are dotted accessors on their parent (e.g. `velt-comment-dialog-thread-card-avatar-wireframe` → `VeltCommentDialogWireframe.ThreadCard.Avatar`). A `-wireframe` element not in this list doesn't exist ([source-of-truth invariant](./_entry-contract.md)).
 
 ### Comment dialog (203)
 ```

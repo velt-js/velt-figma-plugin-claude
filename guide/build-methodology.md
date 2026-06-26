@@ -63,6 +63,21 @@ Pick **one surface** (dialog or sidebar — dialog first is usually easiest). Th
 
 ---
 
-## The build↔judge loop is PER PATCH, not per surface
+## The loop is BLOCK BY BLOCK — one Figma frame/state perfected before the next
 
-After each small patch (an element styled, a state handled), the [Judge](./verifying-a-customization.md) checks **that piece** by **whole-surface measurement** — the delta table diffing rendered computed styles against the `designSpec` (colour ΔE<2, lengths ±1px) AND the layout (box/gap/relation/missing-element) AND a visual side-by-side where any nameable difference fails, plus the `mustSupply`/icon-identity gate. No aggregate score; a piece isn't done until its style + layout deltas are empty and the side-by-side is clean across its states. The Judge surfaces this evidence; it never declares the run done — a separate `/goal` evaluator does. Then the next patch. (See the gotchas you'll hit in [`build-gotchas.md`](./build-gotchas.md).)
+The completeness oracle is `blocks.json` (`scripts/enumerate-blocks.mjs`): **every Figma frame/state is one block** — the design's frames ARE the checklist, so "stopped at the happy path" is impossible (an unbuilt frame = INCOMPLETE). The unit of work is the **block**, and a block is finished to a true match before the next starts:
+
+```
+for each block (composer-default first, then states):
+   build/patch the block's elements  (Step 2 above: structure → supply slots → reconcile → exact numbers)
+   SEED + DRIVE the block's state in-app  (block.drive/fixture: type/click/hover/resolve; wait for drive.assert)
+   CAPTURE device-res  (capture-block.mjs → 708px @DPR2 PNG)
+   MEASURE:  visual-diff.mjs --mask-text-from <designSpec>  (chrome-only; region fill ≥ ~0.05 ⇒ FAIL)
+           + delta-compare BROWSER_PROBE  (exact style ΔE<2/±1px + layout box/gap/relation)
+           + LAYER_PROBE (R22/R23) + CONTRACT_PROBE (R25)
+   iterate until: no significant visual region ∧ delta tables empty ∧ contract ok  → block PASS
+   advance only on PASS
+terminate only when verdict-gate-blocks.mjs exits 0 for ALL blocks
+```
+
+Why mechanical: text has a ~4% Figma-vs-Chrome glyph-rendering floor, so the visual diff masks text and checks **chrome** (which the 354px width-match aligns to ~0%) for missing/extra/wrong elements; **delta-compare owns exact colour/size/position** (font-render-immune). Neither alone is enough — both must be clean. The Judge writes per-block dispositions to `block-report.json`; it never declares done — `verdict-gate-blocks.mjs`'s exit code does (NOT `/goal`, which let prior runs stop early). A retry is accepted only if the significant-region / failing-diff count strictly drops. (See the traps in [`build-gotchas.md`](./build-gotchas.md).)

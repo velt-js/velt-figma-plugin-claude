@@ -1,0 +1,17 @@
+{
+  "name": "velt-customize",
+  "owner": { "name": "Velt", "email": "support@velt.dev" },
+  "description": "Velt's Claude Code plugin marketplace — turn a Figma design into clean Velt UI customization on a React app.",
+  "plugins": [
+    {
+      "name": "velt-customize",
+      "source": "./",
+      "description": "Figma → Velt UI customization (comments + notifications) via a Planner → Builder → Judge block-by-block loop that mechanically verifies each Figma frame against the live app.",
+      "homepage": "https://velt.dev",
+      "repository": "https://github.com/velt-js/velt-figma-plugin-claude",
+      "license": "MIT",
+      "category": "design-to-code",
+      "keywords": ["velt", "figma", "design-to-code", "ui-customization", "comments", "react"]
+    }
+  ]
+}

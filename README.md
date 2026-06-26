@@ -2,6 +2,38 @@
 
 Turns a **Figma design** into **clean, rule-compliant Velt UI customization** (comments + notifications) on a client's existing React app, via a **Planner → Builder → Judge** loop that verifies each surface against the design in a real browser, or honestly reports an **SDK gap**. It always reads the latest **customization guide** (`guide/`) and never hacks (R0).
 
+## Install
+
+```
+/plugin marketplace add velt-js/velt-figma-plugin-claude
+/plugin install velt-customize@velt-customize
+```
+Then restart Claude Code (or `/reload-plugins`). Run a customization with `/velt-customize <figma-node-url> [target repo path]`.
+
+## Prerequisites (the run preflights all of these and HALTs with a fix if any is missing)
+
+- **Figma desktop app running** — `.mcp.json`'s `figma-desktop` (Dev Mode MCP) reads the design at `localhost:3845`.
+- **Chrome** — the `claude-in-chrome` MCP drives the live app for verification.
+- **A target React app** with `@veltdev/react` installed, authed, and rendering Velt's default UI.
+- **Node** ≥ 18. The block scripts (`enumerate-blocks` / `visual-diff` / `verdict-gate-blocks`) are zero-dependency; the optional device-res capture (`capture-block.mjs`) needs **`playwright-core`** + a Chromium (`npm i -g playwright-core`).
+
+## Figma token (secure, keychain-based — never committed)
+
+Deterministic extraction uses the **Figma REST API**, which needs a personal access token (`figd_…`, create at *figma.com → Settings → Security → Personal access tokens*). The token is resolved in this order — **the repo `.env` is never read**:
+
+1. the `FIGMA_TOKEN` environment variable, else
+2. your **OS keychain** (macOS Keychain / Linux `secret-tool`), under service `velt-customize` / account `figma-token`.
+
+Store it once in the keychain via the plugin's helper (it reads the token from **stdin**, never argv/history):
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/scripts/figma-extract.mjs" token set      # paste the token when prompted
+node "$CLAUDE_PLUGIN_ROOT/scripts/figma-extract.mjs" token status   # verify (prints a masked value)
+node "$CLAUDE_PLUGIN_ROOT/scripts/figma-extract.mjs" token remove    # delete it
+```
+
+If no token is configured, the plugin falls back to the **Figma MCP** for design intake (less deterministic). Preflight tells you which path is active.
+
 ## The flow
 
 1. You provide: the **Figma file/node** + the **target repo** (Velt is assumed already installed/authed/rendering).

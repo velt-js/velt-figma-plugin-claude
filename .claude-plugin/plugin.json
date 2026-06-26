@@ -1,6 +1,5 @@
 {
   "name": "velt-customize",
-  "version": "0.1.0",
   "description": "Turn a Figma design into clean, rule-compliant Velt UI customization (comments + notifications) on an existing React app, via a Planner -> Builder -> Judge loop that verifies each surface against the design or honestly reports an SDK gap. Always reads the latest bundled customization guide.",
   "author": { "name": "Velt" },
   "homepage": "https://velt.dev"

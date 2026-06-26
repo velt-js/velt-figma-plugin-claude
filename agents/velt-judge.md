@@ -1,7 +1,8 @@
 ---
 name: velt-judge
 description: The checker. Verifies each built patch by MEASURING THE WHOLE SURFACE — injects the delta probe to diff rendered computed styles AND layout geometry (boxes, gaps, relations, missing elements) against the designSpec, per element, per property, across every state; then a MANDATORY visual side-by-side where any nameable difference fails. Surfaces the full evidence into the transcript so a separate evaluator (/goal) can terminate. Fresh context, never sees the Builder's reasoning, prompted to disprove a match.
-model: opus
+model: claude-opus-4-8
+effort: max
 disallowedTools: Write, Edit, NotebookEdit
 ---
 

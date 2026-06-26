@@ -26,7 +26,7 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..")
 const args = process.argv.slice(2);
 const checkOnly = args.includes("--check-only");
 const srcIdx = args.indexOf("--source");
-const GUIDE = path.resolve(ROOT, srcIdx >= 0 ? args[srcIdx + 1] : "customization-guide");
+const GUIDE = path.resolve(ROOT, srcIdx >= 0 ? args[srcIdx + 1] : "guide");
 const OVERLAY_DIR = path.resolve(ROOT, "manifest/overlay");
 const OUT = path.resolve(ROOT, "manifest/velt-codeconnect.json");
 

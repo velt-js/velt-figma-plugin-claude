@@ -1,6 +1,6 @@
 # velt-customize — Figma → Velt UI customization (Claude Code plugin)
 
-Turns a **Figma design** into **clean, rule-compliant Velt UI customization** (comments + notifications) on a client's existing React app, via a **Planner → Builder → Judge** loop that verifies each surface against the design in a real browser, or honestly reports an **SDK gap**. It always reads the latest bundled **customization guide** and never hacks (R0).
+Turns a **Figma design** into **clean, rule-compliant Velt UI customization** (comments + notifications) on a client's existing React app, via a **Planner → Builder → Judge** loop that verifies each surface against the design in a real browser, or honestly reports an **SDK gap**. It always reads the latest **customization guide** (`guide/`) and never hacks (R0).
 
 ## The flow
 
@@ -15,11 +15,10 @@ Turns a **Figma design** into **clean, rule-compliant Velt UI customization** (c
 ```
 .claude-plugin/plugin.json   manifest
 .mcp.json                    figma-desktop (design intake) + claude-in-chrome (verification)
-guide/                       BUNDLED customization-guide, verbatim (synced) + guide.version  ← the knowledge base
-customization-guide/         canonical guide source (edit here, then sync)
+guide/                       the knowledge base — single source of truth (edit here; the plugin reads it directly)
 skills/  agents/  commands/   thin orchestration over the guide (no embedded knowledge)
-scripts/sync-guide.mjs       copy customization-guide/ → guide/ + stamp version + self-check
-scripts/validate.mjs         completeness + guide-freshness gate
+scripts/check-guide.mjs      guide integrity gate (required files, no external paths, links resolve)
+scripts/validate.mjs         completeness + guide self-check gate
 templates/                   VeltCustomization.tsx, styles.css, report templates
 ARCHITECTURE.md              the full design / architecture (read this to understand how the plugin works)
 ```
@@ -27,11 +26,11 @@ ARCHITECTURE.md              the full design / architecture (read this to unders
 ## Scripts
 
 ```bash
-node scripts/sync-guide.mjs    # re-bundle the guide (run after editing customization-guide/)
-node scripts/validate.mjs      # gate: manifest + .mcp.json + guide freshness/self-check
+node scripts/check-guide.mjs   # gate: guide integrity (required files, self-sufficiency, links)
+node scripts/validate.mjs      # gate: manifest + .mcp.json + guide self-check
 ```
 
-The guide is the single source of truth: skills/agents carry **zero** customization knowledge — they read `guide/` and apply it, so behavior changes when the guide changes, with no drift.
+The guide is the single source of truth: skills/agents carry **zero** customization knowledge — they read `guide/` and apply it, so behavior changes when the guide changes, with no drift. There is no bundle and no sync step — `guide/` is edited and read directly.
 
 ## Note on MCP endpoints
 

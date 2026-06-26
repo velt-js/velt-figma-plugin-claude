@@ -2,7 +2,7 @@
 // run-golden.mjs — the golden regression guard.
 //
 // OFFLINE (runs here, no browser): for each expected fixture, assert the design's
-// surface + every identifier the golden build relies on STILL EXISTS in the bundled guide.
+// surface + every identifier the golden build relies on STILL EXISTS in the guide.
 // This catches the failure mode where the guide evolves and silently breaks the golden
 // expectations (R10 / drift guard) — without needing a live app.
 //

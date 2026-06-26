@@ -1,7 +1,3 @@
-# Generated bundle — produced from customization-guide/ by scripts/sync-guide.mjs.
-# Never hand-edit; regenerate with `node scripts/sync-guide.mjs`. Materialized at build/publish time.
-guide/
-
 # Local tooling state
 .context/
 .DS_Store

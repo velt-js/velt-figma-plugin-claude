@@ -8,9 +8,9 @@
 
 ## 0. Context & why
 
-The `customization-guide/` (self-sufficient, zero SDK/external paths) is the verified knowledge base for customizing Velt. This plugin operationalizes it: an AI loop that reads a Figma design, picks the right layer per piece (CSS / wireframe / primitive), implements it strictly (R0 — no hacks), verifies it in a real browser against the design, and emits an **SDK-gap report** for anything that can't be done cleanly. The guide keeps evolving, so the plugin must always consume its **latest** state with zero drift.
+The `guide/` (self-sufficient, zero SDK/external paths) is the verified knowledge base for customizing Velt. This plugin operationalizes it: an AI loop that reads a Figma design, picks the right layer per piece (CSS / wireframe / primitive), implements it strictly (R0 — no hacks), verifies it in a real browser against the design, and emits an **SDK-gap report** for anything that can't be done cleanly. The guide is edited and read in place — it is the single source of truth, with zero drift by construction.
 
-**Locked decisions:** standalone plugin repo · thin pointer skills + bundled live guide · Planner/Builder/Judge subagents with shared context + bounded retry · Judge runs the client app + Figma↔Chrome match, with our playground as the golden regression test.
+**Locked decisions:** standalone plugin repo · thin pointer skills + single in-place guide · Planner/Builder/Judge subagents with shared context + bounded retry · Judge runs the client app + Figma↔Chrome match, with our playground as the golden regression test.
 
 ---
 
@@ -48,16 +48,15 @@ Standalone repo, installable as a Claude Code plugin.
 velt-customize-plugin/
 ├── .claude-plugin/plugin.json     # manifest: name, version, description, dirs
 ├── .mcp.json                      # MCP servers: figma-desktop, claude-in-chrome (velt-docs optional/later)
-├── guide/                         # BUNDLED customization-guide, VERBATIM (synced). The knowledge base.
-│   ├── …all guide files (sync copies whatever exists — no hard-coded count)…
-│   └── guide.version              # { sha, isoTime, fileCount, bytes }
+├── guide/                         # the knowledge base — single source of truth (edited + read directly)
+│   └── …all guide files…
 ├── skills/                        # thin pointer skills (SKILL.md per skill)
 ├── agents/                        # velt-orchestrator, velt-planner, velt-builder, velt-judge
 ├── commands/
 │   └── velt-customize.md          # /velt-customize entry command
 ├── scripts/
-│   ├── sync-guide.mjs             # copy customization-guide/ → guide/ + stamp guide.version
-│   └── validate.mjs               # plugin completeness + guide freshness gate
+│   ├── check-guide.mjs            # guide integrity gate (required files, no external paths, links)
+│   └── validate.mjs               # plugin completeness + guide self-check gate
 ├── golden/                        # playground.html + Designs #1/#2 fixtures + expected outcomes
 ├── templates/                     # boilerplate (VeltCustomization.tsx, styles.css, report templates)
 ├── README.md
@@ -73,21 +72,18 @@ velt-customize-plugin/
 
 ---
 
-## 4. Guide bundling & "always latest" (zero-drift)
+## 4. Guide as single source of truth (no bundle, no sync)
 
-**`scripts/sync-guide.mjs` algorithm:**
-1. Resolve source `customization-guide/` (config: local path, git submodule, or a pinned ref).
-2. **Clean-copy** every file verbatim into `guide/` (no transformation → zero drift). Remove orphaned files.
-3. Stamp `guide/guide.version` = `{ sha: <git SHA of guide source>, isoTime, fileCount, bytes }`.
-4. Run a self-check: links/anchors resolve, **zero external/SDK paths** (the self-sufficiency invariant), expected entry files present.
+`guide/` **is** the knowledge base — it is edited and read in place. There is no separate source dir, no copy step, and no `guide.version` stamp. Editing the guide changes plugin behavior directly, with zero drift by construction (there is nothing to drift from).
 
-**Freshness gate (`validate.mjs` + orchestrator):**
-- `validate.mjs` fails CI if `guide/` is missing files, the self-check fails, or `guide.version` is absent.
-- **At run start**, the orchestrator records `guideVersion` into the shared context and **pins it for the whole run** (consistency). If it can detect a newer guide source, it warns but does not switch mid-run.
+**Integrity gate (`scripts/check-guide.mjs`):** runs against `guide/` directly and hard-fails on:
+1. a missing required entry file (README, decision tree, rules, verifying, sdk-gaps, the core reference pages),
+2. any external/SDK path leak — the **self-sufficiency invariant** (the guide must be usable with zero repo-internal paths),
+3. a broken internal relative link.
 
-**Keeping it current (SDK repo CI):** a workflow triggers on `customization-guide/**` changes → runs `sync-guide.mjs` → opens a plugin PR / publishes. (Alternative: `guide/` is a git submodule pinned to the guide directory; `sync` = submodule update.)
+**Validation gate (`validate.mjs`):** fails if `guide/` is missing or `check-guide.mjs` fails; also validates the manifest, `.mcp.json`, and the Code Connect overlay manifest against the guide.
 
-**Edge:** if the guide source is unreachable at runtime, the plugin uses the **bundled** `guide/` and reports its `guideVersion` (still functional, just not freshest).
+**Strict per-folder templates:** `guide/approaches/`, `guide/features/`, and `guide/reference/behaviors/` each carry a `_template.md` that every file in that folder must follow. This keeps the knowledge base uniform and makes gaps obvious (an empty template section = a known absence, stated explicitly).
 
 ---
 
@@ -301,7 +297,7 @@ The run **starts here.** Before any expensive work, the orchestrator checks ever
 
 | # | Check | How | On failure |
 |---|---|---|---|
-| 1 | Guide bundled | `guide/` + `guide.version` present + self-check passes | ✗ **HALT** (dev-time): "run `scripts/sync-guide.mjs`" |
+| 1 | Guide present | `guide/` present + self-check passes (`check-guide.mjs`) | ✗ **HALT** (dev-time): "run `node scripts/check-guide.mjs`" |
 | 2 | **Figma MCP + Dev Mode** | `figma-desktop` reachable; `get_metadata` on the node resolves | ✗ **HALT** (can't plan): "Open the file in Figma desktop, enable Dev Mode, ensure the Dev Mode MCP server is running, then re-run." |
 | 3 | **Velt installed** | repo path valid; `package.json` has `@veltdev/react` | ✗ **HALT**: "This plugin customizes an *existing* Velt setup — Velt isn't installed in `<repo>`. Set up Velt first." |
 | 4 | **App runs + Velt renders** | start the dev server → open in Chrome → confirm Velt initializes (default comments/sidebar render) | ✗ **HALT / ⚠**: "App won't start / Velt isn't rendering — check API key, `identify`, `setDocuments`." Also captures the **default-UI baseline** for later compare. |
@@ -321,7 +317,7 @@ The run **starts here.** Before any expensive work, the orchestrator checks ever
 **Readiness summary — what the user sees (ready case):**
 ```
 Velt preflight — checking prerequisites…
-  ✓ Guide bundled (v<sha>, <n> files)
+  ✓ Guide present (<n> files, self-check passed)
   ✓ Figma reachable — node <id> resolved (Dev Mode on)
   ✓ Velt installed — @veltdev/react in <repo>
   ✓ App runs + Velt renders — default UI at <url>
@@ -342,7 +338,7 @@ Preflight HALTED — can't plan without the design. Nothing was changed.
 
 After planning and before building, the orchestrator presents a **per-surface coverage matrix** with a recommended layer per surface, and **waits for the user to confirm or adjust the plan.** The plugin does not write any code until the user decides. This is the run's main decision point.
 
-**Inputs the user provides to start a run:** the bundled `guide/` (reference knowledge), the **Figma file/node**, and the **target repo**. The plugin then analyzes everything and produces the matrix below.
+**Inputs the user provides to start a run:** the `guide/` (reference knowledge), the **Figma file/node**, and the **target repo**. The plugin then analyzes everything and produces the matrix below.
 
 **Coverage matrix (the Planner produces it).** For each recognized **surface**, estimate how faithfully each **approach** can reproduce *that surface* — a surface × approach grid of coverage %:
 
@@ -459,7 +455,7 @@ Written to the target repo under `velt-customization-report/` (and surfaced in c
 ## 15. Verification & testing of the plugin itself
 
 - **Golden regression test** (`golden/`): bundles `src/playground.html` + verified **Design #1 (review-card dialog)** and **Design #2 (map-marker pins)**. A harness drives the plugin against a Figma frame replicating them and asserts the Judge reaches **PASS** reproducing them (and that the rules scan is clean). Locks the whole loop end-to-end and guards against regressions in agent prompts.
-- **`scripts/validate.mjs`:** all skills/agents/commands present; `guide/` bundled + self-check passes (links resolve, zero external/SDK paths) + `guide.version` stamped; `.mcp.json` valid; templates present.
+- **`scripts/validate.mjs`:** all skills/agents/commands present; `guide/` present + self-check passes (`check-guide.mjs`: required files, links resolve, zero external/SDK paths); `.mcp.json` valid; templates present.
 - **Unit-ish checks:** the Planner running `guide/02-decision-tree.md` on a fixtures table (design description → expected layer); identifier-resolution never returns a name absent from `guide/reference/*`.
 - **Dogfood ladder:** playground → a minimal sample React+Velt app → a real client app.
 
@@ -477,12 +473,12 @@ Written to the target repo under `velt-customization-report/` (and surfaced in c
 
 ## 17. Build phases (post-approval)
 
-1. **Scaffold** the standalone repo: `plugin.json`, `.mcp.json`, `scripts/sync-guide.mjs` (+ first guide sync + self-check), `scripts/validate.mjs`, `templates/`.
+1. **Scaffold** the standalone repo: `plugin.json`, `.mcp.json`, `guide/` (+ `scripts/check-guide.mjs` self-check), `scripts/validate.mjs`, `templates/`.
 2. **Skills:** author the thin pointer skills (§5) — each routes to its guide file(s), embeds no knowledge.
 3. **Agents:** author orchestrator / planner / builder / judge over the schemas (§7), pointing at the guide for all knowledge (decisions/taxonomy/procedures/goals/gaps per §8) and the Judge mechanics (§9). Build the **preflight gate (§10)**, the coverage gate (§11), and the loop control (§12).
 4. **MCP wiring:** Figma intake in the Planner; Chrome verification in the Judge.
 5. **Golden test + dogfood:** run on the playground; iterate agent prompts until Designs #1/#2 reach PASS; then a real app.
-6. **CI sync hook** in the SDK repo: `customization-guide/**` change → `sync-guide.mjs` → plugin re-sync/publish.
+6. **Guide upkeep:** edit `guide/` directly; `check-guide.mjs` + `validate.mjs` gate every change. No sync/bundle step.
 
 ---
 
@@ -495,4 +491,4 @@ Written to the target repo under `velt-customization-report/` (and surfaced in c
 
 ---
 
-*Single source of truth: the bundled `guide/` (a verbatim copy of `customization-guide/`). The plugin never hard-codes guide knowledge — it reads the latest guide and applies it. Skills/agents are thin orchestration over that knowledge.*
+*Single source of truth: `guide/`, edited and read in place. The plugin never hard-codes guide knowledge — it reads the guide and applies it. Skills/agents are thin orchestration over that knowledge.*

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// validate.mjs — plugin completeness + guide freshness gate. Exits non-zero on hard failures.
-// Hard fails: bad manifest, invalid .mcp.json, missing/ stale / self-check-failing guide.
+// validate.mjs — plugin completeness + guide integrity gate. Exits non-zero on hard failures.
+// Hard fails: bad manifest, invalid .mcp.json, missing / self-check-failing guide.
 // Warnings: component dirs (skills/agents/commands) not yet populated.
 
 import { promises as fs } from "node:fs";
@@ -16,20 +16,6 @@ async function readJSON(p) {
   try { return JSON.parse(await fs.readFile(path.join(ROOT, p), "utf8")); }
   catch (e) { errors.push(`invalid JSON: ${p} (${e.message})`); return null; }
 }
-// content-based staleness signal (HEAD-independent): count .md files + total bytes of the source
-// guide. Compared against what sync-guide recorded in guide.version — real drift, not commit churn.
-async function srcGuideStats(dir) {
-  let fileCount = 0, bytes = 0;
-  async function walk(d) {
-    for (const e of await fs.readdir(d, { withFileTypes: true })) {
-      const full = path.join(d, e.name);
-      if (e.isDirectory()) await walk(full);
-      else if (e.name.endsWith(".md")) { fileCount++; bytes += (await fs.stat(full)).size; }
-    }
-  }
-  try { await walk(dir); } catch { return null; }
-  return { fileCount, bytes };
-}
 
 // 1. Manifest
 const manifest = await readJSON(".claude-plugin/plugin.json");
@@ -39,21 +25,11 @@ if (manifest && (!manifest.name || !manifest.version)) errors.push("plugin.json:
 if (await exists(".mcp.json")) await readJSON(".mcp.json");
 else errors.push("missing .mcp.json");
 
-// 3. Guide bundled + version stamped + self-check
-if (!(await exists("guide"))) errors.push("guide/ not bundled — run scripts/sync-guide.mjs");
+// 3. Guide present + self-check (single source of truth — the plugin reads guide/ directly)
+if (!(await exists("guide"))) errors.push("guide/ missing");
 else {
-  const ver = await readJSON("guide/guide.version");
-  if (!ver) errors.push("guide/guide.version missing or invalid — run scripts/sync-guide.mjs");
-  else {
-    // HARD fail on real content drift (matches this file's header): the bundled guide's recorded
-    // file-count/bytes must match the current source. HEAD-independent — only fires on actual edits.
-    const src = await srcGuideStats(path.join(ROOT, "customization-guide"));
-    if (src && (src.fileCount !== ver.fileCount || src.bytes !== ver.bytes))
-      errors.push(`guide is STALE: source now ${src.fileCount} files/${src.bytes}B vs bundled ${ver.fileCount} files/${ver.bytes}B — re-run scripts/sync-guide.mjs`);
-  }
-  // run the self-check against the bundled guide
   try {
-    execSync(`node "${path.join(ROOT, "scripts/sync-guide.mjs")}" --check-only --source guide`, { stdio: ["ignore", "pipe", "pipe"] });
+    execSync(`node "${path.join(ROOT, "scripts/check-guide.mjs")}" --dir guide`, { stdio: ["ignore", "pipe", "pipe"] });
   } catch (e) {
     errors.push("guide self-check failed:\n" + (e.stdout?.toString() || "") + (e.stderr?.toString() || ""));
   }

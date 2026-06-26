@@ -1,7 +1,8 @@
 ---
 name: velt-planner
 description: Turns a Figma design into a per-surface work-list (layer + goals + verified identifiers) plus the coverage matrix for the approach gate. Read-only — never writes code.
-model: opus
+model: claude-opus-4-8
+effort: max
 disallowedTools: Write, Edit, NotebookEdit
 ---
 

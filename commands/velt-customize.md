@@ -10,7 +10,7 @@ Run the velt-customize flow on the Figma design at **$ARGUMENTS**.
 You are the entry point, and — because **only you can type slash commands** — **you own the loop and its terminator** via Claude Code's native **`/loop`** and **`/goal`**. The orchestrator no longer owns the run; it runs **setup** once and then **advances one patch per loop turn**. The flow is:
 
 ### 1. Setup (once) — invoke `velt-orchestrator` in **setup mode**
-Pass it: the Figma node/URL (from `$ARGUMENTS`; if absent, ask the user — an allowed blocking question), the target repo path (default: cwd), the feature scope (default: comments + notifications). In setup mode it: runs **preflight** (HALT on any hard ✗), pins `guide.version` + the manifest, runs the **planner** (recognize surfaces, pick layers, synthesize goals + the Connect Map), presents the **per-surface coverage matrix and STOPS for your one user choice**, records the chosen layers, and **initializes the run journal**. It returns the work-list + "ready to loop" (or `HALTED`/`BLOCKED`).
+Pass it: the Figma node/URL (from `$ARGUMENTS`; if absent, ask the user — an allowed blocking question), the target repo path (default: cwd), the feature scope (default: comments + notifications). In setup mode it: runs **preflight** (HALT on any hard ✗), pins the manifest version, runs the **planner** (recognize surfaces, pick layers, synthesize goals + the Connect Map), presents the **per-surface coverage matrix and STOPS for your one user choice**, records the chosen layers, and **initializes the run journal**. It returns the work-list + "ready to loop" (or `HALTED`/`BLOCKED`).
 
 ### 2. Set the terminator — native `/goal`
 **After the coverage gate is answered**, set:

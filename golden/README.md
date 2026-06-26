@@ -11,7 +11,7 @@ Each has an `expected/<design>.expected.json` (surface, layer, the identifiers t
 ## Two layers of checking
 
 **1. Offline guard — `node golden/run-golden.mjs`** (runs anywhere, no browser).
-Asserts each design's surface + every identifier its golden build uses **still exists in the bundled guide**. This catches guide drift breaking the golden expectations (the R10 failure mode) — cheaply, in CI, on every change. Wire it into `validate` / pre-publish.
+Asserts each design's surface + every identifier its golden build uses **still exists in the guide**. This catches guide drift breaking the golden expectations (the R10 failure mode) — cheaply, in CI, on every change. Wire it into `validate` / pre-publish.
 
 **2. E2E — the full loop** (needs the live env: the playground app, the connected MCPs, and the installed plugin).
 The playground (`sdk/src/playground.html`, run with `npx ng serve --port 4200` in the `sdk` repo — it can't be moved) reproduces both designs. Run `/velt-customize` against a Figma frame replicating each design and assert the **Judge reaches PASS** with a **clean rules scan**. `run-golden.mjs` prints this checklist.

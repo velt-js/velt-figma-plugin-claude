@@ -8,7 +8,7 @@ Turns a **Figma design** into **clean, rule-compliant Velt UI customization** (c
 /plugin marketplace add velt-js/velt-figma-plugin-claude
 /plugin install velt-customize@velt-customize
 ```
-Then restart Claude Code (or `/reload-plugins`). Run a customization with `/velt-customize <figma-node-url> [target repo path]`.
+Then restart Claude Code (or `/reload-plugins`). Run a customization with `/velt-customize:run <figma-node-url> [target repo path]`.
 
 ## Prerequisites (the run preflights all of these and HALTs with a fix if any is missing)
 

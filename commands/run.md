@@ -3,7 +3,7 @@ description: Turn a Figma design into clean Velt UI customization (comments + no
 argument-hint: "<figma-node-url> [target repo path]"
 ---
 
-# /velt-customize
+# /velt-customize:run
 
 Run the velt-customize flow on the Figma design at **$ARGUMENTS**.
 

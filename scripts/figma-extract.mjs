@@ -164,6 +164,19 @@ function walk(node, parent, out) {
   for (const child of node.children || []) walk(child, node, out);
 }
 
+// Figma emits ABSOLUTE canvas coords in box.x/y. The Judge's probe measures surface-RELATIVE
+// coords (getBoundingClientRect − surface-root rect), so a raw absolute spec box would be diffed
+// against a relative rendered box (the bug Codex flagged). Subtract the extracted root frame's
+// origin from every node so spec.box and rendered box share one coordinate space. Deterministic —
+// not left to the Judge to do in its head.
+export function normalizeBoxes(nodes) {
+  const root = nodes.find((n) => n.box && n.box.x != null);
+  if (!root) return;
+  const ox = root.box.x || 0, oy = root.box.y || 0;
+  if (!ox && !oy) return;
+  for (const n of nodes) if (n.box && n.box.x != null) { n.box.x = Math.round(n.box.x - ox); n.box.y = Math.round(n.box.y - oy); }
+}
+
 // likely-icon heuristic (FigmaToCode) — small vector-only subtree
 function isIconNode(node) {
   if (["VECTOR", "BOOLEAN_OPERATION", "STAR", "POLYGON", "LINE"].includes(node.type)) return true;
@@ -187,16 +200,51 @@ function collectIcons(node, parents, out) {
     // the label/ancestry are how we deterministically assign an icon to a slot: a menu row is
     // [icon, "Edit"], the reply affordance is [icon, "Reply"]; icon-only controls fall back to
     // an ancestry frame-name keyword.
-    out.push({ id: node.id, name: node.name, label: parent ? firstText(parent) : null, ancestry: parents.map((p) => p.name).filter(Boolean) });
+    const b = node.absoluteBoundingBox;
+    out.push({
+      id: node.id, name: node.name, type: node.type,
+      // component-signal (S3 layer): a named Figma icon component/instance (e.g. an `iconButton`/`Icon`)
+      // is a strong "this is a deliberate icon" cue even with no adjacent label — M2a was exactly this.
+      isComponent: ["INSTANCE", "COMPONENT", "COMPONENT_SET"].includes(node.type),
+      label: parent ? firstText(parent) : null,
+      ancestry: parents.map((p) => p.name).filter(Boolean),
+      box: b ? { w: Math.round(b.width), h: Math.round(b.height) } : null,
+    });
     return; // don't descend into an icon
   }
   for (const c of node.children || []) collectIcons(c, [...parents, node], out);
 }
 
-// Assign exported icons → slots via the manifest's iconHint. nearText (icon's adjacent label) is
-// the strong signal; ancestryKeyword is the fallback. What we can't confidently match is reported
-// UNASSIGNED (for the agent to resolve by inspecting the SVGs) — never guessed.
-async function assignIcons(icons, assets) {
+// glyph → name synonyms: the icon (or its component) is frequently NAMED for what it is even when it
+// has no adjacent label. This is the layer that resolves the M2a filter/kebab icons that nearText +
+// ancestry both missed (the filter was a named `iconButton`/`Icon` component).
+export const GLYPH_SYNONYMS = {
+  "filter-lines": ["filter", "filters", "funnel", "sliders", "adjust", "sort"],
+  "kebab": ["kebab", "more", "ellipsis", "dots", "overflow", "options", "menu"],
+  "check-circle": ["check", "resolve", "tick", "done", "complete", "circlecheck", "checkcircle"],
+  "reply-arrow": ["reply", "respond", "arrowreply"],
+  "pencil": ["pencil", "edit", "write"],
+  "link": ["link", "copy", "chain", "url"],
+  "trash": ["trash", "delete", "bin", "remove", "garbage"],
+};
+export function glyphTerms(h) {
+  const out = new Set();
+  if (h.glyph) { out.add(h.glyph.toLowerCase().replace(/[^a-z0-9]/g, "")); for (const s of GLYPH_SYNONYMS[h.glyph] || []) out.add(s); }
+  if (h.nearText) out.add(h.nearText.toLowerCase());
+  return [...out];
+}
+export function nameMatches(icon, terms) {
+  const hay = [icon.name, ...(icon.ancestry || [])].filter(Boolean).join(" ").toLowerCase().replace(/[^a-z0-9 ]/g, "");
+  return terms.some((t) => t && hay.includes(t));
+}
+
+// Assign exported icons → slots via the manifest's iconHint, in CONFIDENCE LAYERS (S3):
+//   1. nearText      — the icon's adjacent label ("Edit"/"Reply"). Strongest.
+//   2. name/component-signal — the icon (or its named component) is named for the glyph (filter/kebab).
+//   3. ancestryKeyword — a unique free icon under a matching ancestry frame.
+// Anything still unmatched is reported UNASSIGNED with a RENDER-AND-RECOGNIZE candidate shortlist
+// (the free SVGs to rasterize + identify by vision) — never guessed.
+export async function assignIcons(icons, assets) {
   let manifest;
   try { manifest = JSON.parse(await fs.readFile(MANIFEST_PATH, "utf8")); }
   catch { return { assignments: {}, unassigned: [], note: "manifest not built — run scripts/build-manifest.mjs to enable icon→slot assignment" }; }
@@ -204,18 +252,36 @@ async function assignIcons(icons, assets) {
   const assignments = {}, unassigned = [];
   const used = new Set(); // one SVG file → one slot (a kebab is not a reply arrow)
   const free = (i) => assetByNode[i.id] && !used.has(assetByNode[i.id]);
+  const cand = (i) => ({ file: assetByNode[i.id], name: i.name, isComponent: i.isComponent, ancestry: i.ancestry, box: i.box });
   for (const comp of Object.values(manifest.components || {})) {
     for (const slot of comp.slots || []) {
       const h = slot.iconHint;
       if (!h) continue;
       let match = null, by = null;
-      // nearText (the icon's adjacent label) is the reliable signal — assign the first free match.
+      // layer 1 — nearText (the icon's adjacent label): assign the first free match.
       if (h.nearText) { const c = icons.filter((i) => i.label && i.label.toLowerCase().includes(h.nearText.toLowerCase()) && free(i)); if (c.length) { match = c[0]; by = `nearText:"${h.nearText}"`; } }
-      // ancestryKeyword is weak — accept ONLY when it resolves to a single free icon (unambiguous);
-      // a broad keyword like "comment" matches many → left unassigned rather than guessed.
+      // layer 2 — name/component-signal: the icon or its component is named for the glyph.
+      if (!match) {
+        const terms = glyphTerms(h);
+        const c = icons.filter((i) => free(i) && nameMatches(i, terms));
+        if (c.length === 1) { match = c[0]; by = `nameSignal:${terms.find((t) => nameMatches(c[0], [t]))}`; }
+        else if (c.length > 1) { const comps = c.filter((i) => i.isComponent); if (comps.length === 1) { match = comps[0]; by = "nameSignal+component"; } }
+      }
+      // layer 3 — ancestryKeyword: accept ONLY when it resolves to a single free icon (unambiguous).
       if (!match && h.ancestryKeyword) { const c = icons.filter((i) => i.ancestry.some((a) => a.toLowerCase().includes(h.ancestryKeyword.toLowerCase())) && free(i)); if (c.length === 1) { match = c[0]; by = `ancestry:"${h.ancestryKeyword}"(unique)`; } }
       if (match) { assignments[slot.reactPath] = { file: assetByNode[match.id], by, glyph: h.glyph || null }; used.add(assetByNode[match.id]); }
-      else unassigned.push({ slot: slot.reactPath, hint: h, note: "no confident match — inspect the exported SVGs for the glyph and assign manually" });
+      else {
+        // render-and-recognize shortlist: name-hit free icons first, else all free icon-component candidates.
+        const terms = glyphTerms(h);
+        const freeIcons = icons.filter(free);
+        const hits = freeIcons.filter((i) => nameMatches(i, terms));
+        const pool = hits.length ? hits : freeIcons.filter((i) => i.isComponent).length ? freeIcons.filter((i) => i.isComponent) : freeIcons;
+        unassigned.push({
+          slot: slot.reactPath, hint: h, renderRecognize: true,
+          candidates: pool.slice(0, 8).map(cand),
+          note: `no deterministic match — RENDER each candidate SVG and recognize the glyph by vision, then wire the one matching '${h.glyph || h.nearText}'. ${hits.length ? "Shortlisted by name." : "No name hit; all free icon candidates listed."}`,
+        });
+      }
     }
   }
   return { assignments, unassigned };
@@ -237,6 +303,7 @@ async function extractRest(fileKey, nodeId, outDir, doSvg) {
 
   const nodes = [];
   walk(root, null, nodes);
+  normalizeBoxes(nodes);
 
   const icons = [];
   collectIcons(root, [], icons);
@@ -258,7 +325,7 @@ async function extractRest(fileKey, nodeId, outDir, doSvg) {
     }
   }
   const iconAssign = doSvg ? await assignIcons(icons, assets) : { assignments: {}, unassigned: [] };
-  return { source: "rest", fileKey, nodeId: id, nodeCount: nodes.length, nodes, assets, icons: icons.length,
+  return { source: "rest", fileKey, nodeId: id, boxSpace: "surface-relative", nodeCount: nodes.length, nodes, assets, icons: icons.length,
     iconAssignments: iconAssign.assignments, unassignedIcons: iconAssign.unassigned };
 }
 
@@ -269,8 +336,8 @@ async function extractMcp(dumpPath) {
   const dump = JSON.parse(await fs.readFile(dumpPath, "utf8"));
   const tokens = dump.variableDefs || dump.variables || {};
   const nodes = [];
-  if (dump.nodes || dump.document) walk(dump.document || dump.nodes, null, nodes);
-  return { source: "mcp", tokens, nodeCount: nodes.length, nodes, note: "MCP fallback: exact numbers limited to what get_variable_defs/metadata expose; prefer REST (set a token) for full fidelity." };
+  if (dump.nodes || dump.document) { walk(dump.document || dump.nodes, null, nodes); normalizeBoxes(nodes); }
+  return { source: "mcp", tokens, boxSpace: "surface-relative", nodeCount: nodes.length, nodes, note: "MCP fallback: exact numbers limited to what get_variable_defs/metadata expose; prefer REST (set a token) for full fidelity." };
 }
 
 // ---------------- main ----------------
@@ -321,4 +388,7 @@ async function main() {
   console.log(`✓ wrote ${path.relative(process.cwd(), out)} — source=${spec.source}, ${spec.nodeCount} nodes${spec.assets ? `, ${spec.assets.length} SVG assets` : ""}${spec.iconAssignments ? `, ${nA} icon→slot assigned${nU ? `, ${nU} unassigned (inspect SVGs)` : ""}` : ""}`);
 }
 
-main().catch((e) => { console.error("✗ " + e.message); process.exit(1); });
+// run as CLI only — importable for unit tests (golden icon-resolver calibration)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((e) => { console.error("✗ " + e.message); process.exit(1); });
+}

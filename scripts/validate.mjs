@@ -16,9 +16,19 @@ async function readJSON(p) {
   try { return JSON.parse(await fs.readFile(path.join(ROOT, p), "utf8")); }
   catch (e) { errors.push(`invalid JSON: ${p} (${e.message})`); return null; }
 }
-function gitSha(p) {
-  try { return execSync(`git -C "${p}" rev-parse --short HEAD`, { stdio: ["ignore", "pipe", "ignore"] }).toString().trim(); }
-  catch { return null; }
+// content-based staleness signal (HEAD-independent): count .md files + total bytes of the source
+// guide. Compared against what sync-guide recorded in guide.version — real drift, not commit churn.
+async function srcGuideStats(dir) {
+  let fileCount = 0, bytes = 0;
+  async function walk(d) {
+    for (const e of await fs.readdir(d, { withFileTypes: true })) {
+      const full = path.join(d, e.name);
+      if (e.isDirectory()) await walk(full);
+      else if (e.name.endsWith(".md")) { fileCount++; bytes += (await fs.stat(full)).size; }
+    }
+  }
+  try { await walk(dir); } catch { return null; }
+  return { fileCount, bytes };
 }
 
 // 1. Manifest
@@ -35,9 +45,11 @@ else {
   const ver = await readJSON("guide/guide.version");
   if (!ver) errors.push("guide/guide.version missing or invalid — run scripts/sync-guide.mjs");
   else {
-    const srcSha = gitSha(path.join(ROOT, "customization-guide"));
-    if (srcSha && ver.sha !== "nogit" && srcSha !== ver.sha)
-      warns.push(`guide is stale: bundled sha=${ver.sha}, source sha=${srcSha} — re-run sync-guide.mjs`);
+    // HARD fail on real content drift (matches this file's header): the bundled guide's recorded
+    // file-count/bytes must match the current source. HEAD-independent — only fires on actual edits.
+    const src = await srcGuideStats(path.join(ROOT, "customization-guide"));
+    if (src && (src.fileCount !== ver.fileCount || src.bytes !== ver.bytes))
+      errors.push(`guide is STALE: source now ${src.fileCount} files/${src.bytes}B vs bundled ${ver.fileCount} files/${ver.bytes}B — re-run scripts/sync-guide.mjs`);
   }
   // run the self-check against the bundled guide
   try {

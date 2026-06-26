@@ -31,6 +31,10 @@ const OVERLAY_DIR = path.resolve(ROOT, "manifest/overlay");
 const OUT = path.resolve(ROOT, "manifest/velt-codeconnect.json");
 
 const SLOT_TYPES = ["icon", "text", "container", "action", "input", "menu-item"];
+// orthogonal styling role (S4): container = structural wrapper (never style as a surface);
+// trigger = the control that opens a popup (style as its own small element, e.g. a 24px icon);
+// content = the popup/menu surface (THIS is the styleable floating surface); item = a leaf.
+const SLOT_ROLES = ["container", "trigger", "content", "item"];
 
 function read(rel) {
   return fs.readFile(path.join(GUIDE, "reference", rel), "utf8");
@@ -131,11 +135,16 @@ function build({ appendix, slotProps, cssClasses, hostPropCatalog, overlays }) {
 
   for (const c of overlays.comps) {
     if (!c.name || !c.rootWireframe) { errors.push(`overlay ${c._overlay}: component missing name/rootWireframe`); continue; }
+    // S8 provenance gate: every overlay component must cite its GROUND-TRUTH source (the appendix /
+    // a reference page), not a private demo. Forces the structural truth to be design-agnostic + traceable.
+    if (!c.provenance || typeof c.provenance !== "string" || c.provenance.length < 8) errors.push(`${c.name}: missing "provenance" — cite the ground-truth source (e.g. "reference/wireframe-components.md appendix + reference/component-definitions.md"), not a demo (S8)`);
+    else if (/harvey|gold demo|private/i.test(c.provenance)) warnings.push(`${c.name}: provenance "${c.provenance}" cites a demo — prefer the SDK appendix / reference pages as the source of truth (S8)`);
     const slots = [];
     for (const s of c.slots || []) {
       if (!s.tag) { errors.push(`${c.name}: slot ${s.reactPath || "?"} missing tag`); continue; }
       if (!appendix.tags.has(s.tag)) { errors.push(`${c.name}: slot tag not in appendix (invented/renamed): ${s.tag}`); continue; }
       if (!s.slotType || !SLOT_TYPES.includes(s.slotType)) { errors.push(`${c.name}: slot ${s.tag} has invalid/missing slotType (${s.slotType}); allowed: ${SLOT_TYPES.join("|")}`); continue; }
+      if (!s.role || !SLOT_ROLES.includes(s.role)) { errors.push(`${c.name}: slot ${s.tag} has invalid/missing role (${s.role}); allowed: ${SLOT_ROLES.join("|")} — every slot must declare its styling role (S4/R23)`); continue; }
       covered.add(s.tag);
       // CSS classes are CURATED in the overlay (the real class the Builder overrides). Velt's
       // class names drop the component prefix the tags carry, so auto-matching tag→class is
@@ -151,26 +160,66 @@ function build({ appendix, slotProps, cssClasses, hostPropCatalog, overlays }) {
         tag: s.tag,
         parent: s.parent || null,
         slotType: s.slotType,
+        role: s.role,
         mustSupply: !!s.mustSupply,
         defaultContent: s.defaultContent || "none",
         dataField: s.dataField || null,
         cssClasses: classes,
         ...(s.iconHint ? { iconHint: s.iconHint } : {}),
+        ...(s.mentionScope ? { mentionScope: s.mentionScope } : {}),
         ...(props.length ? { slotProps: props } : {}),
       });
     }
-    // validate hostProps exist
+    // S5 layout sanity: every reference in a layout block (row slots, stack, relation endpoints)
+    // must resolve to a real slot leaf, a row name declared here, or a known synthetic token —
+    // else it's a typo the Judge would silently fail to assert. (lint: warn, doesn't block.)
+    const slotLeaves = new Set((c.slots || []).map((s) => (s.reactPath || "").split(".").pop()).filter(Boolean));
+    const SYNTHETIC = new Set(["actions", "title", "header", "headerRow"]);
+    for (const [group, lay] of Object.entries(c.layout || {})) {
+      const rowNames = new Set((lay.rows || []).map((r) => r.name).filter(Boolean));
+      const known = (ref) => slotLeaves.has(ref) || rowNames.has(ref) || SYNTHETIC.has(ref);
+      const refs = [
+        ...(lay.stack || []),
+        ...(lay.rows || []).flatMap((r) => r.slots || []),
+        ...(lay.relations || []).flatMap((r) => [r.a, r.b]),
+      ].filter(Boolean);
+      for (const ref of refs) if (!known(ref)) warnings.push(`${c.name}: layout.${group} references '${ref}' which is not a slot leaf, a declared row name, or a known token — likely a typo (S5)`);
+    }
+    // S2 paddingResets must look like CSS selectors (so the Builder can emit padding:0 for them)
+    for (const sel of c.paddingResets || []) if (typeof sel !== "string" || !/^[.#\[]|wireframe|velt-/.test(sel)) warnings.push(`${c.name}: paddingReset '${sel}' does not look like a CSS selector (R22)`);
+    // validate hostProps exist + S6/R24 provenance discipline: feature/behavioral props
+    // carry NO hardcoded value (the Planner sets values gated on a recognized design cue);
+    // only `required:true` infra props (e.g. shadowDom:false) may pin a value.
     for (const hp of c.hostProps || []) {
       if (hp.prop && !hostPropCatalog.has(hp.prop)) warnings.push(`${c.name}: hostProp '${hp.prop}' not found in feature-flags/props catalog`);
+      if (hp.value !== undefined && !hp.required) errors.push(`${c.name}: hostProp '${hp.prop}' carries a hardcoded value but is not required infra — feature/behavioral prop values are design-gated by the Planner (R24/S6). Remove "value" or mark "required": true.`);
+      if (!hp.required && !hp.designCue) warnings.push(`${c.name}: hostProp '${hp.prop}' has no designCue — the Planner can't gate it on a recognized design element (R24)`);
     }
+    // mount-map contract (functional oracle): derive the required behavioral parts + their required
+    // ancestor (containment) from the slots flagged `behavioral`. selectorHint/requiredAncestorHint =
+    // the registered velt-* tags; the Judge resolves the LIVE selector by inspection (the *-wireframe
+    // tag is the 0-size registry template, not the rendered element — same as styling selectors).
+    const leafTag = {};
+    for (const s of c.slots || []) leafTag[(s.reactPath || "").split(".").pop()] = s.tag;
+    const contractParts = (c.slots || []).filter((s) => s.behavioral).map((s) => ({
+      part: (s.reactPath || "").split(".").pop(),
+      reactPath: s.reactPath,
+      selectorHint: s.tag,
+      requiredAncestorHint: s.parent ? (leafTag[s.parent] || null) : null,
+      singleton: !!s.singleton,
+    }));
     components[c.name] = {
       name: c.name,
       reactImport: c.reactImport || c.name,
       rootWireframe: c.rootWireframe,
       onComponent: c.onComponent || null,
+      provenance: c.provenance || null,
       slots,
       hostProps: c.hostProps || [],
       variants: c.variants || [],
+      ...(c.paddingResets ? { paddingResets: c.paddingResets } : {}),
+      ...(c.layout ? { layout: c.layout } : {}),
+      ...(contractParts.length ? { contract: { parts: contractParts } } : {}),
     };
   }
 
@@ -209,6 +258,12 @@ async function main() {
   for (const f of overlays.files) {
     const j = JSON.parse(await fs.readFile(path.join(OVERLAY_DIR, f), "utf8"));
     for (const r of j.recognition || []) recognition.push(r);
+  }
+  // recognition targets must resolve to a real component (the part before the first dot) — a
+  // recognition cue pointing at a nonexistent component is a real bug, not lint.
+  for (const r of recognition) {
+    const root = (r.component || "").split(".")[0];
+    if (!root || !components[root]) errors.push(`recognition cue '${(r.cue || "").slice(0, 40)}…' targets component '${r.component}' whose root '${root}' is not a built component`);
   }
 
   if (errors.length) {

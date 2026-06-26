@@ -7,7 +7,7 @@ The fidelity-critical inputs (spacing, padding, sizing, radius, typography, colo
 - **REST path (preferred — fully deterministic).** With a Figma token resolved (see token handling below), `node scripts/figma-extract.mjs rest <fileKey> <nodeId> --out <dir> --svg` fetches the node JSON from `api.figma.com` and emits `designSpec.json` + exported icon SVGs under `assets/`.
 - **MCP fallback (no token).** The Planner saves its Figma‑MCP outputs (`get_variable_defs`, and a node tree from `get_metadata`/`get_design_context`) to a dump, then `node scripts/figma-extract.mjs from-mcp <dump.json>` parses it into the **same** `designSpec` schema. Lower fidelity (limited to what the MCP exposes) — prefer REST.
 
-Each `designSpec` node carries `cssDecls` — CSS‑ready, exact declarations. The Builder applies them to the real classes from [`reference/manifest.md`](./reference/manifest.md); the Judge diffs rendered computed styles against them.
+Each `designSpec` node carries `cssDecls` — CSS‑ready, exact declarations — and a `box` (`x/y/w/h`). The Builder applies the `cssDecls` to the real classes from [`reference/manifest.md`](./reference/manifest.md); the Judge diffs rendered computed styles **and** layout boxes against them. **Boxes are emitted `surface-relative`** (`boxSpace: "surface-relative"`) — `figma-extract` subtracts the extracted root frame's origin from every node, so `box.x/y` are relative to the surface's top‑left and directly comparable to the probe's `getBoundingClientRect − surface-root` measurement (no absolute‑vs‑relative mismatch, and the Judge does no coordinate math by hand).
 
 ## The mapping rules (auto‑layout → CSS, from FigmaToCode)
 
@@ -21,13 +21,14 @@ Each `designSpec` node carries `cssDecls` — CSS‑ready, exact declarations. T
 
 ## Icons — export the design's real SVGs (R17) + assign them to slots
 
-`figma-extract` flags **likely‑icon** nodes (vectors, or small ≤64px vector‑only subtrees), exports each as an SVG (id‑suffixed filename so generic names like "Icon"/"Vector" don't collide), and **assigns each to a slot** using the manifest's `iconHint`:
+`figma-extract` flags **likely‑icon** nodes (vectors, or small ≤64px vector‑only subtrees), exports each as an SVG (id‑suffixed filename so generic names like "Icon"/"Vector" don't collide), and **assigns each to a slot** using the manifest's `iconHint`, in **confidence layers** (stop at the first that matches; never guess):
 
-- **`nearText` (reliable):** the icon's adjacent label — a menu row is `[icon, "Edit"]`, the reply affordance is `[icon, "Reply"]`. These auto‑assign (de‑duped: one SVG → one slot). Output: `designSpec.iconAssignments[reactPath] = { file, by, glyph }`.
-- **`ancestryKeyword` (weak):** only accepted when it resolves to **exactly one** free icon; a broad keyword (e.g. "comment") matches many → deliberately left unassigned, never guessed.
-- **`unassignedIcons`:** icon‑only controls with no reliable label (filter trigger, kebab, resolve/reopen) are reported here **with their `glyph` description** (e.g. `filter-lines`, `kebab`, `check-circle`). The Builder resolves these by **inspecting the exported SVGs** for that glyph and wiring it in — explicit, not a Velt default.
+1. **`nearText` (reliable):** the icon's adjacent label — a menu row is `[icon, "Edit"]`, the reply affordance is `[icon, "Reply"]`. Auto‑assign (de‑duped: one SVG → one slot). Output: `designSpec.iconAssignments[reactPath] = { file, by, glyph }`.
+2. **name / component‑signal (S3):** an icon‑only control is frequently a **named Figma icon component** (an `iconButton`/`Icon` instance) or a node named for its glyph (`filterIcon`, `more`, `checkCircle`). The resolver matches the slot's `glyph` (+ synonyms — `filter-lines`→filter/funnel, `kebab`→more/ellipsis/dots, `check-circle`→check/resolve/tick, …) against the icon's own name + ancestry, preferring a single name hit or a single named component. **This is the layer that fixes the M2a filter + kebab misses** (named components with no adjacent label).
+3. **`ancestryKeyword` (weak):** only accepted when it resolves to **exactly one** free icon; a broad keyword (e.g. "comment") matches many → left unassigned, never guessed.
+4. **`unassignedIcons` → render‑and‑recognize:** anything still unmatched is reported here with `{ slot, hint:{glyph}, renderRecognize:true, candidates:[{file,name,isComponent,box}] }` — a **shortlist of the free exported SVGs** (name‑hits first, else the icon components). The Builder/Planner **rasterizes each candidate SVG and identifies the glyph by vision** (open the `assets/*.svg` in the browser / view it), then wires the one matching the `glyph` into the slot. Explicit recognition — never a Velt default, never hand‑drawn, never a blind guess.
 
-**Wire the assigned + resolved SVGs into the `mustSupply` icon slots** as a small `icons/` file of React SVG components. Never leave a Velt default icon and never hand‑draw one.
+**Wire the assigned + recognized SVGs into the `mustSupply` icon slots** as a small `icons/` file of React SVG components. Never leave a Velt default icon and never hand‑draw one.
 
 ## Token handling (secure — see the plan's §G)
 

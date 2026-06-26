@@ -2,7 +2,9 @@
 
 A customization is **done** when three things are true, in this order: it **matches the design**, Velt's **behavior is still intact**, and the code is **rule‑compliant**. This page is the step‑ordered flow for confirming all three on **one surface** — the executable companion to R15 (verify after each surface) and R16 (one surface at a time).
 
-> **Golden rule of verification: MEASURE, don't eyeball — and name every difference.** Fidelity is a measurement problem. Diff the rendered **computed styles** against the `designSpec`'s exact numbers, per element, per property, with tolerances (lengths **±1px**, colour **CIEDE2000 ΔE < 2**, keywords exact, font-family by family name). A surface passes only when **every** measured property of **every** element passes in **every** state — there is **no aggregate score** to hide a miss behind, and **"looks close" is a FAIL**. (Tolerances exist only because Velt's engine differs sub-pixel from a design tool — not to permit visible differences.) The screenshot side-by-side **corroborates** the measurement; it never replaces it.
+> **Golden rule of verification: MEASURE THE WHOLE SURFACE, don't eyeball or sample — and name every difference.** Fidelity is a whole-surface measurement problem. Two failures came from sampling: "looks ~90% close," then later "5 sampled properties pass" while the whole surface was glaringly wrong. So you check **three** things per state and ALL must be clean: (1) **style** — rendered computed styles vs the `designSpec`'s exact numbers, per element, per property (lengths **±1px**, colour **CIEDE2000 ΔE < 2**, keywords exact, font-family by family); (2) **layout** — each element's surface-relative **box** (x/y/w/h), sibling **gaps**, and **relations** (name left-of time, message below header, actions top-right), plus **missing/extra elements**; (3) a **visual side-by-side** where **any nameable difference is a FAIL**. The checklist is **auto-derived from every mapped element** (no hand-picking — that's how a broken surface slipped through). There is **no aggregate score** and **"looks close" is a FAIL**. (Tolerances exist only because Velt's engine differs sub-pixel from a design tool — not to permit visible differences.)
+>
+> **The verifier never decides when the RUN stops.** It surfaces its full evidence (gross-mismatch result + style + layout delta tables + named visual differences + verdict) into the transcript; a **separate evaluator (`/goal`)** reads that transcript and terminates. The build/runtime can never declare "matched."
 
 Run this flow **per surface**, finish it, then move to the next surface. Don't batch (R16).
 
@@ -33,16 +35,18 @@ For each visual goal, render the surface in each **state** the design covers and
 
 Capture each state as evidence. A visual goal with states `["default","resolved"]` is only checkable once you've driven both.
 
-### Step 2 — Measured visual check (match the design)
+### Step 2 — Whole-surface measured check + visual gate (match the design)
 
-For each state, run the **delta probe** rather than eyeballing — this is the gate:
+For each state, do all four — this is the gate:
 
-1. Assemble the spec list from the Connect Map / `designSpec`: `[{ name, selector, expected: <cssDecls> }]` for every styled element **and every `mustSupply` slot** (see [`reference/manifest.md`](./reference/manifest.md)).
-2. Inject `BROWSER_PROBE` (from `scripts/delta-compare.mjs`) via the browser tool — it reads each **live** node's `getComputedStyle`/`getBoundingClientRect` (never the 0-size `*-wireframe` template) and returns a per-element, per-property **delta table** + verdict (colour by CIEDE2000, lengths ±1px, keywords exact).
-3. **Hard gates:** any console error / unbuilt page / mapped element with `width===0` ⇒ `BLOCKED`/`FAIL`. Every `mustSupply` slot must be **present and carry the design's content** — an icon slot must contain the design's exported SVG (compare identity), not a Velt default or hand-drawn glyph (R17 FAIL).
-4. **Colours still must trace to a `--velt-*` token / documented class** (an accidentally-matching hard-coded colour breaks in dark mode — fail it even if ΔE passes).
+1. **Consume the GENERATED checklist (R26 — you do not author it).** `node scripts/build-checklist.mjs --spec <designSpec.json>` emits `checklist.json` = **every distinct styled appearance in the design** (deduped by its declarations — the teal mention, the placeholder, each filter row), **every `mustSupply` slot**, **every mount-map part**, **every required state**. Resolve each element's live selector by inspection (the manifest `cssClasses` for the measured leaves; inspect to the leaf for the rest). Add **relations + gaps** from the manifest `layout`. Assemble the probe object `{ surfaceSelector, tol, elements, relations, gaps }`. You produce `judge-report.json` (a disposition for **every** checklist element + the per-state visual artifact); `scripts/verdict-gate.mjs` decides done — a report that samples (covers fewer than the checklist) is **INCOMPLETE, not PASS**, so the loop can't end on it.
+2. **Gross-mismatch pre-check first:** compare total content height / element count / surface extents vs the designSpec. Grossly off ⇒ FAIL immediately (don't let per-element props "pass" on a broken surface).
+3. **Inject `BROWSER_PROBE`** (from `scripts/delta-compare.mjs`) via the browser tool — it reads each **live** node's `getComputedStyle` + surface-relative `getBoundingClientRect` (never the 0-size `*-wireframe` template) and returns a delta table + verdict covering **style** (ΔE<2, ±1px, keywords exact) AND **layout** (box ±2-3px, gaps, relations, missing/extra elements).
+4. **Visual side-by-side — a GATE:** capture the full-surface screenshot beside the Figma frame and **name every visible difference** (density/spacing, name placement, filter as a box vs icon, hover actions revealed, unwanted banner). **Any nameable difference ⇒ FAIL** — then find the property/relation you didn't measure and add it. A clean table with an obviously-wrong screenshot is still a FAIL.
 
-The delta table's failing rows ARE the feedback. Mark the goal **met** only when the table is empty for every state; otherwise **not met**, listing each `{element, property, spec, rendered}` diff.
+**Hard gates:** any console error / unbuilt page / mapped element with `width===0` ⇒ `BLOCKED`/`FAIL`. Every `mustSupply` slot must be **present and carry the design's content** — an icon slot must contain the design's exported SVG (compare identity), not a Velt default or hand-drawn glyph (R17 FAIL). A popup must be styled on its `content` slot, never its container/trigger (R23). Horizontal padding must not compound across nested wrappers (R22). No feature/prop whose UI the design doesn't show (R24). **Colours still must trace to a `--velt-*` token / documented class** (an accidentally-matching hard-coded colour breaks in dark mode — fail it even if ΔE passes).
+
+The delta table's failing rows + the named visual differences ARE the feedback. Mark the goal **met** only when, for every state, the gross check is clean, the style + layout tables are empty, and the visual side-by-side has no nameable difference; otherwise **not met**, listing each diff.
 
 ### Step 3 — Behavior check (Velt still works)
 

@@ -19,7 +19,10 @@ async function readJSON(p) {
 
 // 1. Manifest
 const manifest = await readJSON(".claude-plugin/plugin.json");
-if (manifest && (!manifest.name || !manifest.version)) errors.push("plugin.json: name and version are required");
+if (manifest && !manifest.name) errors.push("plugin.json: name is required");
+// version is OPTIONAL: omitting it puts the plugin on the git-SHA auto-update channel (matches
+// `claude plugin validate`, which only warns). Add a semver version for stable, pinned releases.
+if (manifest && !manifest.version) warns.push("plugin.json: no version — using the git-SHA channel (add a semver version for pinned releases)");
 
 // 2. MCP config
 if (await exists(".mcp.json")) await readJSON(".mcp.json");

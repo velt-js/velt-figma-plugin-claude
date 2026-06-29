@@ -142,8 +142,11 @@ export function cropImage(img, x, y, w, h) {
 // (`iconButton`/`Icon`/`Vector`) are NOT content — they are NOT masked, so the diff still verifies them.
 // Exact + deterministic — no hand-estimated coordinates. (Plan §0c item 1 + §0d fix #c.)
 const IS_AVATAR = (n) => /^(avatar|profile picture)$/i.test((n.name || "").trim());
-export function textMasksFromSpec(spec, { scale = 2, pad = 3 } = {}) {
-  const nodes = spec.nodes || spec;
+// `frameId` (the block's figmaNodeId): with a multi-frame/section designSpec (boxSpace:"frame-relative",
+// each node tagged with `frameId`), pass the block's frame id so ONLY that block's nodes are used and
+// their boxes are already relative to the block's frame PNG. Omit for a single-frame designSpec.
+export function textMasksFromSpec(spec, { scale = 2, pad = 3, frameId = null } = {}) {
+  const nodes = (spec.nodes || spec).filter((n) => !frameId || n.frameId === frameId);
   return nodes.filter((n) => (n.text || IS_AVATAR(n)) && n.box && n.box.w).map((n) => [
     Math.round(n.box.x * scale - pad), Math.round(n.box.y * scale - pad),
     Math.round(n.box.w * scale + pad * 2), Math.round(n.box.h * scale + pad * 2),
@@ -171,11 +174,12 @@ export function visualDiff(refImg, liveImg, { masks = [], threshold = 0.1, cell 
 async function main() {
   const [refP, liveP, ...rest] = process.argv.slice(2);
   if (!refP || !liveP) { console.error("usage: visual-diff.mjs <refPng> <livePng> [--mask x,y,w,h ...] [--masks-json f] [--out diff.png] [--threshold 0.1] [--scale 2]"); process.exit(1); }
-  const masks = []; let outP = null, threshold = 0.1, cell = 24, scale = 2, minChanged = 0, minFill = 0, textSpecPath = null, maskPad = 3, cropRef = null, cropLive = null;
+  const masks = []; let outP = null, threshold = 0.1, cell = 24, scale = 2, minChanged = 0, minFill = 0, textSpecPath = null, maskPad = 3, cropRef = null, cropLive = null, maskFrame = null;
   for (let i = 0; i < rest.length; i++) {
     if (rest[i] === "--mask") masks.push(rest[++i].split(",").map(Number));
     else if (rest[i] === "--masks-json") masks.push(...JSON.parse(await fs.readFile(rest[++i], "utf8")));
     else if (rest[i] === "--mask-text-from") textSpecPath = rest[++i];
+    else if (rest[i] === "--mask-frame") maskFrame = rest[++i];   // block's figmaNodeId — select only this frame's nodes from a multi-frame (section) designSpec
     else if (rest[i] === "--mask-pad") maskPad = +rest[++i];
     else if (rest[i] === "--crop-ref") cropRef = rest[++i].split(",").map(Number);   // x,y,w,h device px — scope the frame to the block's element region
     else if (rest[i] === "--crop-live") cropLive = rest[++i].split(",").map(Number); // x,y,w,h device px — scope the live capture (use when the live element sits at a different y than the frame)
@@ -186,7 +190,7 @@ async function main() {
     else if (rest[i] === "--min-region") minChanged = +rest[++i];
     else if (rest[i] === "--min-fill") minFill = +rest[++i];
   }
-  if (textSpecPath) masks.push(...textMasksFromSpec(JSON.parse(await fs.readFile(textSpecPath, "utf8")), { scale, pad: maskPad }));
+  if (textSpecPath) masks.push(...textMasksFromSpec(JSON.parse(await fs.readFile(textSpecPath, "utf8")), { scale, pad: maskPad, frameId: maskFrame }));
   let refImg = decodePNG(await fs.readFile(refP)); let liveImg = decodePNG(await fs.readFile(liveP));
   if (cropRef) { refImg = cropImage(refImg, ...cropRef); for (const m of masks) { m[0] -= cropRef[0]; m[1] -= cropRef[1]; } }  // re-base masks into the cropped frame
   if (cropLive) liveImg = cropImage(liveImg, ...cropLive);

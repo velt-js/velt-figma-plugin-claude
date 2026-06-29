@@ -155,26 +155,45 @@ function mapNode(node, parent) {
   };
 }
 
-// normalize (AltNode-lite) + recurse, dropping invisibles, promoting groups
-function walk(node, parent, out) {
+// normalize (AltNode-lite) + recurse, dropping invisibles, promoting groups.
+// frameId = the top-level block-frame this node descends from (so normalizeBoxes can make every node
+// relative to ITS frame, and a per-block consumer can select its nodes by frameId === block.figmaNodeId).
+function walk(node, parent, out, frameId = null, blockFrameIds = null) {
   if (node.visible === false) return;
+  const myFrameId = blockFrameIds && blockFrameIds.has(node.id) ? node.id : frameId;
   const type = node.type === "GROUP" ? "FRAME" : node.type;
   const mapped = mapNode({ ...node, type }, parent);
+  mapped.frameId = myFrameId;
   out.push(mapped);
-  for (const child of node.children || []) walk(child, node, out);
+  for (const child of node.children || []) walk(child, node, out, myFrameId, blockFrameIds);
 }
 
-// Figma emits ABSOLUTE canvas coords in box.x/y. The Judge's probe measures surface-RELATIVE
-// coords (getBoundingClientRect − surface-root rect), so a raw absolute spec box would be diffed
-// against a relative rendered box (the bug Codex flagged). Subtract the extracted root frame's
-// origin from every node so spec.box and rendered box share one coordinate space. Deterministic —
-// not left to the Judge to do in its head.
+// PER-FRAME normalization. Figma emits ABSOLUTE canvas coords; the Judge measures surface-RELATIVE
+// (getBoundingClientRect − surface-root). A single-frame extraction has ONE coord space (the root).
+// But a SECTION / multi-state board (e.g. node 1:3398 = 16 sidebar frames laid out across the canvas)
+// is exported as one frame PNG per frame, each at its OWN 0,0 — so every node must be relative to ITS
+// frame, not the section. Each node carries `frameId` (its top-level block-frame ancestor, set in
+// walk); we subtract each frame's own origin from its subtree. (Subtracting one root origin — the old
+// bug — left section nodes ~1500px off, so `visual-diff --mask-text-from` mislocated every mask and
+// the visual gate went blind, passing wrong icons / structure / spacing.)
 export function normalizeBoxes(nodes) {
-  const root = nodes.find((n) => n.box && n.box.x != null);
-  if (!root) return;
-  const ox = root.box.x || 0, oy = root.box.y || 0;
-  if (!ox && !oy) return;
-  for (const n of nodes) if (n.box && n.box.x != null) { n.box.x = Math.round(n.box.x - ox); n.box.y = Math.round(n.box.y - oy); }
+  const byFrame = new Map();
+  for (const n of nodes) { const f = n.frameId || "__root__"; if (!byFrame.has(f)) byFrame.set(f, []); byFrame.get(f).push(n); }
+  for (const [fid, group] of byFrame) {
+    const frameNode = group.find((n) => n.id === fid) || group.find((n) => n.box && n.box.x != null);
+    if (!frameNode || !frameNode.box) continue;
+    const ox = frameNode.box.x || 0, oy = frameNode.box.y || 0;
+    if (!ox && !oy) continue;
+    for (const n of group) if (n.box && n.box.x != null) { n.box.x = Math.round(n.box.x - ox); n.box.y = Math.round(n.box.y - oy); }
+  }
+}
+
+// The top-level "block frames" of an extraction: a SECTION's (or a multi-frame board's) direct frame
+// children are each their OWN coord space; a single extracted frame is its own only frame.
+export function blockFramesOf(root) {
+  const kids = (root.children || []).filter((c) => c.type === "FRAME" || c.type === "SECTION" || c.type === "GROUP");
+  if (root.type === "SECTION" || kids.length >= 2) return kids;
+  return [root];
 }
 
 // likely-icon heuristic (FigmaToCode) — small vector-only subtree
@@ -302,8 +321,10 @@ async function extractRest(fileKey, nodeId, outDir, doSvg) {
   if (!root) throw new Error(`node ${id} not found in file ${fileKey}`);
 
   const nodes = [];
-  walk(root, null, nodes);
+  const blockFrames = blockFramesOf(root);
+  walk(root, null, nodes, null, new Set(blockFrames.map((f) => f.id)));
   normalizeBoxes(nodes);
+  const frames = blockFrames.map((f) => ({ id: f.id, name: f.name, type: f.type }));
 
   const icons = [];
   collectIcons(root, [], icons);
@@ -325,7 +346,7 @@ async function extractRest(fileKey, nodeId, outDir, doSvg) {
     }
   }
   const iconAssign = doSvg ? await assignIcons(icons, assets) : { assignments: {}, unassigned: [] };
-  return { source: "rest", fileKey, nodeId: id, boxSpace: "surface-relative", nodeCount: nodes.length, nodes, assets, icons: icons.length,
+  return { source: "rest", fileKey, nodeId: id, boxSpace: "frame-relative", frames, nodeCount: nodes.length, nodes, assets, icons: icons.length,
     iconAssignments: iconAssign.assignments, unassignedIcons: iconAssign.unassigned };
 }
 
@@ -335,9 +356,15 @@ async function extractRest(fileKey, nodeId, outDir, doSvg) {
 async function extractMcp(dumpPath) {
   const dump = JSON.parse(await fs.readFile(dumpPath, "utf8"));
   const tokens = dump.variableDefs || dump.variables || {};
-  const nodes = [];
-  if (dump.nodes || dump.document) { walk(dump.document || dump.nodes, null, nodes); normalizeBoxes(nodes); }
-  return { source: "mcp", tokens, boxSpace: "surface-relative", nodeCount: nodes.length, nodes, note: "MCP fallback: exact numbers limited to what get_variable_defs/metadata expose; prefer REST (set a token) for full fidelity." };
+  const nodes = []; let frames = [];
+  if (dump.nodes || dump.document) {
+    const root = dump.document || dump.nodes;
+    const blockFrames = blockFramesOf(root);
+    walk(root, null, nodes, null, new Set(blockFrames.map((f) => f.id)));
+    normalizeBoxes(nodes);
+    frames = blockFrames.map((f) => ({ id: f.id, name: f.name, type: f.type }));
+  }
+  return { source: "mcp", tokens, boxSpace: "frame-relative", frames, nodeCount: nodes.length, nodes, note: "MCP fallback: exact numbers limited to what get_variable_defs/metadata expose; prefer REST (set a token) for full fidelity." };
 }
 
 // ---------------- main ----------------

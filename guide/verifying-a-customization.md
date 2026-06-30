@@ -48,9 +48,13 @@ For each state, do all four — this is the gate:
 
 The delta table's failing rows + the named visual differences ARE the feedback. Mark the goal **met** only when, for every state, the gross check is clean, the style + layout tables are empty, and the visual side-by-side has no nameable difference; otherwise **not met**, listing each diff.
 
-### Step 3 — Behavior check (Velt still works)
+### Step 3 — Behavior check (Velt still works) — including interaction STABILITY
 
-Customizing presentation must **never** break Velt's behavior — you never disabled it, so it must still work (R0, R7). Perform the surface's real actions (in the [matrix](#per-surface-state--behavior-matrix)) and confirm each still functions: place a pin, open a dialog, reply, change status, filter, sidebar sync; open a notifications panel, switch tab, mark read, click through. If an action is dead, something was hidden with CSS instead of a prop (R7), interactivity was put in wireframe markup (R4), or a slot was dropped — fix it; it is not a "design gap."
+Customizing presentation must **never** break Velt's behavior — you never disabled it, so it must still work (R0, R7). Two halves, both required:
+
+**3a — the action functions, end‑to‑end.** Perform the surface's real actions (in the [matrix](#per-surface-state--behavior-matrix)) and confirm each still functions **through to its outcome**: place a pin, open a dialog, **type a reply and click Send and confirm it posts**, change status, filter, sidebar sync; open a notifications panel, switch tab, mark read, click through. Perform the action by a **real on‑screen click at the visible element's box** (a JS `.click()` often won't fire Velt's handler, and there's a 0‑size registry twin that swallows class‑selector clicks). If an action is dead, something was hidden with CSS instead of a prop (R7), interactivity was put in wireframe markup (R4), or a slot was dropped — fix it; it is not a "design gap." **One passing path is not proof** — drive the *exact reported* interaction, not a convenient neighbour (a Cancel that "worked once on a nearby card" false‑passed exactly this way).
+
+**3b — the target doesn't MOVE mid‑interaction (R27).** A static per‑state capture proves the surface looks right while it sits still; it does not prove it holds still *during a click* — true of **any** interactive surface, not just composers. The failure: a visibility/layout rule keyed on a **transient** state (`:focus`/`:hover`/`:active`, or a Velt twin like `velt-composer-input-focused`) flips at the instant of the click — the element loses focus, a hidden piece re‑appears, the control shifts out from under the cursor, the click misses. Run **`STABILITY_PROBE`** (`scripts/delta-compare.mjs`) on **every interactive affordance the surface renders** (the same set the phantom‑interactive scan enumerates): record its box, drop the transient state the click would drop (blur the focused element), reflow, re‑measure. **Any shift > 1px ⇒ FAIL** — re‑anchor the rule on a stable, persistent state (a verified open/selected condition, e.g. `velt-composer-open`). This is a distinct gate from the static states; passing the static capture does not exempt it.
 
 ### Step 4 — Rules‑compliance scan (static, on the produced code)
 
@@ -89,7 +93,7 @@ The concrete "what to drive" for each v1 surface. Drive the **states** for the v
 |---|---|---|
 | **Comment pin** (`VeltCommentPin`) | default, by‑status (`OPEN`/`IN_PROGRESS`/`RESOLVED`), unread, selected; index/number shown for normal comments (none in page‑mode) | click → opens dialog; recolors on status change; index via `velt-data` renders |
 | **Comment bubble** (`VeltCommentBubble`) | default, with count, unread, on‑pin‑hover (if enabled) | hover/click behavior; count updates as comments are added |
-| **Comment dialog** (`VeltCommentDialog`) | default, empty thread, resolved, long content; `variant="dialog"` and `variant="sidebar"` if both used | reply, change status (resolve/unresolve), reactions, composer submit; opens from pin |
+| **Comment dialog** (`VeltCommentDialog`) | default, empty thread, **collapsed/empty‑composer** (single comment, reply box closed — measure trailing whitespace = 0 extra px, R27), resolved, long content; `variant="dialog"` and `variant="sidebar"` if both used | reply **posts end‑to‑end**, Send/Cancel **don't shift mid‑click** (`STABILITY_PROBE`, R27), change status (resolve/unresolve), reactions, composer submit; opens from pin |
 | **Comments sidebar V1** (`VeltCommentsSidebar`) | default list, empty, loading, filtered‑to‑zero | search, filter panel (apply/reset), select a thread → syncs to its pin/dialog |
 | **Comments sidebar V2** (`VeltCommentsSidebarV2`) | list, group headers expanded/collapsed, empty‑placeholder, filtered‑to‑zero | search, filters/miniFilters, grouping, select row → sync |
 | **Sidebar button** (`VeltSidebarButton`) | default, with unread count | click → opens/closes sidebar; count updates |

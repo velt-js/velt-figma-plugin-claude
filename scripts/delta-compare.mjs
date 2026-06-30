@@ -383,6 +383,41 @@ export const CONTRACT_PROBE = `(function(SPEC){
   return mountMapDiff(entries,{parts:parts,phantoms:phantoms});
 })`;
 
+// STABILITY_PROBE — the mechanical, GENERAL "does the click target move at the moment of the click"
+// check (any interactive surface, not just comments). The interaction bug class: a layout/visibility
+// rule keyed on a TRANSIENT state (`:focus`/`:hover`/`:active` or a Velt twin like
+// `velt-composer-input-focused`) flips at the exact instant the user reaches for a control — the
+// element loses focus on mousedown, a piece hidden under that state reappears, and the target shifts
+// out from under the cursor, so the click lands on empty air. A static per-state capture never sees
+// it; you must measure the target's box ACROSS the transition. SPEC = { surfaceSelector,
+// targets:[{name,selector}], tol? } — the Judge enumerates the surface's interactive affordances and
+// resolves each target's live (width>0) selector by inspection. The probe records each target's box,
+// drops every transient state it can reproduce mechanically (blur the focused element + dispatch
+// focusout), forces a reflow, re-measures, and reports the per-target shift. Any |dx|/|dy| > tol ⇒ the
+// target moves mid-interaction ⇒ FAIL. (Hover can't be forced programmatically; focus is the
+// reproducible transient and the one that bites. End-to-end "the action actually fired" is the Judge's
+// drive+assert, not this probe. A surface with no interactive targets ⇒ targets:[] ⇒ trivially ok.)
+export const STABILITY_PROBE = `(function(SPEC){
+  function vis(el){return !!(el&&el.getBoundingClientRect&&el.getBoundingClientRect().width>0);}
+  function pick(sel){try{var ns=document.querySelectorAll(sel);}catch(e){return null;}for(var i=0;i<ns.length;i++)if(vis(ns[i]))return ns[i];return null;}
+  function boxOf(el){var r=el.getBoundingClientRect();return {x:Math.round(r.x),y:Math.round(r.y),w:Math.round(r.width),h:Math.round(r.height)};}
+  var tol=SPEC.tol==null?1:SPEC.tol;
+  var targets=(SPEC.targets||[]).map(function(t){var el=pick(t.selector);return {name:t.name,selector:t.selector,el:el,before:el?boxOf(el):null};});
+  // Reproduce the moment-of-click transition: blur whatever holds focus inside the surface, fire
+  // focusout, and end any active/hover-press state — exactly what mousedown-on-another-element does.
+  var surf=SPEC.surfaceSelector?document.querySelector(SPEC.surfaceSelector):document;
+  try{var a=document.activeElement;if(a&&(!SPEC.surfaceSelector||(surf&&surf.contains(a)))){a.dispatchEvent(new FocusEvent('focusout',{bubbles:true}));if(a.blur)a.blur();}}catch(_){}
+  try{(surf||document).querySelectorAll('[contenteditable],input,textarea').forEach(function(n){if(vis(n)){n.dispatchEvent(new FocusEvent('focusout',{bubbles:true}));if(n.blur)n.blur();}});}catch(_){}
+  void document.body.offsetHeight; // force synchronous reflow so the transient-keyed rule re-applies
+  var results=targets.map(function(t){
+    if(!t.el||!t.before)return {name:t.name,present:false,shift:null,ok:false,note:'target not found/visible'};
+    var after=boxOf(t.el);var dx=after.x-t.before.x,dy=after.y-t.before.y;
+    var ok=Math.abs(dx)<=tol&&Math.abs(dy)<=tol;
+    return {name:t.name,present:true,before:t.before,after:after,shift:{dx:dx,dy:dy},ok:ok};
+  });
+  return {ok:results.every(function(r){return r.ok;}),targets:results};
+})`;
+
 // CLI smoke: node delta-compare.mjs <spec.json> <rendered.json>
 //   spec.json     = array of {name,expected,box?} OR {elements,relations,gaps,tol,surfaceSelector}
 //   rendered.json = array of {present, rendered, box?} aligned to spec.elements

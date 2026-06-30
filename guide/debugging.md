@@ -39,6 +39,12 @@ A fast, ordered playbook for the things that actually go wrong. Find your sympto
 ### "A button/onClick/hook inside my wireframe does nothing"
 - **Expected** — wireframe markup is cloned; React interactivity is stripped (R4). Use the Velt **slot** for built‑in actions, or `VeltButtonWireframe` + `useVeltEventCallback('veltButtonClick')` for custom actions ([`patterns-and-tips.md`](./patterns-and-tips.md)). For real interactive components, use [primitives](./approaches/primitives.md).
 
+### "Send/Cancel (or any button) 'shifts down' and the click misses / never fires"
+- **A layout/visibility rule is keyed on a TRANSIENT state that drops at click time** (R27). The classic: the "Reply" link is hidden via `:focus`/`.velt-composer-input-focused`; the input loses focus the instant the pointer moves to the button → the link re‑appears → everything below shoves down → the button moves out from under the cursor. The button works fine; it just **isn't where you clicked**. **Fix:** re‑anchor the rule on a **stable** state that holds through the whole interaction — `.velt-comment-dialog--selected` (card open) or `.velt-composer-open` (composing) — never focus/hover/active. **Prove it:** measure the button's box, blur the input (what the click does), re‑measure → 0px shift (`STABILITY_PROBE` in `delta-compare.mjs`), then type a reply and real‑click Send and confirm it posts. *(One nearby card "working once" is not proof — reproduce the exact reported interaction. This false‑passed once.)*
+
+### "Mystery empty space below a card (or any flex column)"
+- **A flex `gap` reserves space for a child that's 0px tall but still present** (R27) — an empty/collapsed reply composer or more‑reply host. `gap` can't tell "invisible" from "absent", so the gap below the content stays. **Fix:** set `gap:0` and put the spacing as `margin-top` on the child that should be spaced — a margin only takes effect when its element actually has height, so the space appears only when the child is shown. **Measure** body‑bottom→card‑bottom in the collapsed state = 0 extra px (don't eyeball; the culprit is invisible).
+
 ### "`velt-data` shows blank / `velt-if` never matches"
 - **Wrong/undefined variable.** Names are case‑sensitive and finite — check [`reference/wireframe-variables.md`](./reference/wireframe-variables.md). A wrong name → `undefined`.
 - **Wrong context.** Some variables exist only in certain slots (`{comment}`/`{commentIndex}` only inside a thread card; `{notification}` only in the notifications panel; `{focusedAnnotation}` only in the sidebar).

@@ -13,8 +13,17 @@
 //       driven: true,                              // drive.assert matched in the live DOM
 //       capturePng: "...", framePng: "...",        // evidence on disk
 //       visualDiff: { diffPct, regions: [ {cssBox, changed, fill}, ... ] },  // from visual-diff.mjs
-//       deltaCompare: { ok: true, diffs: [] }      // from delta-compare.mjs (exact style/box/colour)
+//       deltaCompare: { ok: true, diffs: [] },     // from delta-compare.mjs (exact style/box/colour)
+//       stability: { ok: true, targets: [ {name, shift:{dx,dy}, ok}, ... ] }  // STABILITY_PROBE (R27)
 //   } } }
+//
+// stability (R27) — the interaction-transition gate, GENERAL (not comments/composer-specific). A target
+// that SHIFTS during a click — because a visibility/layout rule is keyed on a TRANSIENT state (:focus/
+// :hover/:active and their Velt twins) that drops on pointer-down — false-passes every static capture.
+// So EVERY block must carry a stability result (the Judge runs STABILITY_PROBE over the surface's
+// interactive affordances; a block with none records `{ok:true, targets:[]}`): a block with no stability
+// field is INCOMPLETE (the check was skipped, not trusted), and ANY block recording `ok===false` is a
+// FAIL. "The button moved under the cursor" is structurally unreachable as a pass.
 //
 // Usage: node scripts/verdict-gate-blocks.mjs --blocks blocks.json --report block-report.json
 //        [--max-region-fill 0.05]   # regions at/above this fill are "real" structural diffs ⇒ FAIL
@@ -38,13 +47,18 @@ export function verdictGateBlocks(blocks, report, { maxRegionFill = 0.05 } = {})
     if (!r.driven) { missing.push(`block '${b.id}' state '${b.state}' not driven (drive.assert never matched)`); continue; }
     if (!r.visualDiff || typeof r.visualDiff.diffPct !== "number") { missing.push(`block '${b.id}' has no visual-diff artifact`); continue; }
     if (!r.deltaCompare || typeof r.deltaCompare.ok !== "boolean") { missing.push(`block '${b.id}' has no delta-compare result`); continue; }
+    // interaction-stability (R27) — required on EVERY block (a block with no interactive affordance
+    // records {ok:true, targets:[]}); a missing result means the check was skipped, not that it passed.
+    if (!r.stability || typeof r.stability.ok !== "boolean") { missing.push(`block '${b.id}' has no interaction-stability result (R27)`); continue; }
 
     // measured-but-wrong → FAIL. Visual: any SIGNIFICANT region (fill >= threshold = a real structural
-    // diff, not 1px drift). Delta: the exact style/box/colour gate must be ok.
+    // diff, not 1px drift). Delta: the exact style/box/colour gate must be ok. Stability: no target moved.
     const sig = (r.visualDiff.regions || []).filter((reg) => (reg.fill ?? 1) >= maxRegionFill);
     for (const reg of sig) failures.push(`block '${b.id}': visual diff at ${reg.cssBox || JSON.stringify(reg)} (fill ${reg.fill})`);
     if (!r.deltaCompare.ok) for (const d of (r.deltaCompare.diffs || [{ note: "delta-compare FAIL" }]).slice(0, 6))
       failures.push(`block '${b.id}': ${d.element || ""} ${d.property || ""} ${d.note || ""}`.trim());
+    if (!r.stability.ok) for (const t of (r.stability.targets || []).filter((t) => t && t.ok === false).slice(0, 6))
+      failures.push(`block '${b.id}': target '${t.name}' shifts ${t.shift ? `(${t.shift.dx},${t.shift.dy})px` : ""} mid-interaction — visibility/layout keyed on a transient state (R27)`);
   }
 
   const covered = list.length - missing.filter((m) => m.startsWith("block ") && /not built|no report/.test(m)).length;

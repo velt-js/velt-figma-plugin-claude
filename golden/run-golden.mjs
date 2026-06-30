@@ -12,7 +12,8 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { compareDecls, verdictOf, BROWSER_PROBE, LAYER_PROBE, reconcilePlan, mountMapDiff, CONTRACT_PROBE } from "../scripts/delta-compare.mjs";
+import { compareDecls, verdictOf, BROWSER_PROBE, LAYER_PROBE, reconcilePlan, mountMapDiff, CONTRACT_PROBE, STABILITY_PROBE } from "../scripts/delta-compare.mjs";
+import { verdictGateBlocks } from "../scripts/verdict-gate-blocks.mjs";
 import { assignIcons, normalizeBoxes } from "../scripts/figma-extract.mjs";
 import { verdictGate } from "../scripts/verdict-gate.mjs";
 import { buildChecklist } from "../scripts/build-checklist.mjs";
@@ -315,6 +316,65 @@ function calibrateProbeRuntime() {
   return true;
 }
 
+// Calibrate the interaction-transition gate (R27): the REAL STABILITY_PROBE string must catch a click
+// target that SHIFTS when the transient (focus) state drops — the Send/Cancel-moves-mid-click bug — and
+// verdict-gate-blocks must require the artifact on interactive blocks and FAIL on a moved target.
+function calibrateStabilityGate() {
+  const problems = [];
+  // --- (A) the injected STABILITY_PROBE string runs end-to-end on a fake DOM ---
+  // The blur the probe performs flips `dropped`, which moves the BAD target down 18px (the focus-keyed
+  // "Reply" link reappearing). The GOOD target ignores it. boxOf reads x/y; vis() reads width.
+  const mkProbe = () => new Function("document", "FocusEvent", "SPEC", "return (" + STABILITY_PROBE + ")(SPEC);");
+  const FocusEventShim = function () {};
+  function fakeDom(targetRectFn) {
+    const dropped = { v: false };
+    const input = { tagName: "DIV", getBoundingClientRect: () => ({ x: 0, y: 0, width: 200, height: 20 }),
+      dispatchEvent() {}, blur() { dropped.v = true; } };
+    const send = { tagName: "BUTTON", getBoundingClientRect: () => targetRectFn(dropped.v) };
+    const surf = { contains: () => true, querySelectorAll: () => [input] };
+    const bySel = { ".send": [send], ".surf": [surf], "[contenteditable],input,textarea": [input] };
+    const document = {
+      activeElement: input, body: { offsetHeight: 0 },
+      querySelector: (s) => (bySel[s] ? bySel[s][0] : null),
+      querySelectorAll: (s) => bySel[s] || [],
+    };
+    return document;
+  }
+  const spec = { surfaceSelector: ".surf", targets: [{ name: "Send", selector: ".send" }], tol: 1 };
+  let stable, moves;
+  try {
+    stable = mkProbe()(fakeDom(() => ({ x: 100, y: 100, width: 60, height: 28 })), FocusEventShim, spec);
+    moves = mkProbe()(fakeDom((d) => ({ x: 100, y: d ? 118 : 100, width: 60, height: 28 })), FocusEventShim, spec);
+  } catch (e) {
+    console.error("  ✗ stability-calibration: the INJECTED STABILITY_PROBE string threw at runtime — a free var is missing: " + e.message);
+    return false;
+  }
+  if (!stable.ok) problems.push(`a target that holds still must be ok=true; got ${JSON.stringify(stable.targets)}`);
+  if (moves.ok) problems.push(`a target that shifts on focus-drop must be ok=false; got ok=true`);
+  if (moves.ok === false && !(moves.targets[0] && moves.targets[0].shift && moves.targets[0].shift.dy === 18))
+    problems.push(`the moved target must report its 18px dy; got ${JSON.stringify(moves.targets[0])}`);
+
+  // --- (B) verdict-gate-blocks: EVERY block needs a stability result; a moved target FAILs (general) ---
+  const base = (extra) => ({ built: true, driven: true, visualDiff: { diffPct: 0, regions: [] }, deltaCompare: { ok: true, diffs: [] }, ...extra });
+  const okStab = { stability: { ok: true, targets: [] } };                                  // surface with no affordance
+  const movedStab = { stability: { ok: false, targets: [{ name: "Send", shift: { dx: 0, dy: 18 }, ok: false }] } };
+  const blocks = { blocks: [{ id: "a", state: "default" }, { id: "b", state: "hover" }] };
+  // a missing stability result anywhere ⇒ INCOMPLETE (the check was skipped, not passed)
+  const missingStab = verdictGateBlocks(blocks, { blocks: { a: base(okStab), b: base() } });
+  if (missingStab.verdict !== "INCOMPLETE" || !missingStab.missing.some((m) => /stability/.test(m)))
+    problems.push(`a block with no stability result must be INCOMPLETE (named); got ${missingStab.verdict}`);
+  // a moved target ⇒ FAIL (named)
+  const moved = verdictGateBlocks(blocks, { blocks: { a: base(okStab), b: base(movedStab) } });
+  if (moved.verdict !== "FAIL" || !moved.failures.some((f) => /shifts/.test(f))) problems.push(`a moved target must FAIL (named); got ${moved.verdict}`);
+  // every block records stability + all stable ⇒ PASS, including the no-affordance {ok:true,targets:[]} case
+  const clean = verdictGateBlocks(blocks, { blocks: { a: base(okStab), b: base({ stability: { ok: true, targets: [{ name: "Send", shift: { dx: 0, dy: 0 }, ok: true }] } }) } });
+  if (clean.verdict !== "PASS") problems.push(`all blocks stable (incl. an empty-targets one) must PASS; got ${clean.verdict}`);
+
+  if (problems.length) { for (const p of problems) console.error("  ✗ stability-calibration: " + p); return false; }
+  console.log(`✓ Stability gate calibrated — the REAL STABILITY_PROBE catches an 18px focus-drop shift (still→ok, moves→FAIL); verdict-gate-blocks requires a stability result on EVERY block (missing→INCOMPLETE) and FAILs a moved target (R27)`);
+  return true;
+}
+
 // Calibrate the MECHANICAL terminator (#2): a Judge report that SAMPLES — covers fewer checklist
 // elements than were generated, even if every sampled element passes — must be INCOMPLETE, never
 // PASS. This is the structural fix for the M5 failure: "5 of 8 measured, all 5 pass → done" is now
@@ -443,6 +503,8 @@ async function main() {
   if (!contractCalibrated) failed++;
   const verdictCalibrated = calibrateVerdictGate();
   if (!verdictCalibrated) failed++;
+  const stabilityCalibrated = calibrateStabilityGate();
+  if (!stabilityCalibrated) failed++;
 
   if (failed) { console.error(`\n✗ golden offline guard FAILED for ${failed} check(s)`); process.exit(1); }
   console.log(`\n✓ golden offline guard passed (${fixtures.length} designs + style & layout Judge calibration; all identifiers valid in the guide)`);

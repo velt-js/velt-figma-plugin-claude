@@ -30,7 +30,7 @@ Status: research + validated plan. Do not build until approved.
 - **Automated gate is always authoritative for "done."** A block/phase is only "done" when the mechanical gate (visual-diff + delta-compare + contract + stability) passes — including in `freeform` mode. The single override is the user **explicitly** saying "I've checked, it's good for now."
 - **Icon verification = exact file-match + vision fallback.** When Figma exports a clean glyph, compare the supplied SVG to it at the file/shape level (deterministic); fall back to AI vision only when no clean export exists.
 - **`strictly primitives` is strict.** If a piece can only be built with a Velt wireframe, mark it `mode_blocked` and report it — never silently mix in a leaf wireframe.
-- **Figma token is optional** (best fidelity via REST when present) with **MCP fallback** (never halts, never scrapes the repo `.env`) — per the token-security decision.
+- **Figma token is REQUIRED** — design intake is REST-only (`api.figma.com`); there is no Figma MCP fallback (preflight HALTs without a token). The token never scrapes the repo `.env` — per the token-security decision.
 
 ---
 
@@ -222,7 +222,7 @@ Do the **POC (below) first**, then roll out 6–9.
 4. **Freeform / "done"** → the automated gate is always authoritative, including in freeform; the only override is the user explicitly saying "I've checked, it's good for now."
 5. **Icon identity** → exact file/shape-match against the exported SVG when available, AI-vision fallback otherwise.
 6. **`strictly primitives`** → strict: mark `mode_blocked` and report; never silently insert a leaf wireframe.
-7. **Figma token** → optional (REST when present) with MCP fallback; never required, never scrapes the repo `.env`.
+7. **Figma token** → REQUIRED; design intake is REST-only (no Figma MCP fallback — preflight HALTs without it); never scrapes the repo `.env`.
 8. **No `target repo path` argument** → the plugin runs in the current working directory (the user's own project); all paths resolve against cwd.
 9. **Expected Figma template = the `Loop / State / Flows` convention** → phase = one `Loop`; `State` frames → component states/variants, `Flows` frames → full-surface acceptance blocks; documented and asked of the user as the default authoring template.
 10. **Approach is mandatory + strict** → the plugin never proceeds without an explicit approach; if none is given it HALTS and asks (with its recommendation). Never skipped.

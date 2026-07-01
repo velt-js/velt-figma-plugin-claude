@@ -47,7 +47,7 @@ Standalone repo, installable as a Claude Code plugin.
 ```
 velt-customize-plugin/
 ├── .claude-plugin/plugin.json     # manifest: name, version, description, dirs
-├── .mcp.json                      # MCP servers: figma-desktop, claude-in-chrome (velt-docs optional/later)
+├── .mcp.json                      # MCP servers: claude-in-chrome (design intake is REST — no Figma MCP)
 ├── guide/                         # the knowledge base — single source of truth (edited + read directly)
 │   └── …all guide files…
 ├── skills/                        # thin pointer skills (SKILL.md per skill)
@@ -66,7 +66,7 @@ velt-customize-plugin/
 
 **`plugin.json`** (minimal — verified against `claude plugin validate`): `{ name, version, description, author: {name}, homepage }`. The `skills/`, `agents/`, `commands/` dirs and `.mcp.json` are **auto-discovered** — do NOT list them as manifest path keys (that fails validation).
 
-**`.mcp.json`** (shape): registers `figma-desktop` (design intake, `type: "http"`) and `claude-in-chrome` (verification). HTTP and stdio server types are both supported. Velt MCP intentionally omitted v1.
+**`.mcp.json`** (shape): registers only `claude-in-chrome` (verification, `type: "stdio"`). Design intake is the **Figma REST API** (`figma-extract.mjs` / `enumerate-blocks.mjs`, token-authed) — **no Figma MCP**. Velt MCP intentionally omitted v1.
 
 **Conventions (verified):** skills = `skills/<name>/SKILL.md` with frontmatter `name`/`description`; agents = `agents/<name>.md` with `name`/`description`/`model`/`disallowedTools` (**no `color`** — not a valid plugin-agent field; `hooks`/`mcpServers`/`permissionMode` are forbidden); commands = `commands/<name>.md`. The runtime operating brief ships as a **skill** (`skills/velt-operating-brief/`), not root `CLAUDE.md` (which plugins don't auto-load). Orchestration mirrors the sequential-chain + shared-context + stop/branch pattern.
 
@@ -122,7 +122,7 @@ All four mirror the migration-orchestrator pattern: sequential, shared JSON cont
 ### 6.2 `velt-planner` (model: opus)
 - **Role:** turn the design into an executable, per-component plan with goals.
 - **Steps** (the *how-to* for each lives in the guide; the Planner just runs it):
-  1. **Intake:** `get_metadata` (structure) → `get_design_context` (code + screenshot + context) → `get_screenshot` (reference image per surface) → `get_variable_defs` (design tokens).
+  1. **Intake (Figma REST — the only path):** `enumerate-blocks.mjs rest <fileKey> <nodeId>` (structure + per-frame recognition PNGs) → `figma-extract.mjs rest <fileKey> <nodeId> --svg` (deterministic `designSpec`: exact `cssDecls`, design tokens, exported icon SVGs). A Figma token is required — there is no Figma MCP.
   2. **Recognition (design → component):** for each design region, fuse the **screenshot + Figma layer names + structure/position** and match against the recognition catalog `guide/reference/component-definitions.md` (design intent / visual+positional cue → Velt component, with disambiguation for look-alikes and off-by-default flags). **When two components match → ask the user to confirm** (the only other allowed blocking question besides the Figma node). **When nothing matches → it's host UI (ignore + list) or an SDK gap** (`guide/sdk-gaps-and-blockers.md`) — never force a mapping. Resolve each recognized surface's identifiers via the Surface lookup in `guide/reference/component-catalog.md`.
   3. **Layer + sub-decisions** per surface by running `guide/02-decision-tree.md` (Q1–Q4 then S1–S6: feature-flag, custom-data, UI-library, mix, escape-hatch, shadow-DOM). Its output *is* the buildable spec.
   4. **Identifier resolution:** look up exact slots/props/variables/flags/hooks from `guide/reference/*` (never invent — R10). The decision tree's S1/S2 already name the feature-flag and custom-data refs.
@@ -298,7 +298,7 @@ The run **starts here.** Before any expensive work, the orchestrator checks ever
 | # | Check | How | On failure |
 |---|---|---|---|
 | 1 | Guide present | `guide/` present + self-check passes (`check-guide.mjs`) | ✗ **HALT** (dev-time): "run `node scripts/check-guide.mjs`" |
-| 2 | **Figma MCP + Dev Mode** | `figma-desktop` reachable; `get_metadata` on the node resolves | ✗ **HALT** (can't plan): "Open the file in Figma desktop, enable Dev Mode, ensure the Dev Mode MCP server is running, then re-run." |
+| 2 | **Figma token + REST resolves** | `FIGMA_TOKEN`/keychain present; `figma-extract.mjs rest <fileKey> <nodeId>` (+ `enumerate-blocks.mjs rest`) resolve the node via `api.figma.com` | ✗ **HALT** (can't plan): "Set a Figma token (`export FIGMA_TOKEN=figd_…` or `figma-extract token set`) and pass a node-specific URL, then re-run. Design intake is REST-only — there is no Figma MCP." |
 | 3 | **Velt installed** | repo path valid; `package.json` has `@veltdev/react` | ✗ **HALT**: "This plugin customizes an *existing* Velt setup — Velt isn't installed in `<repo>`. Set up Velt first." |
 | 4 | **App runs + Velt renders** | start the dev server → open in Chrome → confirm Velt initializes (default comments/sidebar render) | ✗ **HALT / ⚠**: "App won't start / Velt isn't rendering — check API key, `identify`, `setDocuments`." Also captures the **default-UI baseline** for later compare. |
 | 5 | **Chrome MCP connected** | `claude-in-chrome` ping | ⚠ **DEFERRED**: warn now; required before the build loop — **enforced at the §11 coverage gate**. |
@@ -318,7 +318,7 @@ The run **starts here.** Before any expensive work, the orchestrator checks ever
 ```
 Velt preflight — checking prerequisites…
   ✓ Guide present (<n> files, self-check passed)
-  ✓ Figma reachable — node <id> resolved (Dev Mode on)
+  ✓ Figma token OK — node <id> resolved via REST (api.figma.com)
   ✓ Velt installed — @veltdev/react in <repo>
   ✓ App runs + Velt renders — default UI at <url>
   ⚠ Chrome MCP not connected — needed before building; connect claude-in-chrome (I'll re-check at the coverage gate)
@@ -326,9 +326,9 @@ Readiness: READY TO PLAN — 1 item to resolve before building.
 ```
 **Hard-failure case (graceful, nothing changed):**
 ```
-  ✗ Figma not reachable.
-      What's wrong: the figma-desktop MCP didn't respond, or the node didn't resolve.
-      Fix: open the file in Figma desktop, enable Dev Mode, ensure the Dev Mode MCP server is running. Then re-run /velt-customize.
+  ✗ Figma design not reachable.
+      What's wrong: no Figma token was found, or the node didn't resolve via the REST API.
+      Fix: set a token (`export FIGMA_TOKEN=figd_…` or `figma-extract token set`) and pass a node-specific Figma URL. Then re-run /velt-customize.
 Preflight HALTED — can't plan without the design. Nothing was changed.
 ```
 

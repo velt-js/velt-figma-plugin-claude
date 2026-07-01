@@ -2,17 +2,14 @@
 // figma-extract.mjs — deterministic Figma design extraction for velt-customize.
 // Turns Figma nodes into a `designSpec`: EXACT spacing/sizing/radius/typography/colours as
 // CSS-ready declarations (so the Builder/Judge use real numbers, never eyeballed), plus
-// per-node SVG icon export. Two sources, one schema:
-//   * REST  (token present): api.figma.com node JSON  -> designSpec   [fully deterministic]
-//   * MCP   (no token): the Planner saves get_variable_defs/get_metadata to a JSON dump,
-//                       which this script parses into the SAME designSpec schema.
+// per-node SVG icon export. One source, one schema:
+//   * REST (Figma token required): api.figma.com node JSON -> designSpec  [fully deterministic]
 // Also the secure Figma-token helpers (resolve/set/status/remove) — see plan §G.
 //
 // Usage:
 //   node scripts/figma-extract.mjs token status|remove
 //   node scripts/figma-extract.mjs token set            (reads token from STDIN, not argv)
 //   node scripts/figma-extract.mjs rest <fileKey> <nodeId> [--out <dir>] [--svg]
-//   node scripts/figma-extract.mjs from-mcp <dump.json> [--out <dir>]
 //
 // Layout mapping follows bernaferrari/FigmaToCode: auto-layout -> flex, with the two
 // non-obvious rules — gap is suppressed on SPACE_BETWEEN, and "fill" is axis-dependent
@@ -314,7 +311,7 @@ async function figmaFetch(url, token) {
 }
 async function extractRest(fileKey, nodeId, outDir, doSvg) {
   const token = resolveToken();
-  if (!token) throw new Error("no Figma token (env FIGMA_TOKEN or keychain) — use the MCP fallback (from-mcp) or run `figma-extract token set`");
+  if (!token) throw new Error("no Figma token (env FIGMA_TOKEN or keychain) — set one: `export FIGMA_TOKEN=figd_…` or run `figma-extract token set`");
   const id = nodeId.replace(/-/g, ":");
   const data = await figmaFetch(`https://api.figma.com/v1/files/${fileKey}/nodes?ids=${encodeURIComponent(id)}&geometry=paths`, token);
   const root = data.nodes?.[id]?.document;
@@ -350,23 +347,6 @@ async function extractRest(fileKey, nodeId, outDir, doSvg) {
     iconAssignments: iconAssign.assignments, unassignedIcons: iconAssign.unassigned };
 }
 
-// ---------------- MCP fallback ----------------
-// Parses a dump the Planner saves: { variableDefs?: {name:value}, nodes?: <REST-shaped node tree> }.
-// get_variable_defs gives the token map; if the agent also captured a node tree we map it too.
-async function extractMcp(dumpPath) {
-  const dump = JSON.parse(await fs.readFile(dumpPath, "utf8"));
-  const tokens = dump.variableDefs || dump.variables || {};
-  const nodes = []; let frames = [];
-  if (dump.nodes || dump.document) {
-    const root = dump.document || dump.nodes;
-    const blockFrames = blockFramesOf(root);
-    walk(root, null, nodes, null, new Set(blockFrames.map((f) => f.id)));
-    normalizeBoxes(nodes);
-    frames = blockFrames.map((f) => ({ id: f.id, name: f.name, type: f.type }));
-  }
-  return { source: "mcp", tokens, boxSpace: "frame-relative", frames, nodeCount: nodes.length, nodes, note: "MCP fallback: exact numbers limited to what get_variable_defs/metadata expose; prefer REST (set a token) for full fidelity." };
-}
-
 // ---------------- main ----------------
 async function main() {
   const [cmd, ...rest] = process.argv.slice(2);
@@ -380,7 +360,7 @@ async function main() {
       const kc = keychainGet();
       if (env) console.log(`✓ token from ${env}`);
       else if (kc) console.log(`✓ token in OS keychain (${mask(kc)})`);
-      else console.log("⚠ no token — REST extraction unavailable; MCP fallback will be used. Set one: `figma-extract token set` (or export FIGMA_TOKEN).");
+      else console.log("✗ no token — REST extraction (the only design-intake path) is unavailable. Set one: `figma-extract token set` (or export FIGMA_TOKEN).");
       return;
     }
     if (sub === "remove") { console.log(keychainRemove() ? "✓ token removed from keychain" : "no keychain token to remove"); return; }
@@ -400,11 +380,8 @@ async function main() {
     const [fileKey, nodeId] = rest;
     if (!fileKey || !nodeId) throw new Error("usage: rest <fileKey> <nodeId> [--out <dir>] [--svg]");
     spec = await extractRest(fileKey, nodeId, outDir, rest.includes("--svg"));
-  } else if (cmd === "from-mcp") {
-    if (!rest[0]) throw new Error("usage: from-mcp <dump.json> [--out <dir>]");
-    spec = await extractMcp(path.resolve(rest[0]));
   } else {
-    throw new Error("usage: figma-extract.mjs token|rest|from-mcp …");
+    throw new Error("usage: figma-extract.mjs token|rest …");
   }
 
   await fs.mkdir(outDir, { recursive: true });

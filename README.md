@@ -12,14 +12,14 @@ Then restart Claude Code (or `/reload-plugins`). Run a customization with `/velt
 
 ## Prerequisites (the run preflights all of these and HALTs with a fix if any is missing)
 
-- **Figma desktop app running** — `.mcp.json`'s `figma-desktop` (Dev Mode MCP) reads the design at `localhost:3845`.
+- **A Figma token** (`FIGMA_TOKEN` env var or the OS keychain) — design intake is **REST-only** (`api.figma.com`); there is no Figma desktop/MCP dependency. See the token section below.
 - **Chrome** — the `claude-in-chrome` MCP drives the live app for verification.
 - **A target React app** with `@veltdev/react` installed, authed, and rendering Velt's default UI.
 - **Node** ≥ 18. The block scripts (`enumerate-blocks` / `visual-diff` / `verdict-gate-blocks`) are zero-dependency; the optional device-res capture (`capture-block.mjs`) needs **`playwright-core`** + a Chromium (`npm i -g playwright-core`).
 
-## Figma token (secure, keychain-based — never committed)
+## Figma token (REQUIRED — secure, keychain-based, never committed)
 
-Deterministic extraction uses the **Figma REST API**, which needs a personal access token (`figd_…`, create at *figma.com → Settings → Security → Personal access tokens*). The token is resolved in this order — **the repo `.env` is never read**:
+Design intake is **REST-only** (the **Figma REST API**), which needs a personal access token (`figd_…`, create at *figma.com → Settings → Security → Personal access tokens*). **A token is required — there is no Figma-desktop/MCP fallback; preflight HALTs without one.** The token is resolved in this order — **the repo `.env` is never read**:
 
 1. the `FIGMA_TOKEN` environment variable, else
 2. your **OS keychain** (macOS Keychain / Linux `secret-tool`), under service `velt-customize` / account `figma-token`.
@@ -32,7 +32,7 @@ node "$CLAUDE_PLUGIN_ROOT/scripts/figma-extract.mjs" token status   # verify (pr
 node "$CLAUDE_PLUGIN_ROOT/scripts/figma-extract.mjs" token remove    # delete it
 ```
 
-If no token is configured, the plugin falls back to the **Figma MCP** for design intake (less deterministic). Preflight tells you which path is active.
+If no token is configured, preflight HALTs with the fix — design intake cannot proceed without it (there is no MCP fallback). In `--cloud`/CI, provide the token via the `FIGMA_TOKEN` env var (the keychain isn't used headlessly).
 
 ## The flow
 
@@ -46,7 +46,7 @@ If no token is configured, the plugin falls back to the **Figma MCP** for design
 
 ```
 .claude-plugin/plugin.json   manifest
-.mcp.json                    figma-desktop (design intake) + claude-in-chrome (verification)
+.mcp.json                    claude-in-chrome (verification). Design intake is REST (Figma API) — no Figma MCP.
 guide/                       the knowledge base — single source of truth (edit here; the plugin reads it directly)
 skills/  agents/  commands/   thin orchestration over the guide (no embedded knowledge)
 scripts/check-guide.mjs      guide integrity gate (required files, no external paths, links resolve)
@@ -66,7 +66,7 @@ The guide is the single source of truth: skills/agents carry **zero** customizat
 
 ## Note on MCP endpoints
 
-`.mcp.json` registers `figma-desktop` (Figma Dev Mode MCP) and `claude-in-chrome`. The exact transport/URL/command is environment-specific — confirm they match your local setup before a run.
+`.mcp.json` registers only `claude-in-chrome` (verification). Design intake is the **Figma REST API** (no MCP). The exact transport/URL/command for `claude-in-chrome` is environment-specific — confirm it matches your setup before a run.
 
 ## Scope (v1)
 

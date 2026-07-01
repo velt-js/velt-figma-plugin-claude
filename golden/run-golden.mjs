@@ -477,8 +477,8 @@ async function main() {
   }
 
   console.log("\n--- E2E checklist (run with the live plugin + Chrome + the playground) ---");
-  console.log("  1. Serve the target app; connect figma-desktop + claude-in-chrome MCPs.");
-  console.log("  2. (optional) `node scripts/figma-extract.mjs token status` — REST extraction if a token is set, else MCP fallback.");
+  console.log("  1. Serve the target app; connect the claude-in-chrome MCP (design intake is REST — no Figma MCP).");
+  console.log("  2. `node scripts/figma-extract.mjs token status` — a Figma token is REQUIRED for REST extraction (no MCP fallback).");
   console.log("  3. /velt-customize against the Figma frame → Planner EXTRACTS a designSpec + emits a Connect Map.");
   console.log("  4. At the MANDATORY approach gate, state or confirm the approach (--mode, else halt-and-ask).");
   console.log("  5. Build executes the Connect Map: every mustSupply slot supplied (icons from exported SVGs), host props set, exact cssDecls applied.");

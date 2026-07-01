@@ -4,8 +4,7 @@ The fidelity-critical inputs (spacing, padding, sizing, radius, typography, colo
 
 ## Producing the `designSpec`
 
-- **REST path (preferred — fully deterministic).** With a Figma token resolved (see token handling below), `node scripts/figma-extract.mjs rest <fileKey> <nodeId> --out <dir> --svg` fetches the node JSON from `api.figma.com` and emits `designSpec.json` + exported icon SVGs under `assets/`.
-- **MCP fallback (no token).** The Planner saves its Figma‑MCP outputs (`get_variable_defs`, and a node tree from `get_metadata`/`get_design_context`) to a dump, then `node scripts/figma-extract.mjs from-mcp <dump.json>` parses it into the **same** `designSpec` schema. Lower fidelity (limited to what the MCP exposes) — prefer REST.
+- **REST path (the only path — fully deterministic).** With a Figma token resolved (see token handling below), `node scripts/figma-extract.mjs rest <fileKey> <nodeId> --out <dir> --svg` fetches the node JSON from `api.figma.com` and emits `designSpec.json` + exported icon SVGs under `assets/`. The recognition images come from `enumerate-blocks.mjs rest …` (per-frame PNGs via the Figma image API). **There is no Figma MCP path** — the plugin does not read the design from the Figma desktop app; a token is required.
 
 Each `designSpec` node carries `cssDecls` — CSS‑ready, exact declarations — a `box` (`x/y/w/h`), and a **`frameId`** (the top‑level block‑frame it belongs to). The Builder applies the `cssDecls` to the real classes from [`reference/manifest.md`](./reference/manifest.md); the Judge diffs rendered computed styles **and** layout boxes against them. **Boxes are emitted `frame-relative`** (`boxSpace: "frame-relative"`) — `figma-extract` subtracts **each frame's own origin** from its subtree, so `box.x/y` are relative to that frame's top‑left and directly comparable to both the probe's `getBoundingClientRect − surface-root` measurement and the per‑block frame PNG.
 - **Why per‑frame (not one root origin):** a multi‑state design is one **section** of many frames laid out across the canvas (e.g. node `1:3398` = 16 sidebar frames), and each frame is exported as its own PNG at `0,0`. Subtracting a single section origin left every node ~1500px off, so `visual-diff --mask-text-from` mislocated every mask and the visual gate went blind (passing wrong icons / structure / spacing as "matched"). Per‑frame normalization fixes that. The spec also lists `frames: [{id,name,type}]`.
@@ -36,7 +35,7 @@ Each `designSpec` node carries `cssDecls` — CSS‑ready, exact declarations �
 
 ## Token handling (secure — see the plan's §G)
 
-The REST path needs a Figma personal‑access token; it is **optional** (no token → MCP fallback, never a halt). Resolution: `FIGMA_TOKEN` env var first, then the OS secure store — **never the target repo's `.env`**.
+The REST path needs a Figma personal‑access token; it is **required** (no token → preflight HALTs — there is no MCP fallback). Resolution: `FIGMA_TOKEN` env var first, then the OS secure store — **never the target repo's `.env`**.
 - `node scripts/figma-extract.mjs token status` → presence, masked.
 - `node scripts/figma-extract.mjs token set` → reads the token from **STDIN** (never argv/history) into the OS keychain. The most secure path is the user storing it themselves (`security add-generic-password -U -s velt-customize -a figma-token -w`).
 - `node scripts/figma-extract.mjs token remove` → deletes it.

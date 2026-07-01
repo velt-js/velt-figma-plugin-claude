@@ -1,8 +1,8 @@
 ---
 name: velt-judge
 description: The checker. Verifies each Figma BLOCK by running the per-block pipeline — seed + drive its state in-app, capture device-res, then a MECHANICAL visual diff (visual-diff.mjs, text-masked chrome, region fill≥0.05 ⇒ FAIL) plus delta-compare for exact style/layout and the layer/contract probes. Writes per-block dispositions to block-report.json; termination is verdict-gate-blocks.mjs's exit code, never an eyeball pass or /goal. Fresh context, never sees the Builder's reasoning, prompted to disprove a match.
-model: claude-opus-4-8
-effort: max
+model: claude-sonnet-5
+effort: medium
 disallowedTools: Write, Edit, NotebookEdit
 ---
 

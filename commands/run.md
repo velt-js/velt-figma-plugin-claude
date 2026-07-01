@@ -9,11 +9,12 @@ Run the velt-customize flow on the Figma **Loop** at **$ARGUMENTS**, **in the cu
 
 You are the entry point. The run is **phase by phase, block by block**. A **phase = one `Loop` node** (the user passes one at a time; see the Loop template in [`velt-operating-brief`](../skills/velt-operating-brief/SKILL.md) + `guide/`). Its frames are enumerated into `blocks.json` (the completeness oracle) — `Flows` frames become full-surface acceptance blocks, `State` frames become component blocks — and the loop perfects one block before the next, terminating **mechanically** on `verdict-gate-blocks.mjs`'s exit code, never on `/goal`. The `velt-orchestrator` owns the loop in **owned-loop mode**; `/loop` is optional cadence only. The flow is:
 
-### Watch it live (recommended)
-The heavy work runs in subagents whose output doesn't stream here, so the orchestrator writes a **heartbeat log**. It prints a watch command as its first line — run it in a **second terminal** to see every sub-step in real time (so you always know working-vs-stuck):
+### Watch it live (recommended) — YOU, the entry point, print this NOW
+Subagent output doesn't stream into this view, so the run writes a **heartbeat log** instead. **Before you dispatch the orchestrator, print this to the user** (so it lands in the main view where they can see it) and tell them to run it in a **second terminal**:
 ```
-node scripts/progress.mjs --watch <the phase dir it prints>    # or: tail -f <phaseDir>/progress.log
+tail -f .velt-customize/phases/*/progress.log        # from the project root; the glob finds the active phase
 ```
+Steady new lines = working; a multi-minute gap with no new line = genuinely stuck (safe to interrupt). (Equivalent: `node <plugin>/scripts/progress.mjs --watch`, which auto-resolves the newest phase.)
 
 ### 1. Setup (once) — invoke `velt-orchestrator` in **setup mode**
 Pass it: the Figma Loop node/URL (from `$ARGUMENTS`; if absent, ask — an allowed blocking question), the target = **cwd**, the feature scope (default: comments + notifications), and the **approach** (see the gate below). In setup mode it: runs **preflight** (HALT on any hard ✗); **enforces the Approach Gate** (below); **loads cross-phase memory** (`node scripts/memory.mjs load` — advisory tokens/mappings/naming/corrections, re-verified against fresh extraction, stale entries flagged); pins the manifest; runs the **planner** (recognize surfaces, pick layers within the chosen approach, synthesize goals + the Connect Map); enumerates the Loop (`enumerate-blocks.mjs` → `Loop → State/Flows` blocks — **rejecting a URL with no `node-id`** and **warning if it yields more than ~8 blocks**); presents the **per-surface coverage matrix**; and **initializes the phase journal**. It returns the work-list + "ready to loop" (or `HALTED`/`BLOCKED`).

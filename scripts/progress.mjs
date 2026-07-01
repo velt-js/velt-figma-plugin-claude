@@ -12,17 +12,28 @@
 //   node scripts/progress.mjs <phaseDir> "<message>"   # append a timestamped line + echo it
 //   node scripts/progress.mjs --watch <phaseDir>       # follow the log live (tail -f)
 
-import { appendFileSync, mkdirSync } from "node:fs";
+import { appendFileSync, mkdirSync, readdirSync, statSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 
 const a = process.argv.slice(2);
 
+// resolve the NEWEST phase dir under <root>/.velt-customize/phases/ so --watch needs no phase-id
+function newestPhaseDir(root = ".") {
+  try {
+    const base = path.resolve(root, ".velt-customize/phases");
+    const subs = readdirSync(base).map((n) => path.join(base, n)).filter((p) => { try { return statSync(p).isDirectory(); } catch { return false; } });
+    subs.sort((x, y) => statSync(y).mtimeMs - statSync(x).mtimeMs);
+    return subs[0] || null;
+  } catch { return null; }
+}
+
 if (a[0] === "--watch") {
-  const dir = a[1] || ".";
+  const dir = a[1] || newestPhaseDir();
+  if (!dir) { console.error("no phase dir found under ./.velt-customize/phases/ — start a run first, or pass the dir explicitly"); process.exit(1); }
   const f = path.join(dir, "progress.log");
   console.log(`▶ watching ${f} (Ctrl-C to stop)`);
-  spawn("tail", ["-n", "80", "-f", f], { stdio: "inherit" });
+  spawn("tail", ["-n", "80", "-F", f], { stdio: "inherit" });   // -F: follow even before the file exists / on rotation
 } else {
   const [dir, ...rest] = a;
   const msg = rest.join(" ").trim();

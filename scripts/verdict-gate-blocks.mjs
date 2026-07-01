@@ -52,8 +52,10 @@ export function verdictGateBlocks(blocks, report, { maxRegionFill = 0.05 } = {})
   const failures = [];  // built + measured but wrong ⇒ FAIL
   const accounted = { blocked: [], gap: [], stuck: [], remaining: [] };  // explicitly-stopped, with evidence
   const reps = (report && report.blocks) || {};
-  const list = blocks.blocks || [];
+  const list = (blocks && blocks.blocks) || [];
   const remainingSet = new Set((report && report.phase && report.phase.remaining) || []);
+  // an empty oracle is never a pass — zero blocks means enumeration failed / the wrong node was passed.
+  if (!list.length) return { verdict: "INCOMPLETE", coverage: 0, missing: ["blocks.json has zero blocks — the completeness oracle is empty (extraction failed or the node isn't a Loop?)"], failures: [], accounted: { blocked: [], gap: [], stuck: [], remaining: [] } };
 
   for (const b of list) {
     const r = reps[b.id];
@@ -61,7 +63,7 @@ export function verdictGateBlocks(blocks, report, { maxRegionFill = 0.05 } = {})
     // explicit terminal disposition (evidence required so it can't be used to silently escape the loop)
     const disp = r && typeof r.disposition === "string" ? r.disposition.toUpperCase() : null;
     if (disp && TERMINAL.has(disp)) {
-      if (!r.note) { missing.push(`block '${b.id}' marked ${disp} without evidence (a note is required)`); continue; }
+      if (typeof r.note !== "string" || !r.note.trim()) { missing.push(`block '${b.id}' marked ${disp} without a written evidence note (a non-empty string is required)`); continue; }
       accounted[disp.toLowerCase()].push(`block '${b.id}' (${b.state}): ${disp} — ${r.note}`);
       continue;
     }
@@ -81,10 +83,17 @@ export function verdictGateBlocks(blocks, report, { maxRegionFill = 0.05 } = {})
     // diff, not 1px drift). Delta: the exact style/box/colour gate must be ok. Stability: no target moved.
     const sig = (r.visualDiff.regions || []).filter((reg) => (reg.fill ?? 1) >= maxRegionFill);
     for (const reg of sig) failures.push(`block '${b.id}': visual diff at ${reg.cssBox || JSON.stringify(reg)} (fill ${reg.fill})`);
-    if (!r.deltaCompare.ok) for (const d of (r.deltaCompare.diffs || [{ note: "delta-compare FAIL" }]).slice(0, 6))
-      failures.push(`block '${b.id}': ${d.element || ""} ${d.property || ""} ${d.note || ""}`.trim());
-    if (!r.stability.ok) for (const t of (r.stability.targets || []).filter((t) => t && t.ok === false).slice(0, 6))
-      failures.push(`block '${b.id}': target '${t.name}' shifts ${t.shift ? `(${t.shift.dx},${t.shift.dy})px` : ""} mid-interaction — visibility/layout keyed on a transient state (R27)`);
+    // deltaCompare.ok === false ALWAYS FAILs, even if diffs[] is empty (a summary-only failure must not slip through).
+    if (!r.deltaCompare.ok) {
+      const ds = (r.deltaCompare.diffs && r.deltaCompare.diffs.length) ? r.deltaCompare.diffs.slice(0, 6) : [{ note: "delta-compare FAIL (no diff detail provided)" }];
+      for (const d of ds) failures.push(`block '${b.id}': ${d.element || ""} ${d.property || ""} ${d.note || ""}`.trim());
+    }
+    // stability.ok === false ALWAYS FAILs, even if no target was flagged (R27 — "any block recording ok===false is a FAIL").
+    if (!r.stability.ok) {
+      const ts = (r.stability.targets || []).filter((t) => t && t.ok === false);
+      if (ts.length) for (const t of ts.slice(0, 6)) failures.push(`block '${b.id}': target '${t.name}' shifts ${t.shift ? `(${t.shift.dx},${t.shift.dy})px` : ""} mid-interaction — visibility/layout keyed on a transient state (R27)`);
+      else failures.push(`block '${b.id}': interaction-stability FAIL (stability.ok=false with no target detail) — a target moves mid-interaction (R27)`);
+    }
   }
 
   const covered = list.length - missing.filter((m) => m.startsWith("block ") && /not built|no report/.test(m)).length;
@@ -104,6 +113,8 @@ async function main() {
   const argv = (k, d) => { const i = a.indexOf(k); return i >= 0 ? a[i + 1] : d; };
   const bp = argv("--blocks"), rp = argv("--report"), fill = +argv("--max-region-fill", "0.05");
   if (!bp || !rp) { console.error("usage: verdict-gate-blocks.mjs --blocks <blocks.json> --report <block-report.json> [--max-region-fill 0.05]"); process.exit(1); }
+  // a NaN/out-of-range threshold would silently disable the visual gate (every region ignored) — reject it.
+  if (!Number.isFinite(fill) || fill < 0 || fill > 1) { console.error("✗ --max-region-fill must be a number in [0,1]"); process.exit(1); }
   const blocks = JSON.parse(await fs.readFile(bp, "utf8"));
   const report = JSON.parse(await fs.readFile(rp, "utf8"));
   const r = verdictGateBlocks(blocks, report, { maxRegionFill: fill });

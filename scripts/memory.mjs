@@ -52,7 +52,8 @@ async function hashDir(dir, filter) {
   let files = [];
   async function walk(d) {
     let ents; try { ents = await fs.readdir(d, { withFileTypes: true }); } catch { return; }
-    for (const e of ents.sort((a, b) => a.name.localeCompare(b.name))) {
+    // locale-independent sort for cross-machine determinism (localeCompare varies by LC_COLLATE).
+    for (const e of ents.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
       const p = path.join(d, e.name);
       if (e.isDirectory()) await walk(p);
       else if (filter(p)) files.push(p);
@@ -60,7 +61,7 @@ async function hashDir(dir, filter) {
   }
   await walk(dir);
   const h = createHash("sha256");
-  for (const f of files) { h.update(path.relative(dir, f)); h.update(await fs.readFile(f)); }
+  for (const f of files) { h.update(path.relative(dir, f)); h.update("\0"); h.update(await fs.readFile(f)); h.update("\0"); }
   return h.digest("hex").slice(0, 16);
 }
 async function veltPackageVersion(dir) {
@@ -98,8 +99,11 @@ export async function load(dir, { includeTentative = false } = {}) {
   const cur = await fingerprint(dir);
   const keep = (e) => e.confidence !== "deprecated" && (e.confidence === "confirmed" || (includeTentative && e.confidence === "tentative"));
   const annotate = (kind) => (mem[kind] || []).filter(keep).map((e) => {
-    const fp = e.fingerprintAtWrite || {};
-    const reasons = (WATCH[kind] || []).filter((k) => fp[k] !== undefined && fp[k] !== cur[k]);
+    const watch = WATCH[kind] || [];
+    if (!watch.length) return e;                                   // naming — nothing invalidates it
+    const fp = e.fingerprintAtWrite;
+    if (!fp) return { ...e, _stale: true, _staleReasons: ["no fingerprint recorded"] };  // can't prove fresh ⇒ stale
+    const reasons = watch.filter((k) => fp[k] !== cur[k]);
     return reasons.length ? { ...e, _stale: true, _staleReasons: reasons } : e;
   });
   const out = { version: mem.version, fingerprint: cur, phases: mem.phases || [] };
@@ -108,12 +112,14 @@ export async function load(dir, { includeTentative = false } = {}) {
 }
 
 // promote() = freeze verified learnings at "phase N complete" (confidence:"confirmed"), dedupe by key.
+// keys are DIMENSION-QUALIFIED so a token keyed by figmaVar can't collide with one keyed by role/velt
+// (both "primary" would otherwise merge into one corrupted entry — cross-contamination + data loss).
 const keyOf = {
-  tokens: (e) => e.figmaVar || e.role || e.velt,
-  mappings: (e) => e.element || e.slot,
-  naming: (e) => e.key,
-  corrections: (e) => (e.fact || "").toLowerCase().trim(),
-  gaps: (e) => (e.gap || "").toLowerCase().trim(),
+  tokens: (e) => e.figmaVar ? `figmaVar:${e.figmaVar}` : e.role ? `role:${e.role}` : e.velt ? `velt:${e.velt}` : null,
+  mappings: (e) => e.element ? `element:${e.element}` : e.slot ? `slot:${e.slot}` : null,
+  naming: (e) => e.key ? `key:${e.key}` : null,
+  corrections: (e) => (e.fact || "").toLowerCase().trim() || null,
+  gaps: (e) => (e.gap || "").toLowerCase().trim() || null,
 };
 export async function promote(dir, { phaseId, mode, node, learnings }) {
   const mem = await readRaw(dir);

@@ -92,16 +92,19 @@ function descendants(node, out = []) {
   for (const c of node.children || []) { out.push(c); descendants(c, out); }
   return out;
 }
-function containsNode(ancestor, node) {
-  return descendants(ancestor).includes(node);
-}
-// A "block frame" is a leaf UI mockup: a FRAME that renders actual content (has a non-container child)
-// and is not merely a wrapper around other block frames.
-function blockFrames(container) {
-  const frames = descendants(container).filter((n) => n.type === "FRAME" && box(n));
-  const bearsUI = (f) => (f.children || []).some((c) => !CONTAINER.has(c.type));
-  const candidates = frames.filter(bearsUI);
-  return candidates.filter((f) => !candidates.some((g) => g !== f && containsNode(f, g)));
+// The template nests mockups: a `Flows` section holds SCREEN frames; a `State` section holds component
+// containers, each holding VARIANT frames. We want that SHALLOW level — the first depth under a container
+// that actually holds frames — NOT the innermost leaves. (Descending to leaves pulls sub-components like
+// an avatar or a button out as false "blocks" and misses the real screens — verified against a live Loop.)
+const BLOCKISH = new Set(["FRAME", "COMPONENT", "COMPONENT_SET", "INSTANCE", "GROUP"]); // a mockup artboard (NOT a SECTION, which is organizational)
+function shallowestFrames(container) {
+  let level = (container.children || []).slice();
+  while (level.length) {
+    const blocks = level.filter((n) => box(n) && BLOCKISH.has(n.type));
+    if (blocks.length) return blocks;
+    level = level.flatMap((n) => n.children || []);
+  }
+  return [];
 }
 // nearest TEXT label sitting just above/near a frame (fallback when the frame's own name is generic)
 function nearestLabelChars(frame, labels) {
@@ -132,27 +135,16 @@ export function enumerateBlocks(rootDoc, { width, scale = 2, forceWidth } = {}) 
 
   if (stateGroup || flowGroup) {
     mode = "loop";
+    const labelOf = (f) => String((isGeneric(f.name) ? nearestLabelChars(f, labels) : f.name) || f.name || "(unlabeled)").trim();
+    // Flows → the SCREEN frames (the shallow level of the Flows section).
+    if (flowGroup) for (const f of shallowestFrames(flowGroup))
+      raw.push({ frame: f, role: "flow", component: null, label: labelOf(f) });
+    // State → for each component container, its VARIANT frames (the shallow level of that component).
     if (stateGroup) {
-      // group state frames by their nearest ancestor container under State (= the component)
-      const compOf = (f) => {
-        let cur = f, comp = null;
-        const chain = [];
-        for (const n of descendants(stateGroup)) if (containsNode(n, f) && CONTAINER.has(n.type)) chain.push(n);
-        // the smallest containing container that is a DIRECT-ish child of State names the component
-        chain.sort((a, b) => (box(a).width * box(a).height) - (box(b).width * box(b).height));
-        for (const n of chain) if (!isGeneric(n.name)) { comp = n.name.trim(); break; }
-        return comp;
-      };
-      for (const f of blockFrames(stateGroup)) {
-        const label = (isGeneric(f.name) ? nearestLabelChars(f, labels) : f.name) || f.name || "(unlabeled)";
-        raw.push({ frame: f, role: "state", component: compOf(f), label: String(label).trim() });
-      }
-    }
-    if (flowGroup) {
-      for (const f of blockFrames(flowGroup)) {
-        const label = (isGeneric(f.name) ? nearestLabelChars(f, labels) : f.name) || f.name || "(unlabeled)";
-        raw.push({ frame: f, role: "flow", component: null, label: String(label).trim() });
-      }
+      const comps = (stateGroup.children || []).filter((c) => CONTAINER.has(c.type));
+      const groups = comps.length ? comps.map((c) => [c.name, shallowestFrames(c)]) : [[null, shallowestFrames(stateGroup)]];
+      for (const [comp, frames] of groups) for (const f of frames)
+        raw.push({ frame: f, role: "state", component: comp ? String(comp).trim() : null, label: labelOf(f) });
     }
   } else {
     // LEGACY flat mode: every same-width top-level FRAME is a block, width DERIVED from the design.
@@ -162,7 +154,7 @@ export function enumerateBlocks(rootDoc, { width, scale = 2, forceWidth } = {}) 
     const frames = derivedWidth ? top.filter((f) => Math.abs(box(f).width - derivedWidth) < 6) : top;
     for (const f of frames) {
       const label = (isGeneric(f.name) ? nearestLabelChars(f, labels) : f.name) || f.name || "(unlabeled)";
-      raw.push({ frame: f, role: "flow", component: null, label: String(label).trim(), _w: derivedWidth });
+      raw.push({ frame: f, role: "flow", component: null, label: String(label).trim() });
     }
   }
 

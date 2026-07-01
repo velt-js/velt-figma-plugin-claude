@@ -31,6 +31,21 @@ async function loadChromium() {
   throw new Error("playwright-core not found — `npm i -D playwright-core` (or set $PLAYWRIGHT_CORE), or feed visual-diff a device-res PNG from your own capture (CDP element screenshot at DPR 2).");
 }
 
+// Acquire a browser: launch a fresh headless one, or REUSE an existing browser via --connect. A real
+// Chrome (what the Judge drives) exposes a CDP endpoint (http://host:port or ws …/devtools/browser/…);
+// a Playwright `launchServer` exposes a plain ws endpoint. Try the likely form first, then the other.
+async function acquireBrowser(chromium, connectWs) {
+  if (!connectWs) return chromium.launch({ headless: true });
+  const looksCdp = /^https?:|\/devtools\//.test(connectWs);
+  const cdp = () => chromium.connectOverCDP(connectWs);
+  const pw = () => chromium.connect({ wsEndpoint: connectWs });
+  try { return await (looksCdp ? cdp() : pw()); }
+  catch (e1) {
+    try { return await (looksCdp ? pw() : cdp()); }
+    catch (e2) { throw new Error(`--connect: could not attach to '${connectWs}' as CDP or a Playwright server endpoint (${e1.message})`); }
+  }
+}
+
 async function main() {
   const [url, liveSelector, outPng, ...rest] = process.argv.slice(2);
   if (!url || !liveSelector || !outPng) { console.error("usage: capture-block.mjs <url> <liveSelector> <outPng> [--scale 2] [--select-user user1] [--assert sel] [--eval 'js'] [--toggle sel] [--connect ws] [--timeout 30000]"); process.exit(1); }
@@ -40,12 +55,13 @@ async function main() {
   const toggleSel = argv("--toggle", null), connectWs = argv("--connect", null);
 
   const chromium = await loadChromium();
-  // reuse an existing Chromium (browser reuse across iterations) when a ws endpoint is given, else launch.
-  const browser = connectWs ? await chromium.connect({ wsEndpoint: connectWs }) : await chromium.launch({ headless: true });
+  const browser = await acquireBrowser(chromium, connectWs);
   try {
     const ctx = await browser.newContext({ viewport: { width: 1512, height: 900 }, deviceScaleFactor: scale });
     const page = await ctx.newPage();
-    await page.goto(url, { waitUntil: "networkidle", timeout });
+    // domcontentloaded (not networkidle): a realtime Velt app holds long-poll/SSE connections that may
+    // never go idle; the explicit waitForSelector(liveSelector) below is the real readiness gate.
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout });
 
     // optional: pick a user in a test harness (a <select> of users — NOT a credential login)
     if (selectUser) await page.evaluate(async ({ u, toggleSel }) => {
@@ -65,7 +81,7 @@ async function main() {
     // focused/visible contenteditable (not a Harvey-specific selector); blur; dismiss overlays.
     await page.keyboard.press("Escape").catch(() => {});
     await page.evaluate(() => {
-      for (const ed of document.querySelectorAll("[contenteditable='true']")) {
+      for (const ed of document.querySelectorAll("[contenteditable]:not([contenteditable='false'])")) {
         if ((ed.textContent ?? "").length) { ed.focus(); document.execCommand("selectAll", false); document.execCommand("delete", false); }
       }
       document.activeElement?.blur?.();

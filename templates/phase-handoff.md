@@ -15,12 +15,13 @@
 ## Per-block dispositions
 | Block | role | state | disposition | residual | evidence |
 |---|---|---|---|---|---|
-| {id} | {flow/state} | {state} | {PASS / FAIL / STUCK / BLOCKED / GAP / REMAINING} | {top diff or "—"} | {shots/…, diffs/…} |
+| {id} | {flow/state} | {state} | {PASS / FAIL / STUCK / BLOCKED / GAP / MODE_BLOCKED / REMAINING} | {top diff or "—"} | {shots/…, diffs/…} |
 
 - **PASS** — visual (region fill < 0.05) ∧ delta-compare ∧ contract ∧ stability all clean.
 - **STUCK** — hit the per-block bounds (≤12 iters / ≤8 min / plateau); best residual noted; needs a human call.
 - **BLOCKED** — the env can't seed/reach this state (needs data it can't produce). Verified, with a note.
 - **GAP** — a verified SDK gap (F3 exhaustion); no layer can express it.
+- **MODE_BLOCKED** — the piece needs a layer the chosen approach forbids (`strictly wireframe` needs primitives, or `strictly primitives` needs a wireframe). Reported here, not silently switched — you decide whether to change the approach or accept it.
 - **REMAINING** — not started before the 60-min soft-cap; carried to a follow-up run.
 
 ## Not covered / remaining (soft-cap)
@@ -40,3 +41,5 @@ Point at a specific mismatch; the fix re-verifies the named block **and its shar
 
 ## Recommendation
 {RECOMMEND: say "phase {N} complete" — all blocks PASS/verified.  |  RECOMMEND: fix {blockId} first (it's {STUCK/FAIL}) before completing.}
+
+> The mechanical gate is authoritative for "done." The **one override** is you explicitly saying **"I've checked, it's good for now"** — that accepts the current state despite a non-clean gate (recorded as human-accepted for the named block/phase). Absent that, a FAIL/STUCK/INCOMPLETE is not "done."

@@ -1,19 +1,36 @@
 #!/usr/bin/env node
-// enumerate-blocks.mjs — derive the BLOCK LIST (the completeness oracle) from a Figma file.
+// enumerate-blocks.mjs — derive the BLOCK LIST (the completeness oracle) from a Figma node.
 //
-// The Figma design is a row of state-variant frames (each a full surface mockup, e.g. the 354px
-// comments sidebar) with a TEXT label naming the state. Every such frame is one BLOCK the build
-// must reach + match. Enumerating from the frames (not a hardcoded list) is what makes "stopped at
-// the happy path" impossible: an unbuilt frame is an unaccounted block → the verdict gate returns
-// INCOMPLETE. (See BLOCK-BY-BLOCK-REDESIGN-PLAN.md §0b, §4.)
+// A PHASE is one "Loop" node. The expected authoring template (documented; asked of the user) is:
 //
-// Deterministic skeleton only: id, figma node, exported frame PNG, the label, a best-guess state
-// slug + drive/fixture/liveSelector DEFAULTS. The Planner (LLM) refines drive/fixture per block; the
-// list is shown at the coverage gate before it is frozen.
+//   Loop N                       ← the phase node passed to this script
+//     State                      ← component-level states (the building blocks)
+//       <Component>              ← e.g. "Composer States" → its variant frames (write / typing / …)
+//       …
+//     Flows                      ← assembled full-surface screens, in sequence (the acceptance views)
+//       <screen frame>           ← e.g. "default sidebar", "empty state", "adding comment", …
+//
+// Every leaf mockup FRAME (under State or Flows) is one BLOCK the build must reach + match.
+// - `Flows` frames  → role "flow"  (full-surface acceptance blocks — anchor the visual gate).
+// - `State` frames  → role "state" (component states/variants — feed the Connect Map + CSS state).
+// Enumerating from the frames (not a hardcoded list) is what makes "stopped at the happy path"
+// impossible: an unbuilt frame is an unaccounted block → the verdict gate returns INCOMPLETE.
+//
+// SURFACE-AGNOSTIC + DESIGN-DERIVED: nothing is hardwired to any reference design. Each block's
+// geometry comes from its OWN frame box (no fixed 354px width) and its state identity from its OWN
+// label/name (no fixed taxonomy). A Loop of sidebar, dialog, or notification frames enumerates the
+// same way. If a node has no recognizable State/Flows groups it falls back to LEGACY flat mode
+// (every same-width top-level frame = a block) and warns — so the older flat Harvey designs still work.
+//
+// Deterministic skeleton only: id, figma node, exported frame PNG, the label, a best-guess state slug
+// + drive/fixture/liveSelector DEFAULTS (comments-surface HINTS, applied best-effort). The Planner
+// (LLM) refines drive/fixture/liveSelector per block against the live DOM; the list is shown at the
+// coverage gate before it is frozen.
 //
 // Usage:
-//   node scripts/enumerate-blocks.mjs rest <fileKey> <nodeId> [--out <dir>] [--scale 2] [--width 354]
+//   node scripts/enumerate-blocks.mjs rest <fileKey> <nodeId> [--out <dir>] [--scale 2] [--width <n>]
 //   node scripts/enumerate-blocks.mjs from-nodes <nodes.json> <nodeId> [--out <dir>] [--scale 2]
+// --width forces the legacy same-width filter; omit it to derive the dominant width from the design.
 // Token: FIGMA_TOKEN env, else the OS keychain entry used by figma-extract (never the repo .env).
 
 import { promises as fs } from "node:fs";
@@ -35,101 +52,165 @@ function keychainGet() {
 }
 const resolveToken = () => process.env.FIGMA_TOKEN || keychainGet() || null;
 
-// ---- state slug + drive defaults, keyed by the design's label text (comments surface taxonomy) ----
-// drive.steps are hints the Judge executes to REACH the state; drive.assert proves it's active.
-const LABEL_MAP = [
-  [/empty/i,                      { state: "empty",               drive: { steps: ["render with no comments OR all filtered out"], assert: ".hw-empty" } }],
-  [/input focused|focus/i,        { state: "composer-focus",      drive: { steps: ["focus the page-mode composer input"], assert: ".velt-composer-open, .hw-composer:focus-within" } }],
-  [/@ ?mention|mention/i,         { state: "mention-autocomplete",drive: { steps: ["focus composer", "type '@'"], assert: ".mat-mdc-autocomplete-panel, .velt-autocomplete-panel" } }],
-  [/input filled|filled/i,        { state: "composer-filled",     drive: { steps: ["focus composer", "type a message"], assert: ".velt-composer-open" } }],
-  [/overflow threaded|overflow.*comment/i, { state: "thread-overflow", drive: { steps: ["seed a thread with > preview replies"], assert: "velt-comment-dialog-more-reply-internal:not(:empty)" } }],
-  [/threaded.*input|reply.*input/i,{ state: "thread-composer",     drive: { steps: ["open a thread", "focus its reply composer"], assert: ".velt-comment-dialog--selected .velt-composer-open" } }],
-  [/threaded.*left|threaded/i,    { state: "threaded",            drive: { steps: ["seed a thread with >= 1 reply"], assert: "velt-comment-dialog-thread-card-internal:nth-child(2)" } }],
-  [/additional/i,                 { state: "multiple",            drive: { steps: ["seed >= 2 separate comments"], assert: "velt-comment-dialog-internal:nth-of-type(2)" } }],
-  [/filter dropdown|filter.*open/i,{ state: "filter-open",         drive: { steps: ["click the sidebar filter trigger"], assert: ".velt-comments-sidebar-minimal-filter-dropdown-content" } }],
-  [/overflow menu|options/i,      { state: "options-open",        drive: { steps: ["hover a card", "click its kebab trigger"], assert: ".snippyly-menu, .hw-menu:not([style*='display: none'])" } }],
-  [/resolved.*toast|toast/i,      { state: "resolved-toast",      drive: { steps: ["resolve a comment", "capture the toast"], assert: "velt-toast-popup, .velt-toast" } }],
-  [/link copied|copied/i,         { state: "link-copied",         drive: { steps: ["open options", "click Copy link", "capture the tooltip/toast"], assert: ".s-tooltip, velt-toast-popup" } }],
-  [/resolved.*filter/i,           { state: "filter-resolved",     drive: { steps: ["open filter", "enable Show resolved comments"], assert: ".velt-comments-sidebar-minimal-filter-dropdown-content" } }],
-  [/resolved/i,                   { state: "resolved",            drive: { steps: ["resolve a comment", "show resolved"], assert: ".velt-comment-dialog--resolved" } }],
-  [/hover/i,                      { state: "hover",               drive: { steps: ["seed a comment", "hover the thread card"], assert: ".hw-comment-actions" } }],
-  [/comment left|^comment/i,      { state: "default",             drive: { steps: ["seed one root comment"], assert: "velt-comment-dialog-thread-card-internal" } }],
+// ---- state slug + drive HINTS, keyed by the label text (comments-surface heuristics, best-effort) ----
+// These are only DEFAULTS the Planner overrides; on a non-comments surface they simply don't match and
+// the block carries a null assert for the Planner to fill. drive.steps hint how to REACH the state;
+// drive.assert proves it's active.
+const LABEL_HINTS = [
+  [/empty/i,                      { state: "empty",               drive: { steps: ["render with no content OR all filtered out"], assert: null } }],
+  [/input focused|focus/i,        { state: "composer-focus",      drive: { steps: ["focus the composer input"], assert: null } }],
+  [/@ ?mention|mention/i,         { state: "mention-autocomplete",drive: { steps: ["focus composer", "type '@'"], assert: null } }],
+  [/input filled|filled/i,        { state: "composer-filled",     drive: { steps: ["focus composer", "type a message"], assert: null } }],
+  [/double click|double-click/i,  { state: "thread-open",         drive: { steps: ["double-click / click a card to open its thread"], assert: null } }],
+  [/adding comment|adding com/i,  { state: "reply-adding",        drive: { steps: ["open a thread", "focus its reply composer", "type a reply"], assert: null } }],
+  [/submitted|submit/i,           { state: "reply-submitted",     drive: { steps: ["open a thread", "submit a reply"], assert: null } }],
+  [/overflow threaded|overflow.*comment/i, { state: "thread-overflow", drive: { steps: ["seed a thread with > preview replies"], assert: null } }],
+  [/threaded.*input|reply.*input/i,{ state: "thread-composer",     drive: { steps: ["open a thread", "focus its reply composer"], assert: null } }],
+  [/threaded.*left|threaded|thread/i,{ state: "threaded",          drive: { steps: ["seed a thread with >= 1 reply"], assert: null } }],
+  [/additional|multiple/i,        { state: "multiple",            drive: { steps: ["seed >= 2 separate comments"], assert: null } }],
+  [/filter dropdown|filter.*open|sort by|reduction/i,{ state: "filter-open", drive: { steps: ["click the filter/sort trigger"], assert: null } }],
+  [/overflow menu|options|assign/i,{ state: "options-open",        drive: { steps: ["hover a card", "click its kebab/options trigger"], assert: null } }],
+  [/resolved.*toast|toast/i,      { state: "resolved-toast",      drive: { steps: ["resolve a comment", "capture the toast"], assert: null } }],
+  [/link copied|copied/i,         { state: "link-copied",         drive: { steps: ["open options", "click Copy link", "capture the tooltip/toast"], assert: null } }],
+  [/resolved.*filter/i,           { state: "filter-resolved",     drive: { steps: ["open filter", "enable Show resolved comments"], assert: null } }],
+  [/resolved/i,                   { state: "resolved",            drive: { steps: ["resolve a comment", "show resolved"], assert: null } }],
+  [/hover/i,                      { state: "hover",               drive: { steps: ["seed content", "hover the card"], assert: null } }],
+  [/affirmative|dialog|delete|lost/i,{ state: "confirm-dialog",   drive: { steps: ["trigger the confirmation dialog"], assert: null } }],
+  [/composer/i,                   { state: "composer",            drive: { steps: ["focus the composer"], assert: null } }],
+  [/comment left|^comment/i,      { state: "default",             drive: { steps: ["seed one root comment"], assert: null } }],
 ];
-// Per-block liveSelector — the element that DEFINES the block (what the Judge captures + the frame is
-// cropped to). NOT the whole rail: scoping to the defining element keeps other comments below the
-// composer/card out of the diff (the §0d pollution fix). The capture is that element; the frame is
-// cropped to the element's surface-relative box. The Planner refines these against the live DOM.
-const SELECTOR_BY_STATE = {
-  "empty": ".hw-empty",
-  "composer-focus": ".hw-panel-composer",
-  "composer-filled": ".hw-panel-composer",
-  "mention-autocomplete": ".hw-panel-composer",   // panel overlaps the autocomplete popover
-  "default": "velt-comment-dialog-internal",       // the (first) thread card
-  "hover": "velt-comment-dialog-internal",
-  "threaded": "velt-comment-dialog-internal",
-  "thread-composer": "velt-comment-dialog-internal",
-  "thread-overflow": "velt-comment-dialog-internal",
-  "multiple": ".hw-panel-body",                    // several cards → the list region
-  "filter-open": ".hw-panel-header",               // header + the filter popover overlapping it
-  "options-open": "velt-comment-dialog-internal",  // the card + its kebab popover overlapping it
-  "filter-resolved": ".hw-panel-header",
-  "resolved": "velt-comment-dialog-internal",
-  "resolved-toast": "velt-toast-popup, .velt-toast",
-  "link-copied": ".s-tooltip, velt-toast-popup",
-};
-const DEFAULT_SELECTOR = ".hw-rail-inner";          // whole-sidebar states fall back to the rail
-
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 function classifyLabel(label) {
-  for (const [re, v] of LABEL_MAP) if (re.test(label)) return v;
-  return { state: slug(label), drive: { steps: [`reach the "${label}" state`], assert: null } };
+  for (const [re, v] of LABEL_HINTS) if (re.test(label)) return v;
+  return { state: slug(label) || "state", drive: { steps: [`reach the "${label}" state`], assert: null } };
 }
 
-// ---- enumeration: every ~`width`px-wide top-level FRAME is a block; map to its nearest TEXT label ----
-export function enumerateBlocks(sectionDoc, { width = 354, scale = 2 } = {}) {
-  const children = sectionDoc.children || [];
-  const B = (n) => n.absoluteBoundingBox;
-  const frames = children.filter((c) => c.type === "FRAME" && B(c) && Math.abs(B(c).width - width) < 6);
-  const labels = children.filter((c) => c.type === "TEXT" && B(c));
-  const nearestLabel = (f) => {
-    const fb = B(f); let best = null, bd = Infinity;
-    for (const l of labels) {
-      const lb = B(l), dx = Math.abs(lb.x - fb.x), dy = fb.y - (lb.y + lb.height);
-      const score = dx + (dy >= 0 ? dy : 1000 + Math.abs(dy));   // label sits just above its frame
-      if (score < bd) { bd = score; best = l; }
-    }
-    return best;
-  };
-  const popoverNames = (f) => [...new Set((f.children || []).flatMap((c) => [c, ...(c.children || [])])
-    .map((c) => c.name).filter((n) => /menu|toast|tooltip/i.test(n)))];
+// ---- tree helpers ----
+const box = (n) => n.absoluteBoundingBox;
+const CONTAINER = new Set(["SECTION", "FRAME", "GROUP", "COMPONENT", "COMPONENT_SET", "INSTANCE"]);
+function descendants(node, out = []) {
+  for (const c of node.children || []) { out.push(c); descendants(c, out); }
+  return out;
+}
+function containsNode(ancestor, node) {
+  return descendants(ancestor).includes(node);
+}
+// A "block frame" is a leaf UI mockup: a FRAME that renders actual content (has a non-container child)
+// and is not merely a wrapper around other block frames.
+function blockFrames(container) {
+  const frames = descendants(container).filter((n) => n.type === "FRAME" && box(n));
+  const bearsUI = (f) => (f.children || []).some((c) => !CONTAINER.has(c.type));
+  const candidates = frames.filter(bearsUI);
+  return candidates.filter((f) => !candidates.some((g) => g !== f && containsNode(f, g)));
+}
+// nearest TEXT label sitting just above/near a frame (fallback when the frame's own name is generic)
+function nearestLabelChars(frame, labels) {
+  const fb = box(frame); let best = null, bd = Infinity;
+  for (const l of labels) {
+    const lb = box(l); if (!lb) continue;
+    const dx = Math.abs(lb.x - fb.x), dy = fb.y - (lb.y + lb.height);
+    const score = dx + (dy >= 0 ? dy : 1000 + Math.abs(dy));
+    if (score < bd) { bd = score; best = l; }
+  }
+  return (best?.characters || "").trim() || null;
+}
+const isGeneric = (n) => !n || /^(frame|group|component|instance|state|flows?)\b/i.test(n.trim());
+function firstNamed(root, re) {
+  for (const n of descendants(root)) if (CONTAINER.has(n.type) && re.test((n.name || "").trim())) return n;
+  return null;
+}
 
-  const blocks = frames
-    .map((f) => {
-      const label = (nearestLabel(f)?.characters || nearestLabel(f)?.name || "").trim() || "(unlabeled)";
-      const { state, drive } = classifyLabel(label);
-      return {
-        id: slug(label) || f.id.replace(":", "-"),
-        name: label, figmaNodeId: f.id,
-        framePng: `frames/${slug(label) || f.id.replace(":", "-")}.png`,
-        surface: "sidebar",
-        state, drive,
-        liveSelector: SELECTOR_BY_STATE[state] || DEFAULT_SELECTOR,
-        // frameRegion = the defining element's box in the frame (device px x,y,w,h) — the Judge crops
-        // the frame to this so only the block's region is diffed (excludes unrelated comments). The
-        // Planner fills it from the designSpec node box of the element this block is about (× scale).
-        frameRegion: null,
-        popovers: popoverNames(f),
-        fixture: { note: "Planner fills canonical content from the frame text (author/message/replyCount)" },
-        x: Math.round(B(f).x),                     // canvas x — used only to keep source order stable
+// ---- enumeration ----
+export function enumerateBlocks(rootDoc, { width, scale = 2, forceWidth } = {}) {
+  const loopId = slug(rootDoc.name || "loop") || "loop";
+  const labels = descendants(rootDoc).filter((c) => c.type === "TEXT" && box(c));
+  const stateGroup = firstNamed(rootDoc, /^\s*state\b/i);
+  const flowGroup = firstNamed(rootDoc, /^\s*flows?\b/i);
+
+  let raw = [];       // { frame, role, component?, label }
+  let mode;
+
+  if (stateGroup || flowGroup) {
+    mode = "loop";
+    if (stateGroup) {
+      // group state frames by their nearest ancestor container under State (= the component)
+      const compOf = (f) => {
+        let cur = f, comp = null;
+        const chain = [];
+        for (const n of descendants(stateGroup)) if (containsNode(n, f) && CONTAINER.has(n.type)) chain.push(n);
+        // the smallest containing container that is a DIRECT-ish child of State names the component
+        chain.sort((a, b) => (box(a).width * box(a).height) - (box(b).width * box(b).height));
+        for (const n of chain) if (!isGeneric(n.name)) { comp = n.name.trim(); break; }
+        return comp;
       };
-    })
-    .sort((a, b) => a.x - b.x)
-    .map((b, i) => { const { x, ...rest } = b; return { ...rest, order: i }; });
+      for (const f of blockFrames(stateGroup)) {
+        const label = (isGeneric(f.name) ? nearestLabelChars(f, labels) : f.name) || f.name || "(unlabeled)";
+        raw.push({ frame: f, role: "state", component: compOf(f), label: String(label).trim() });
+      }
+    }
+    if (flowGroup) {
+      for (const f of blockFrames(flowGroup)) {
+        const label = (isGeneric(f.name) ? nearestLabelChars(f, labels) : f.name) || f.name || "(unlabeled)";
+        raw.push({ frame: f, role: "flow", component: null, label: String(label).trim() });
+      }
+    }
+  } else {
+    // LEGACY flat mode: every same-width top-level FRAME is a block, width DERIVED from the design.
+    mode = "legacy";
+    const top = (rootDoc.children || []).filter((c) => c.type === "FRAME" && box(c));
+    const derivedWidth = forceWidth ?? width ?? dominantWidth(top);
+    const frames = derivedWidth ? top.filter((f) => Math.abs(box(f).width - derivedWidth) < 6) : top;
+    for (const f of frames) {
+      const label = (isGeneric(f.name) ? nearestLabelChars(f, labels) : f.name) || f.name || "(unlabeled)";
+      raw.push({ frame: f, role: "flow", component: null, label: String(label).trim(), _w: derivedWidth });
+    }
+  }
 
-  return { width, scale, count: blocks.length, blocks };
+  // stable source order: top-to-bottom, then left-to-right
+  raw.sort((a, b) => (box(a.frame).y - box(b.frame).y) || (box(a.frame).x - box(b.frame).x));
+
+  const seen = new Set();
+  const uniq = (base) => { let id = base || "block", i = 2; while (seen.has(id)) id = `${base}-${i++}`; seen.add(id); return id; };
+
+  const blocks = raw.map((r, i) => {
+    const f = r.frame, b = box(f);
+    const { state, drive } = classifyLabel(r.label);
+    const baseId = slug([r.role === "state" ? "state" : "flow", r.component, r.label].filter(Boolean).join("-")) || f.id.replace(":", "-");
+    const id = uniq(baseId);
+    return {
+      id,
+      name: r.label,
+      figmaNodeId: f.id,
+      framePng: `frames/${id}.png`,
+      loopId,
+      role: r.role,                         // "state" | "flow"
+      component: r.component || null,        // for role=state: the owning component's name
+      flowStep: r.role === "flow" ? r.label : null,
+      surface: null,                         // Planner infers/fills (no hardcoded "sidebar")
+      state, drive,
+      liveSelector: null,                    // Planner resolves against the live DOM (no Harvey defaults)
+      // frameBox = this frame's own box on the Figma canvas (device-independent px). Geometry is
+      // DERIVED here — never a hardcoded width.
+      frameBox: { x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.width), h: Math.round(b.height) },
+      // frameRegion = the defining element's box in the frame (device px) — the Judge crops the frame
+      // to this. The Planner fills it from the designSpec node box × scale.
+      frameRegion: null,
+      fixture: { note: "Planner fills canonical content from the frame text (author/message/replyCount)" },
+      order: i,
+    };
+  });
+
+  return { mode, loopId, scale, count: blocks.length, blocks };
 }
 
-// ---- main: fetch section node + export frame PNGs via the Figma REST API ----
+function dominantWidth(frames) {
+  if (!frames.length) return null;
+  const counts = new Map();
+  for (const f of frames) { const w = Math.round(box(f).width); counts.set(w, (counts.get(w) || 0) + 1); }
+  return [...counts.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0][0];
+}
+
+// ---- main: fetch node + export frame PNGs via the Figma REST API ----
 async function figmaGet(url, token) {
   const r = await fetch(url, { headers: { "X-Figma-Token": token } });
   const j = await r.json();
@@ -137,7 +218,6 @@ async function figmaGet(url, token) {
   return j;
 }
 async function exportFrames(fileKey, ids, scale, token, outDir) {
-  // Figma caps ids per /images call; chunk to be safe.
   const images = {};
   for (let i = 0; i < ids.length; i += 30) {
     const chunk = ids.slice(i, i + 30).join(",");
@@ -151,20 +231,23 @@ async function exportFrames(fileKey, ids, scale, token, outDir) {
 async function main() {
   const [mode, ...a] = process.argv.slice(2);
   const argv = (k, d) => { const i = a.indexOf(k); return i >= 0 ? a[i + 1] : d; };
-  const scale = +argv("--scale", "2"), width = +argv("--width", "354");
+  const scale = +argv("--scale", "2");
+  const forceWidth = a.includes("--width") ? +argv("--width", "0") : undefined;
   const outDir = path.resolve(argv("--out", "."));
+  await fs.mkdir(outDir, { recursive: true });
 
-  let sectionDoc, fileKey;
+  let rootDoc, fileKey;
   if (mode === "rest") {
     const [fk, nodeId] = a; fileKey = fk;
     const token = resolveToken();
     if (!token) { console.error("✗ no Figma token (set FIGMA_TOKEN or store it via figma-extract token set)"); process.exit(1); }
     const id = nodeId.replace(/-/g, ":");
     const j = await figmaGet(`${API}/files/${fileKey}/nodes?ids=${id}`, token);
-    sectionDoc = j.nodes[id]?.document;
-    if (!sectionDoc) { console.error(`✗ node ${id} not found in ${fileKey}`); process.exit(1); }
+    rootDoc = j.nodes[id]?.document;
+    if (!rootDoc) { console.error(`✗ node ${id} not found in ${fileKey}`); process.exit(1); }
 
-    const result = enumerateBlocks(sectionDoc, { width, scale });
+    const result = enumerateBlocks(rootDoc, { scale, forceWidth });
+    guardEmpty(result);
     const images = await exportFrames(fileKey, result.blocks.map((b) => b.figmaNodeId), scale, token, outDir);
     for (const b of result.blocks) {
       const url = images[b.figmaNodeId];
@@ -179,19 +262,30 @@ async function main() {
     const [nodesPath, nodeId] = a;
     const id = nodeId.replace(/-/g, ":");
     const j = JSON.parse(await fs.readFile(nodesPath, "utf8"));
-    sectionDoc = (j.nodes?.[id]?.document) || j.document || j;
-    const result = enumerateBlocks(sectionDoc, { width, scale });
+    rootDoc = (j.nodes?.[id]?.document) || j.document || j;
+    const result = enumerateBlocks(rootDoc, { scale, forceWidth });
+    guardEmpty(result);
     result.source = `nodes:${path.basename(nodesPath)}`; result.nodeId = id;
     await fs.writeFile(path.join(outDir, "blocks.json"), JSON.stringify(result, null, 2) + "\n");
     report(result, outDir);
   } else {
-    console.error("usage: enumerate-blocks.mjs rest <fileKey> <nodeId> | from-nodes <nodes.json> <nodeId> [--out <dir>] [--scale 2]");
+    console.error("usage: enumerate-blocks.mjs rest <fileKey> <nodeId> | from-nodes <nodes.json> <nodeId> [--out <dir>] [--scale 2] [--width <n>]");
     process.exit(1);
   }
 }
+function guardEmpty(result) {
+  if (result.count === 0) {
+    console.error("✗ no blocks found. Expected a 'Loop' node containing 'State' and/or 'Flows' groups of mockup frames,");
+    console.error("  or a flat node with same-width state frames. Confirm the passed node is a Loop (or point at one).");
+    process.exit(2);
+  }
+  if (result.mode === "legacy")
+    console.warn("⚠ no State/Flows groups found — using LEGACY flat mode (every same-width top-level frame = a block).");
+}
 function report(result, outDir) {
-  console.log(`✓ ${result.count} blocks → ${path.relative(process.cwd(), path.join(outDir, "blocks.json"))}`);
-  for (const b of result.blocks) console.log(`  ${String(b.order).padStart(2)}. ${b.id.padEnd(22)} state=${b.state.padEnd(20)} ${b.popovers?.length ? "popover" : ""}`);
+  console.log(`✓ ${result.count} blocks (${result.mode}) → ${path.relative(process.cwd(), path.join(outDir, "blocks.json"))}`);
+  for (const b of result.blocks)
+    console.log(`  ${String(b.order).padStart(2)}. ${b.id.padEnd(28)} role=${b.role.padEnd(5)} state=${b.state.padEnd(18)} ${b.component ? "[" + b.component + "]" : ""}`);
   console.log("  The verdict gate requires a PASS for EVERY block — a run that builds fewer is INCOMPLETE.");
 }
 

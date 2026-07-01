@@ -25,23 +25,49 @@
 // field is INCOMPLETE (the check was skipped, not trusted), and ANY block recording `ok===false` is a
 // FAIL. "The button moved under the cursor" is structurally unreachable as a pass.
 //
+// Terminal-for-phase dispositions the ORCHESTRATOR may set on a block report entry (with evidence):
+//   disposition: "BLOCKED" — the env can't seed/reach this state (needs data it can't produce). Requires `note`.
+//   disposition: "GAP"     — a VERIFIED SDK gap: no layer can express it (F3 exhaustion). Requires `note`.
+//   disposition: "STUCK"   — hit the per-block bounds (≤12 iters / ≤8 min / plateau) without passing. Requires `note`.
+// And a phase-level stop when the 60-min soft-cap + grace is reached:
+//   report.phase = { softCapReached: true, remaining: ["<blockId>", ...] }  // blocks never started (REMAINING)
+//
+// BLOCKED/GAP are verified-ACCEPTABLE (a complete phase may still PASS with them). STUCK/REMAINING are
+// legitimate human-checkpoint stops → verdict STOPPED (hand off, don't loop). CRUCIALLY, a block that is
+// NEITHER measured NOR explicitly accounted (STUCK/BLOCKED/GAP/REMAINING) still forces INCOMPLETE — so a
+// silent early-stop (the M5 failure: build 5 of 16 and quit) remains structurally unreachable.
+//
 // Usage: node scripts/verdict-gate-blocks.mjs --blocks blocks.json --report block-report.json
 //        [--max-region-fill 0.05]   # regions at/above this fill are "real" structural diffs ⇒ FAIL
 //
-// Exit codes: 0 = PASS, 2 = FAIL, 3 = INCOMPLETE, 1 = usage/error.
+// Exit codes: 0 = PASS, 2 = FAIL, 3 = INCOMPLETE, 4 = STOPPED (bounds/human-checkpoint), 1 = usage/error.
 
 import { promises as fs } from "node:fs";
 
-const STATUS_EXIT = { PASS: 0, FAIL: 2, INCOMPLETE: 3 };
+const STATUS_EXIT = { PASS: 0, FAIL: 2, INCOMPLETE: 3, STOPPED: 4 };
+const TERMINAL = new Set(["BLOCKED", "GAP", "STUCK"]);
 
 export function verdictGateBlocks(blocks, report, { maxRegionFill = 0.05 } = {}) {
   const missing = [];   // coverage / artifact gaps ⇒ INCOMPLETE (cannot terminate)
   const failures = [];  // built + measured but wrong ⇒ FAIL
+  const accounted = { blocked: [], gap: [], stuck: [], remaining: [] };  // explicitly-stopped, with evidence
   const reps = (report && report.blocks) || {};
   const list = blocks.blocks || [];
+  const remainingSet = new Set((report && report.phase && report.phase.remaining) || []);
 
   for (const b of list) {
     const r = reps[b.id];
+
+    // explicit terminal disposition (evidence required so it can't be used to silently escape the loop)
+    const disp = r && typeof r.disposition === "string" ? r.disposition.toUpperCase() : null;
+    if (disp && TERMINAL.has(disp)) {
+      if (!r.note) { missing.push(`block '${b.id}' marked ${disp} without evidence (a note is required)`); continue; }
+      accounted[disp.toLowerCase()].push(`block '${b.id}' (${b.state}): ${disp} — ${r.note}`);
+      continue;
+    }
+    // never started, but the phase soft-capped and explicitly listed it as remaining → accounted (STOPPED)
+    if (!r && remainingSet.has(b.id)) { accounted.remaining.push(`block '${b.id}' (${b.state}): not started (phase soft-cap reached)`); continue; }
+
     if (!r) { missing.push(`block '${b.id}' (${b.state}) has no report entry — not built`); continue; }
     if (!r.built) { missing.push(`block '${b.id}' not built`); continue; }
     if (!r.driven) { missing.push(`block '${b.id}' state '${b.state}' not driven (drive.assert never matched)`); continue; }
@@ -63,9 +89,14 @@ export function verdictGateBlocks(blocks, report, { maxRegionFill = 0.05 } = {})
 
   const covered = list.length - missing.filter((m) => m.startsWith("block ") && /not built|no report/.test(m)).length;
   const coverage = list.length ? Math.round(100 * covered / list.length) : 100;
-  if (missing.length) return { verdict: "INCOMPLETE", coverage, missing, failures, note: "coverage/artifacts incomplete — a partial build is NOT a pass" };
-  if (failures.length) return { verdict: "FAIL", coverage: 100, missing: [], failures };
-  return { verdict: "PASS", coverage: 100, missing: [], failures: [] };
+  const stoppedCount = accounted.stuck.length + accounted.remaining.length;
+
+  // M5 guard first: any block neither measured nor explicitly accounted ⇒ INCOMPLETE, keep looping.
+  if (missing.length) return { verdict: "INCOMPLETE", coverage, missing, failures, accounted, note: "coverage/artifacts incomplete — a partial build is NOT a pass" };
+  if (failures.length) return { verdict: "FAIL", coverage: 100, missing: [], failures, accounted };
+  // all blocks accounted, none failing:
+  if (stoppedCount) return { verdict: "STOPPED", coverage: 100, missing: [], failures: [], accounted, note: "hit the bounds / soft-cap — hand off to the human with the remaining/stuck list, do NOT keep looping" };
+  return { verdict: "PASS", coverage: 100, missing: [], failures: [], accounted };
 }
 
 async function main() {
@@ -79,6 +110,9 @@ async function main() {
   console.log(`VERDICT: ${r.verdict}  (block coverage ${r.coverage}% of ${(blocks.blocks || []).length})`);
   if (r.missing.length) { console.log("  INCOMPLETE — not built / not driven / artifacts missing:"); for (const m of r.missing.slice(0, 24)) console.log("    · " + m); }
   if (r.failures.length) { console.log("  FAIL — built but does not match:"); for (const f of r.failures.slice(0, 24)) console.log("    · " + f); }
+  const acc = r.accounted || {};
+  for (const [k, label] of [["stuck", "STUCK (hit bounds — hand to human)"], ["remaining", "REMAINING (soft-cap reached — not started)"], ["blocked", "BLOCKED (env can't reach)"], ["gap", "GAP (verified SDK gap)"]])
+    if (acc[k] && acc[k].length) { console.log(`  ${label}:`); for (const m of acc[k].slice(0, 24)) console.log("    · " + m); }
   process.exit(STATUS_EXIT[r.verdict]);
 }
 

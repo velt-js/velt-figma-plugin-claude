@@ -1,0 +1,42 @@
+# Velt customization — phase handoff
+
+> Written when the loop STOPS (gate exit **0** = every block PASS/verified, or **4** = STOPPED at the bounds/soft-cap). This is the human checkpoint: review, then either say **"phase N complete"** or instruct a fix. Nothing is promoted to cross-phase memory until you say the phase is complete.
+
+**Phase:** `{phaseId}` (Loop `{figmaNode}`) · **Approach:** `{mode}` · **Guide:** `{guideVersion.sha}`
+**Stop reason:** `{PASS | STOPPED (soft-cap {minutes}m) | STOPPED (block stuck)}` · **Project:** `{cwd}`
+
+## What changed
+`git diff --stat components/velt/ui-customization/` — files touched this phase:
+
+```
+{diffStat}
+```
+
+## Per-block dispositions
+| Block | role | state | disposition | residual | evidence |
+|---|---|---|---|---|---|
+| {id} | {flow/state} | {state} | {PASS / FAIL / STUCK / BLOCKED / GAP / REMAINING} | {top diff or "—"} | {shots/…, diffs/…} |
+
+- **PASS** — visual (region fill < 0.05) ∧ delta-compare ∧ contract ∧ stability all clean.
+- **STUCK** — hit the per-block bounds (≤12 iters / ≤8 min / plateau); best residual noted; needs a human call.
+- **BLOCKED** — the env can't seed/reach this state (needs data it can't produce). Verified, with a note.
+- **GAP** — a verified SDK gap (F3 exhaustion); no layer can express it.
+- **REMAINING** — not started before the 60-min soft-cap; carried to a follow-up run.
+
+## Not covered / remaining (soft-cap)
+{list of REMAINING block ids, or "none — every block resolved"}
+
+## Uncertain / could NOT verify
+- **Uncertain:** {icon-identity vision calls, any suspected false-clean where drive.assert was weak}.
+- **Could not verify:** {BLOCKED states + why the environment can't reach them}.
+
+## Required host changes (R18 — tested, reverted, listed)
+{VeltCustomization mount / dialogVariant / any host prop the user must apply, or "none"}
+
+## How to instruct a fix
+Point at a specific mismatch; the fix re-verifies the named block **and its shared-selector blast radius**. Examples:
+- `Fix {phaseId} {blockId}: the resolve icon should be check-circle, not the Velt default.`
+- `Fix {phaseId} {blockId}: composer menu is 24px too wide.`
+
+## Recommendation
+{RECOMMEND: say "phase {N} complete" — all blocks PASS/verified.  |  RECOMMEND: fix {blockId} first (it's {STUCK/FAIL}) before completing.}

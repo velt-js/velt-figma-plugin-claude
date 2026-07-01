@@ -480,10 +480,10 @@ async function main() {
   console.log("  1. Serve the target app; connect figma-desktop + claude-in-chrome MCPs.");
   console.log("  2. (optional) `node scripts/figma-extract.mjs token status` — REST extraction if a token is set, else MCP fallback.");
   console.log("  3. /velt-customize against the Figma frame → Planner EXTRACTS a designSpec + emits a Connect Map.");
-  console.log("  4. At the coverage gate, confirm the recommended layer (wireframe).");
+  console.log("  4. At the MANDATORY approach gate, state or confirm the approach (--mode, else halt-and-ask).");
   console.log("  5. Build executes the Connect Map: every mustSupply slot supplied (icons from exported SVGs), host props set, exact cssDecls applied.");
-  console.log("  6. Judge MEASURES the WHOLE surface vs the designSpec: per-element style deltas (ΔE<2, ±1px) AND layout deltas (box/gap/relation, ±2-3px, missing-element) AND a mandatory agent visual side-by-side (name every difference). PASS only when style+layout deltas are empty AND no nameable visual diff, across ALL states.");
-  console.log("  7. Termination is a SEPARATE evaluator (/goal): the Judge surfaces its full delta + visual evidence into the transcript; the builder/runtime never declares 'matched'. Acceptance: re-running on harvey-playground reproduces the velt-harvey-demo shape AND the Judge FAILs any blown-gap / wrong-row / 210px-filter / hover-not-revealed surface before /goal can stop.");
+  console.log("  6. Judge MEASURES per block: cheap delta-compare + probes every iteration, expensive capture + visual-diff at iter-1 + PASS-candidate. PASS only when style+layout deltas are empty AND no significant visual region AND contract+stability clean, across ALL blocks (Flows + State).");
+  console.log("  7. Termination is the MECHANICAL verdict-gate-blocks.mjs exit code over blocks.json (PASS/STOPPED), never /goal. The Judge writes block-report.json + surfaces evidence; builder/runtime never declares 'matched'. Acceptance: re-running on harvey-playground reproduces the velt-harvey-demo shape AND the gate FAILs/INCOMPLETEs any blown-gap / wrong-row / 210px-filter / hover-not-revealed surface.");
 
   const calibrated = await calibrateJudge();
   if (!calibrated) failed++;

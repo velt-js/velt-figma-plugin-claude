@@ -11,6 +11,12 @@
 // Usage:
 //   node scripts/capture-block.mjs <url> <liveSelector> <outPng> [--scale 2] [--select-user user1]
 //        [--assert <selector>] [--eval '<page JS to reach the block state>'] [--timeout 30000]
+//        [--toggle <selector>]   # optional: element to click after user-select to open the surface
+//        [--connect <wsEndpoint>]# reuse an existing Chromium (browser reuse across a block's iterations)
+//
+// The EXPENSIVE step (browser + DPR-2 screenshot) — call it only at iteration 1 + PASS-candidate, not
+// every iteration; the cheap per-iteration checks (delta-compare + probes) run in the Judge's own live
+// session. --connect reuses one browser across a block's captures instead of relaunching each time.
 //
 // playwright-core resolution: $PLAYWRIGHT_CORE, else a normal import, else a clear install hint.
 
@@ -27,38 +33,41 @@ async function loadChromium() {
 
 async function main() {
   const [url, liveSelector, outPng, ...rest] = process.argv.slice(2);
-  if (!url || !liveSelector || !outPng) { console.error("usage: capture-block.mjs <url> <liveSelector> <outPng> [--scale 2] [--select-user user1] [--assert sel] [--eval 'js'] [--timeout 30000]"); process.exit(1); }
+  if (!url || !liveSelector || !outPng) { console.error("usage: capture-block.mjs <url> <liveSelector> <outPng> [--scale 2] [--select-user user1] [--assert sel] [--eval 'js'] [--toggle sel] [--connect ws] [--timeout 30000]"); process.exit(1); }
   const argv = (k, d) => { const i = rest.indexOf(k); return i >= 0 ? rest[i + 1] : d; };
   const scale = +argv("--scale", "2"), timeout = +argv("--timeout", "30000");
   const selectUser = argv("--select-user", null), assertSel = argv("--assert", null), driveJs = argv("--eval", null);
+  const toggleSel = argv("--toggle", null), connectWs = argv("--connect", null);
 
   const chromium = await loadChromium();
-  const browser = await chromium.launch({ headless: true });
+  // reuse an existing Chromium (browser reuse across iterations) when a ws endpoint is given, else launch.
+  const browser = connectWs ? await chromium.connect({ wsEndpoint: connectWs }) : await chromium.launch({ headless: true });
   try {
     const ctx = await browser.newContext({ viewport: { width: 1512, height: 900 }, deviceScaleFactor: scale });
     const page = await ctx.newPage();
     await page.goto(url, { waitUntil: "networkidle", timeout });
 
     // optional: pick a user in a test harness (a <select> of users — NOT a credential login)
-    if (selectUser) await page.evaluate(async (u) => {
-      const sel = document.querySelector("select"); if (!sel) return;
-      Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, "value").set.call(sel, u);
-      sel.dispatchEvent(new Event("change", { bubbles: true }));
-      await new Promise((r) => setTimeout(r, 600));
-      document.querySelector(".hw-sidebar-toggle")?.click();
-      await new Promise((r) => setTimeout(r, 1200));
-    }, selectUser);
+    if (selectUser) await page.evaluate(async ({ u, toggleSel }) => {
+      const sel = document.querySelector("select"); if (sel) {
+        Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, "value").set.call(sel, u);
+        sel.dispatchEvent(new Event("change", { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 600));
+      }
+      if (toggleSel) { document.querySelector(toggleSel)?.click(); await new Promise((r) => setTimeout(r, 1200)); }
+    }, { u: selectUser, toggleSel });
 
     // wait for the block's surface
     await page.waitForSelector(liveSelector, { timeout });
 
     // RESET state before driving this block — so a prior block's open menu / typed composer / hover
-    // doesn't leak into this capture (§0d fix #b). Escape closes menus + collapses the composer; clear
-    // any composer text; blur. Idempotent and safe for a fresh state too.
+    // doesn't leak into this capture (§0d fix #b). Surface-agnostic: Escape closes menus; clear ANY
+    // focused/visible contenteditable (not a Harvey-specific selector); blur; dismiss overlays.
     await page.keyboard.press("Escape").catch(() => {});
     await page.evaluate(() => {
-      const ed = document.querySelector(".hw-rail-inner [contenteditable='true']");
-      if (ed && (ed.textContent ?? "").length) { ed.focus(); document.execCommand("selectAll", false); document.execCommand("delete", false); }
+      for (const ed of document.querySelectorAll("[contenteditable='true']")) {
+        if ((ed.textContent ?? "").length) { ed.focus(); document.execCommand("selectAll", false); document.execCommand("delete", false); }
+      }
       document.activeElement?.blur?.();
       document.body?.click?.();   // dismiss any open overlay/menu
     }).catch(() => {});
@@ -74,7 +83,8 @@ async function main() {
     await el.screenshot({ path: outPng });
     console.log(JSON.stringify({ ok: true, outPng, deviceScaleFactor: scale, cssBox: box, note: "device-res element PNG ready for visual-diff" }));
   } finally {
-    await browser.close();
+    if (connectWs) await browser.close().catch(() => {});   // closes the connection, not the shared browser
+    else await browser.close();
   }
 }
 

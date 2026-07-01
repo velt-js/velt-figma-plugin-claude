@@ -10,13 +10,41 @@
 //
 // Usage:
 //   node scripts/progress.mjs <phaseDir> "<message>"   # append a timestamped line + echo it
-//   node scripts/progress.mjs --watch <phaseDir>       # follow the log live (tail -f)
+//   node scripts/progress.mjs --watch [<phaseDir>]     # follow the heartbeat log live (semantic detail)
+//   node scripts/progress.mjs --activity               # RELIABLE liveness: how long since ANY agent wrote
+//                                                       # to its transcript (harness-level; no LLM/heartbeat
+//                                                       # compliance needed — works on any version)
 
 import { appendFileSync, mkdirSync, readdirSync, statSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
+import os from "node:os";
 
 const a = process.argv.slice(2);
+
+// newest mtime of any .jsonl transcript under this project's Claude Code dir (~/.claude/projects/<enc-cwd>)
+function newestTranscriptAgeSec() {
+  const enc = process.cwd().replace(/\//g, "-");
+  const base = path.join(os.homedir(), ".claude", "projects", enc);
+  let newest = 0;
+  (function walk(d) {
+    let ents; try { ents = readdirSync(d, { withFileTypes: true }); } catch { return; }
+    for (const e of ents) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith(".jsonl")) { try { newest = Math.max(newest, statSync(p).mtimeMs); } catch {} }
+    }
+  })(base);
+  return newest ? (Date.now() - newest) / 1000 : null;
+}
+
+if (a[0] === "--activity") {
+  const age = newestTranscriptAgeSec();
+  if (age == null) { console.log("no agent transcripts found for this project (is a run active in THIS directory?)"); process.exit(0); }
+  const v = age < 60 ? "WORKING (wrote <60s ago)" : age < 600 ? "alive but slow/heavy (deep model work)" : "likely STUCK — no agent write in 10+ min; safe to interrupt";
+  console.log(`newest agent activity: ${Math.round(age)}s ago — ${v}`);
+  process.exit(0);
+}
 
 // resolve the NEWEST phase dir under <root>/.velt-customize/phases/ so --watch needs no phase-id
 function newestPhaseDir(root = ".") {

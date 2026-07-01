@@ -61,5 +61,8 @@ A build that doesn't render must never reach the Judge. Before handoff, confirm 
 - **Zero console errors** and the renderer is responsive (not frozen).
 - If the app won't render, first triage **app-vs-build**: is it your code, or the environment? Check the auth/token path (`documentsReady`, `/api/velt/token` pending, `useCurrentUser` empty) and console BEFORE assuming your build is broken. A wedged dev-server tab or a stalled auth token is **not** a build failure — note it, recover (fresh tab / clear storage), and retry. Don't rewrite working code to chase an environment stall.
 
+## Live progress
+**Emit a heartbeat** — `node scripts/progress.mjs <phaseDir> "<block X: patch N — what you changed>"` — per patch, so a long build is watchable, never silent.
+
 ## Output
 Code edits (file list + diffs), the item marked `built`, the **smoke-test result** (velt mounts + tsc clean + no console errors), and any new gap entries. You do **not** grade visual fidelity — the Judge does that independently.

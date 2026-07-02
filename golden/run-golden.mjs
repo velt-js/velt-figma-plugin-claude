@@ -12,13 +12,14 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { compareDecls, verdictOf, BROWSER_PROBE, LAYER_PROBE, reconcilePlan, mountMapDiff, CONTRACT_PROBE, STABILITY_PROBE } from "../scripts/delta-compare.mjs";
 import { verdictGateBlocks } from "../scripts/verdict-gate-blocks.mjs";
 import { assignIcons, normalizeBoxes } from "../scripts/figma-extract.mjs";
 import { verdictGate } from "../scripts/verdict-gate.mjs";
 import { buildChecklist } from "../scripts/build-checklist.mjs";
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const GUIDE = path.join(ROOT, "guide");
 const EXPECTED_DIR = path.join(ROOT, "golden", "expected");
 const CALIB_DIR = path.join(ROOT, "golden", "calibration");

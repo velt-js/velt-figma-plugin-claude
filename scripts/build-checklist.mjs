@@ -13,8 +13,9 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
 const argv = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
 
@@ -88,4 +89,5 @@ async function main() {
   console.log(`  The Judge MUST produce a disposition for every one (verdict-gate enforces coverage — a sample is INCOMPLETE, not PASS).`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main().catch((e) => { console.error("✗ " + e.message); process.exit(1); });
+import { pathToFileURL } from "node:url";
+if (import.meta.url === pathToFileURL(process.argv[1]).href) main().catch((e) => { console.error("✗ " + e.message); process.exit(1); });

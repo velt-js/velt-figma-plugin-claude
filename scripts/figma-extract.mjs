@@ -17,12 +17,13 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import os from "node:os";
 import { execFileSync } from "node:child_process";
 
 const SERVICE = "velt-customize";
 const ACCOUNT = "figma-token";
-const HERE = path.dirname(new URL(import.meta.url).pathname);
+const HERE = path.dirname(fileURLToPath(import.meta.url));
 const MANIFEST_PATH = path.resolve(HERE, "../manifest/velt-codeconnect.json");
 
 // ---------------- secure token handling (plan §G) ----------------
@@ -393,6 +394,6 @@ async function main() {
 }
 
 // run as CLI only — importable for unit tests (golden icon-resolver calibration)
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((e) => { console.error("✗ " + e.message); process.exit(1); });
 }

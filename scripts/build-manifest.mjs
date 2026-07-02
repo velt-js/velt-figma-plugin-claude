@@ -11,7 +11,7 @@
 //       * reference/feature-flags.md + reference/props.md            (host-prop catalog)
 //   - OVERLAY (manifest/overlay/*.json) carries the structural + semantic truth the guide
 //     can't express deterministically: reactPath nesting, slotType, mustSupply, dataField,
-//     hostProps-that-produce-structure, recognition cues. Grounded in the proven velt-harvey-demo.
+//     hostProps-that-produce-structure, recognition cues. Grounded in a verified reference build.
 //   - The generator VALIDATES every overlay slot tag against the appendix (no invented names, R10),
 //     and reports appendix slots not yet covered by an overlay (visibility, not an error).
 //
@@ -19,10 +19,11 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import crypto from "node:crypto";
 import { execSync } from "node:child_process";
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
 const checkOnly = args.includes("--check-only");
 const srcIdx = args.indexOf("--source");

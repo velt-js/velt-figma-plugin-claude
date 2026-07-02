@@ -1,6 +1,6 @@
 ---
 description: Turn a Figma design into clean Velt UI customization (comments + notifications) on this app, via Plan → approach gate → Build → Judge, one Loop (phase) at a time.
-argument-hint: "<figma-loop-node-url> [--mode <approach>] [--cloud]"
+argument-hint: "<figma-loop-node-url> [--mode <approach>] [--budget strict|balanced|thorough] [--cloud]"
 ---
 
 # /velt-customize:run
@@ -33,11 +33,11 @@ Pass `--cloud` to run **unattended**: no foreground, no questions, no desktop as
 - **Every HALT is a clean non-zero exit + a written handoff** (to `progress.log` and the phase handoff), never an interactive wait. Setup MAY run in the background (the heartbeat file already exists from `phase-init.mjs`), so the whole run can be one non-interactive invocation (e.g. `claude -p "/velt-customize:run <url> --mode <approach> --cloud"`).
 
 ### 2. Run the block-by-block loop — `velt-orchestrator` in **owned-loop mode** (it owns the loop)
-**After the approach is set and the coverage matrix is shown**, invoke `velt-orchestrator` in **owned-loop mode**. It drives the whole loop internally and terminates **mechanically**:
+**After the approach is set and the coverage matrix is shown**, invoke `velt-orchestrator` in **owned-loop mode**. The full flow is defined ONCE, in the orchestrator agent (Sequence 5) — this command only sets it running. The contract:
 
-- It iterates the **block queue** from `blocks.json` (every `Flows` + `State` frame). For each block: `velt-builder` patches it → `velt-judge` (fresh context) seeds + drives the state in-app, runs the **cheap inner verify** (`delta-compare` + reconciliation/contract/stability probes) each iteration, and only at a PASS-candidate takes the device-res capture + `visual-diff.mjs --mask-frame` + icon identity, then writes `block-report.json`.
-- **Bounds are enforced (harness-owned):** ≤12 iterations or ≤8 min per block; a retry is accepted only if the failing-diff count strictly drops; plateau (2 no-progress retries) → escalate the layer once → else mark the block `STUCK`. **Phase soft-cap:** at 60 min stop *starting* new blocks, let the in-flight block finish within a ~15–20 min grace, then stop and record un-started blocks under `report.phase.remaining`.
-- After each block it runs **`scripts/verdict-gate-blocks.mjs --blocks blocks.json --report block-report.json`** → `PASS`(0) / `FAIL`(2) / `INCOMPLETE`(3) / `STOPPED`(4). The run ends when the gate exits **0** (every block PASS, or verified `BLOCKED`/`GAP`) **or 4** (`STOPPED` — bounds/soft-cap hit; the remaining/stuck list is handed off). `INCOMPLETE`/`FAIL` mean keep looping. **Termination is the gate's exit code over persisted artifacts — never an agent's "looks matched" claim, never `/goal`.**
+- **Loop state is script-owned** (`scripts/block-iter.mjs`): iterations, wall-clock, plateau, auto-written `STUCK`, and the phase soft-cap are enforced by exit codes, never by agent memory. Pass `--budget strict|balanced|thorough` (default balanced) to set the caps.
+- **One `velt-builder` invocation per block** (inner patch loop with cheap self-probes); **`velt-judge`** (fresh context) verifies at the first structural build and at each PASS-candidate, persisting every artifact and assembling the entry via `scripts/report-block.mjs` — never hand-writing `block-report.json`.
+- After each Judge verify: **`scripts/verdict-gate-blocks.mjs`** → `PASS`(0) / `FAIL`(2) / `INCOMPLETE`(3) / `STOPPED`(4), with an **artifact audit** (missing/stale/tampered evidence ⇒ `INCOMPLETE`). The run ends only on exit **0** or **4**. **Termination is the gate's exit code over script-assembled artifacts — never an agent's "looks matched" claim, never `/goal`.**
 
 ### 3. Handoff + phase completion
 When the loop stops (gate 0 or 4), the orchestrator writes the **phase handoff** ([`templates/phase-handoff.md`](../templates/phase-handoff.md)): the `git diff` of `components/velt/ui-customization/`, the per-block disposition table (PASS / STUCK / BLOCKED / GAP / REMAINING), what it's uncertain about, what it could NOT verify, exact fix-instruction examples, and a recommendation (say **"phase N complete"** vs instruct a fix). On **"phase N complete"** it snapshots and freezes verified learnings into memory (`node scripts/memory.mjs promote`). To correct a specific mismatch, use `/velt-customize:fix` (surgical edit + re-verify the affected block **and its shared-selector blast radius**).

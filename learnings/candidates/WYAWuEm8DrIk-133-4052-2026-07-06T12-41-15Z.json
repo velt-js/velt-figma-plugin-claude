@@ -1,0 +1,83 @@
+{
+  "runId": "WYAWuEm8DrIk-133-4052-2026-07-06T12-41-15Z",
+  "phaseId": "WYAWuEm8DrIk-133-4052",
+  "app": "ai-privado-implementation",
+  "mode": "strictly wireframe",
+  "node": "133:4052",
+  "pluginSha": "3bdb366",
+  "publishedAt": "2026-07-06T12:41:15.150Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "mappings",
+      "element": "composer toolbar mention/@ icon",
+      "slot": "VeltCommentDialogWireframe.Composer.ActionButton type=userMentions",
+      "detail": "content supplied via a plain pointer-events:none sibling div overlay (same technique as Attachments) since ActionButton drops injected children",
+      "scope": "general",
+      "evidence": "wireframe-components.md documents ActionButton accepting type:userMentions as a real Velt slot; a prior connect-map incorrectly treated this as mode_blocked/behavior-only and omitted the static icon, which is an R17/R19 mustSupply-content violation whenever a design shows a visible mention-trigger icon alongside attach."
+    },
+    {
+      "kind": "corrections",
+      "fact": "Velt's DynamicComponentService throws InvalidCharacterError (classList.add on a space-separated string) when a wireframe fragment's cloned ROOT element carries a multi-token className",
+      "fix": "give every Velt wireframe element exactly ONE class (merge into shared CSS instead of composing multiple classes on the root)",
+      "scope": "general",
+      "evidence": "reproduced across VeltCommentSidebarWf.tsx and VeltCommentDialogWf.tsx; fixing collapsed content-injection entirely for the affected fragments"
+    },
+    {
+      "kind": "corrections",
+      "fact": "Composer.Attachments (and same class: ActionButton/ToggleReply/CopyLink) clear/drop any children injected into them",
+      "fix": "render the functional Velt button empty (for click handling) and pin a plain sibling icon div (pointer-events:none, position:absolute, inset:0) exactly over its box to carry the visible glyph — the real button beneath still receives clicks",
+      "scope": "general",
+      "evidence": "confirmed for Attachments and the same fix pattern applied successfully to a mention/ActionButton icon"
+    },
+    {
+      "kind": "corrections",
+      "fact": "Velt's internal .velt-composer--input-button div (hardcoded rgb(98,93,245) circle) sits INSIDE the submit button and occludes any .vc-send background color set on the wrapping element, in both enabled and disabled states",
+      "fix": "neutralize the internal div's own paint (background:transparent, sized 100%/100%) so only the outer wrapper's intended background (toggled via :has(button:not(:disabled))) and a separately-masked svg glyph show",
+      "scope": "general",
+      "evidence": "root cause of a 3rd, unexpected send-button color (153,157,230) that matched neither the disabled nor enabled CSS rule in any composer state; fix verified via re-measure"
+    },
+    {
+      "kind": "corrections",
+      "fact": "Next.js 16 dev server: allowedDevOrigins silently blocks 127.0.0.1 as a cross-origin request from its own :3000 dev server, breaking HMR/hydration/client effects with ZERO console errors",
+      "fix": "always navigate/measure against http://localhost:3000 (not 127.0.0.1) for a Next 16 dev target",
+      "scope": "general",
+      "evidence": "cost ~45 min to diagnose in preflight; silent failure mode with no error surface"
+    },
+    {
+      "kind": "corrections",
+      "fact": "measure-block.mjs's default fresh browser context (no query params) picks a random demo user+document per run in apps with seeded demo auth; accumulated real documents can carry pre-existing comment threads, producing multiple ambiguous DOM matches and flaky/wrong geometry for a 'default/empty' design state",
+      "fix": "pin a specific, verified-empty fixture URL (e.g. ?documentId=N&userId=M) for ALL measurement of a block that assumes a zero-state, and reuse it across the whole family/phase",
+      "scope": "general",
+      "evidence": "found after several flaky/inconsistent measure-block runs on the composer family; pinning fixed it deterministically"
+    },
+    {
+      "kind": "corrections",
+      "fact": "A probe/brief scaffold's browser.gaps field (doc-only exclusion notes) can be mis-consumed literally by the measure pipeline as BROWSER_PROBE gap-distance assertions, producing fake 'missing element' diffs",
+      "fix": "rename/separate doc-only exclusion notes (excludedElements) from anything the measure script treats as a live assertion; filter elements[]/relations[] against documented gaps before measuring",
+      "scope": "general",
+      "evidence": "caused 9 fake missing-element diffs across the composer family before the brief-scaffold bug was found and fixed"
+    },
+    {
+      "kind": "corrections",
+      "fact": "A block's liveSelector can resolve one DOM level too high (e.g. the outer band/container instead of the inner content element the design frame was actually cropped to), producing a systematic, family-wide capture-scope offset that looks like many small visual diffs near text/icons rather than one obvious bug",
+      "fix": "verify a block's capture-target selector resolves to an element whose rendered box matches the design frameBox dimensions (not just a nearby/parent container) before trusting per-block visual-diff regions as real defects",
+      "scope": "general",
+      "evidence": "a fresh-context Judge pass initially FAILed 3 blocks partly for this reason; fixing the selector (.vc-composer-band -> .vc-composer-band .vc-composer-pill) corrected canvas size to exactly match frameRegion"
+    },
+    {
+      "kind": "corrections",
+      "fact": "A frame PNG exported from Figma can carry a small baked-in export margin on all sides (e.g. 732x180 actual pixels for a 712x160 design-content region) that blocks.json's frameRegion did not account for (frameRegion.x/y left at 0,0 instead of the margin offset), producing a systematic diagonal crop misalignment that reads as large (30-40%), spatially-shifted visual-diff regions across an entire block even when the live app rendering is already correct",
+      "fix": "when a block's visual-diff regions look large/offset/misaligned rather than isolated to one small element, first check whether frame PNG pixel dimensions (read the PNG IHDR) minus frameRegion.w/h split evenly on all sides -- if so, correct frameRegion.x/y to the margin offset (e.g. (10,10)) rather than treating it as an app-code defect; verify per-block since sibling blocks exported in a different batch can have a different margin (or none)",
+      "scope": "general",
+      "evidence": "found via fresh-context Judge audit + orchestrator's mechanical PNG-dimension check on WYAWuEm8DrIk-133-4052's active/active-typing composer blocks; correcting frameRegion.x/y from (0,0) to (10,10) alone dropped diffPct from 33-40% to 0.8-1.4% with zero app-code changes"
+    },
+    {
+      "kind": "corrections",
+      "fact": "measure-block.mjs's default playwright-core resolution candidates (bare 'playwright-core' module id, or a gstack skill path) can fail to resolve in a sandbox where playwright-core is only installed as a transitive dependency of a global 'playwright' package (e.g. /opt/node22/lib/node_modules/playwright/node_modules/playwright-core)",
+      "fix": "set PLAYWRIGHT_CORE to the actual resolvable entry file path (not just the bare package name), e.g. PLAYWRIGHT_CORE=/opt/node22/lib/node_modules/playwright/node_modules/playwright-core/index.js, before invoking measure-block.mjs manually outside an agent's own environment",
+      "scope": "general",
+      "evidence": "encountered when the orchestrator manually re-ran measure-block.mjs after a blocks.json metadata fix; a bare env var (module name only, no path) still failed to resolve"
+    }
+  ]
+}

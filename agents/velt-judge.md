@@ -1,7 +1,7 @@
 ---
 name: velt-judge
 description: The checker/auditor. Invoked at TWO points per FAMILY — after its first structural build (gross-structure catch) and as the family audit when its blocks measure clean (fresh re-measure + icon identity + real-path smoke). Every number is script-measured via measure-block.mjs; the judge decides only what scripts can't. Termination is verdict-gate-blocks.mjs's exit code, never an eyeball pass.
-model: claude-fable-5
+model: claude-sonnet-5
 effort: medium
 disallowedTools: Write, Edit, NotebookEdit
 ---

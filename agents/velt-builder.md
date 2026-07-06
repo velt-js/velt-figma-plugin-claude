@@ -1,7 +1,7 @@
 ---
 name: velt-builder
 description: The maker. Owns ONE component family's build loop — first-shot CSS → family wireframe → per-block measure-block self-certify → block-iter record — until each block measures clean or the controller stops it. Executes the Planner's Connect Map verbatim. The Judge's fresh-context audit and the gate still conclude.
-model: claude-fable-5
+model: claude-sonnet-5
 effort: medium
 ---
 

@@ -1,0 +1,47 @@
+{
+  "runId": "WYAWuEm8DrIk-133-4052-2026-07-06T18-22-49Z",
+  "phaseId": "WYAWuEm8DrIk-133-4052",
+  "app": "ai-privado-implementation",
+  "mode": "strictly wireframe",
+  "node": "133:4052",
+  "pluginSha": "3bdb366",
+  "publishedAt": "2026-07-06T18:22:49.973Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "corrections",
+      "fact": "Velt's wireframe rendering keeps ONE hidden master template per tag (<velt-wireframe style=\"display:none\"> containing e.g. <velt-comment-dialog-thread-card-reply-internal>) alongside the real rendered clone elsewhere in the DOM — an unscoped CSS selector or Playwright locator (e.g. bare '.vc-options-menu' or '.vc-filter-menu .vc-filter-item') will match BOTH and often grab the inert 0-size template copy first via .first(). Always scope smoke/probe selectors through the real rendered container tag (e.g. 'velt-comments-sidebar ...') to exclude the hidden template.",
+      "scope": "general",
+      "destination": "script",
+      "evidence": "Hit independently in fam-comment-thread-components smoke ('.vc-options-menu'), fam-sidebar-components smoke ('.vc-filter-menu .vc-filter-item'), and in ad-hoc reply-affordance investigation — same root cause each time, fixed by scoping to the real container tag."
+    },
+    {
+      "kind": "corrections",
+      "fact": "A visual-diff region covering ~100% of a block's frame with a suspiciously flat/uniform dominant color (few unique colors vs sibling reference PNGs which have hundreds+) is very likely a CORRUPTED Figma REST export, not a real design mismatch — verify via raw pixel/unique-color stats before assuming a CSS defect, and never 'fix' it by repainting the live app to match a broken reference (that's a regression).",
+      "scope": "general",
+      "destination": "guide",
+      "evidence": "state-sidebar-components-panel-tabs reference PNG measured 94.4% flat gray (rgb 176,176,176), 89 unique colors across a 760x96 frame, vs sibling reference PNGs with 600-2400+ unique colors; independently confirmed by Builder, orchestrator, and a fresh-context Judge via direct pixel inspection."
+    },
+    {
+      "kind": "corrections",
+      "fact": "A block-iter.mjs STUCK disposition caused by hitting maxBlockMinutes with only 2 attempts (not a plateau/oscillation signal) can still represent GENUINE, ongoing improvement (diffCount was still dropping) — it is a time-budget stop, not evidence the remaining diffs are unfixable. Treat such STUCK blocks' residuals as still worth auditing for real defects (don't assume STUCK == 'nothing left to fix') before deferring them to a batched fix pass.",
+      "scope": "general",
+      "destination": "guide",
+      "evidence": "state-comment-thread-components-comment-dialog went STUCK after 2 attempts/51 active minutes (35->33 diffCount, still falling); a later fresh Judge audit found 3 concrete, fixable defects among the 'residual' diffs, one of which (name-label sizing) was genuinely fixed in a follow-up pass."
+    },
+    {
+      "kind": "corrections",
+      "fact": "verdict-gate-blocks.mjs automatically SKIPS a family's real-path smoke requirement once ALL of that family's blocks reach a terminal disposition (STUCK/BLOCKED/GAP) — there is no non-terminal 'measured' block left to demonstrate. This is intentional (R30 only applies where something is still live to demonstrate), not a loophole; accounting a lingering FAIL block's terminal disposition properly can retroactively resolve an otherwise-blocking smoke failure for its whole family.",
+      "scope": "general",
+      "destination": "guide",
+      "evidence": "fam-comment-thread-components's smoke suite stopped being required in the gate output the moment its 2nd (and last) block was accounted BLOCKED, confirmed via re-running verdict-gate-blocks.mjs before/after."
+    },
+    {
+      "kind": "gaps",
+      "gap": "Velt's comment thread-card timestamp (IVeltCommentDialogThreadCardTimeProps, @veltdev/react) has no exposed format/locale prop to force an absolute date/time display — it always renders Velt's built-in relative format (e.g. '4mo', '2d') in the visible text node; only the DOM 'title' attribute carries the absolute value. A design calling for an absolute timestamp string cannot be achieved via CSS/wireframe/prop config; verified by inspecting the type defs and live DOM, not by a failed CSS attempt alone.",
+      "scope": "general",
+      "destination": "guide",
+      "evidence": "Checked IVeltCommentDialogThreadCardTimeProps (extends only IVeltWireframeCommonProps) and grepped @veltdev/react/@veltdev/types for any time/date/format prop near the thread-card-time component — none found; live DOM's title attribute carries the absolute value, the visible text node does not."
+    }
+  ]
+}

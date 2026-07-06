@@ -46,6 +46,29 @@ New lines appearing = it's working. First it checks everything is ready (and tel
 ```
 Then restart Claude Code (or `/reload-plugins`). Run a customization with `/velt-customize:run <figma-loop-node-url> [--mode <approach>] [--budget strict|balanced|thorough] [--cloud]` — it runs **in the current project** (cwd).
 
+## Running headless / in claude.ai/code cloud (the recipe a live run spent ~2h rediscovering)
+
+Plugin commands **don't register in an already-running session** — a CLI `plugin install` mid-conversation is always "too late" (the process's command table is fixed at its own boot). In a cloud container, install the plugin from a local directory marketplace, then launch the run as a **fresh headless process**:
+
+```bash
+claude plugin marketplace add /path/to/velt-figma-plugin-claude
+claude plugin install velt-customize@velt-customize --scope user
+
+CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 IS_SANDBOX=1 \
+claude -p --permission-mode bypassPermissions \
+  --add-dir /path/to/velt-figma-plugin-claude \
+  <<'EOF'
+/velt-customize:run <figma-loop-node-url> --mode "strictly wireframe" --auto --budget balanced
+EOF
+```
+
+Every piece is load-bearing (each one cost a live run real time when missing):
+- **Prompt via stdin (heredoc), never as a CLI argument** — a resumed orchestrator once saw its own `/velt-customize:run` string in `ps` output and stood down as a "duplicate". stdin keeps the string out of every process listing (the run lock in `resume-check.mjs` is the real duplicate guard).
+- **`CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0`** — `-p` mode otherwise kills the process at its 600s background-wait ceiling while the orchestrator waits on a subagent.
+- **`--permission-mode bypassPermissions` + `IS_SANDBOX=1`** — headless has nobody to click Allow; `IS_SANDBOX=1` is required when the container runs as root. Only for isolated, ephemeral containers.
+- **`--add-dir <plugin repo>`** — the nested process can otherwise touch only the app repo, not the plugin's scripts. Flag order matters: the prompt/stdin follows `-p`; flags after.
+- **On any interruption** (container restart, silent death): relaunch the same command. `resume-check.mjs` reads the phase artifacts and resumes mechanically — do not hand-write resume instructions.
+
 ## Prerequisites (the run preflights all of these and HALTs with a fix if any is missing)
 
 - **A Figma token** (`FIGMA_TOKEN` env var or the OS keychain) — design intake is **REST-only** (`api.figma.com`); there is no Figma desktop/MCP dependency. See the token section below.

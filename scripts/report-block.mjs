@@ -33,13 +33,29 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 
 const TERMINAL = new Set(["STUCK", "BLOCKED", "GAP"]);
-function guardFinalized(report, blockId, force, action) {
+// pre-lock guard: a finalized entry only ever transitions BACK to measured via an explicit --force,
+// so checking before the lock is race-safe in practice and keeps the exit path lock-clean.
+async function guardFinalized(phaseDir, blockId, force, action) {
+  const report = JSON.parse(await fs.readFile(path.join(phaseDir, "block-report.json"), "utf8").catch(() => '{"blocks":{}}'));
   const existing = report.blocks && report.blocks[blockId];
   const d = existing && typeof existing.disposition === "string" ? existing.disposition.toUpperCase() : null;
   if (d && TERMINAL.has(d) && !force) {
     console.error(`✗ block '${blockId}' is FINALIZED as ${d} (${existing.note || "no note"}) — refusing to ${action}. If this overwrite is deliberate (e.g. the batched fix pass re-measuring a STUCK block), re-run with --force.`);
     process.exit(2);
   }
+}
+
+// block-report.json is shared with block-iter.mjs's disposition writer — serialize its
+// read-modify-write with an mkdir lock (atomic on every platform) so concurrent writers
+// never clobber each other.
+async function withReportLock(phaseDir, fn) {
+  const lock = path.join(phaseDir, ".block-report.lock");
+  const deadline = Date.now() + 15000;
+  for (;;) {
+    try { await fs.mkdir(lock); break; }
+    catch { if (Date.now() > deadline) throw new Error("timed out waiting for block-report.json lock"); await new Promise((r) => setTimeout(r, 120)); }
+  }
+  try { return await fn(); } finally { await fs.rmdir(lock).catch(() => {}); }
 }
 
 async function loadJson(p) { return JSON.parse(await fs.readFile(p, "utf8")); }
@@ -77,21 +93,23 @@ async function measure(phaseDir, blockId, f) {
   };
 
   const rp = path.join(phaseDir, "block-report.json");
-  const report = JSON.parse(await fs.readFile(rp, "utf8").catch(() => '{"blocks":{}}'));
-  report.blocks = report.blocks || {};
-  guardFinalized(report, blockId, f.force, "overwrite it with a fresh measurement");
-  report.blocks[blockId] = {
-    built: true,
-    driven: !!f.driven,
-    capturePng: f.capture, framePng: f.frame,
-    visualDiff: { diffPct: visual.diffPct, regions: visual.regions },
-    deltaCompare: { ok: deltaOk, diffs: deltaDiffs },
-    ...(reconciliation ? { reconciliation } : {}),
-    ...(contract ? { contract } : {}),
-    stability: { ok: stability.ok, targets: stability.targets },
-    artifacts, assembledAt: new Date().toISOString(),
-  };
-  await fs.writeFile(rp, JSON.stringify(report, null, 2));
+  await guardFinalized(phaseDir, blockId, f.force, "overwrite it with a fresh measurement");
+  await withReportLock(phaseDir, async () => {
+    const report = JSON.parse(await fs.readFile(rp, "utf8").catch(() => '{"blocks":{}}'));
+    report.blocks = report.blocks || {};
+    report.blocks[blockId] = {
+      built: true,
+      driven: !!f.driven,
+      capturePng: f.capture, framePng: f.frame,
+      visualDiff: { diffPct: visual.diffPct, regions: visual.regions },
+      deltaCompare: { ok: deltaOk, diffs: deltaDiffs },
+      ...(reconciliation ? { reconciliation } : {}),
+      ...(contract ? { contract } : {}),
+      stability: { ok: stability.ok, targets: stability.targets },
+      artifacts, assembledAt: new Date().toISOString(),
+    };
+    await fs.writeFile(rp, JSON.stringify(report, null, 2));
+  });
   const sig = visual.regions.filter((r) => (r.fill ?? 1) >= 0.05).length;
   console.log(`✓ ${blockId}: assembled from ${Object.keys(artifacts).length} artifacts — driven=${!!f.driven}, ${sig} significant visual region(s), delta ${deltaOk ? "clean" : deltaDiffs.length + " diffs"}, stability ${stability.ok ? "ok" : "FAIL"}`);
 }
@@ -102,12 +120,14 @@ async function account(phaseDir, blockId, disposition, note, evidence, force) {
   if (!note || !note.trim()) { console.error("✗ --note is required (the specific why)"); process.exit(1); }
   if (!evidence) { console.error(`✗ --evidence <file> is required — a ${d} without evidence is an escape hatch, not a verdict (GAP: the F3-exhaustion record; BLOCKED: the env-triage capture)`); process.exit(1); }
   await mustExist(evidence, `${d} evidence file`);
+  await guardFinalized(phaseDir, blockId, force, `re-account it as ${d}`);
   const rp = path.join(phaseDir, "block-report.json");
-  const report = JSON.parse(await fs.readFile(rp, "utf8").catch(() => '{"blocks":{}}'));
-  report.blocks = report.blocks || {};
-  guardFinalized(report, blockId, force, `re-account it as ${d}`);
-  report.blocks[blockId] = { ...(report.blocks[blockId] || {}), disposition: d, note, evidence: path.relative(phaseDir, path.resolve(evidence)) };
-  await fs.writeFile(rp, JSON.stringify(report, null, 2));
+  await withReportLock(phaseDir, async () => {
+    const report = JSON.parse(await fs.readFile(rp, "utf8").catch(() => '{"blocks":{}}'));
+    report.blocks = report.blocks || {};
+    report.blocks[blockId] = { ...(report.blocks[blockId] || {}), disposition: d, note, evidence: path.relative(phaseDir, path.resolve(evidence)) };
+    await fs.writeFile(rp, JSON.stringify(report, null, 2));
+  });
   console.log(`✓ ${blockId}: ${d} recorded with evidence ${evidence}`);
 }
 

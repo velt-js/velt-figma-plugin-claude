@@ -1,0 +1,33 @@
+{
+  "runId": "WYAWuEm8DrIk-133-4052-2026-07-06T21-25-24Z",
+  "phaseId": "WYAWuEm8DrIk-133-4052",
+  "app": "privado",
+  "mode": "strictly wireframe",
+  "node": "133-4052",
+  "pluginSha": "5a6df68",
+  "publishedAt": "2026-07-06T21:25:24.281Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "Velt applies wireframe-slot classNames via classList.add(str), which throws InvalidCharacterError on any space-separated (multi-class) string — but ONLY on slots that WRAP INJECTED CHILDREN (Composer, ThreadCard.ReactionPin/ReactionTool/Reply, MinimalFilterDropdown.Trigger). Root slots set via direct .className= tolerate multi-class. Symptom is loud but misleading: N console errors + halted hydration (empty composer, messages stuck in skeleton-loader) that reads like an env/network stall (a prior run misdiagnosed this and restarted the dev server). Fix: exactly one class token on any injected-child slot; move extra styling classes to CSS on the single -root class.",
+      "evidence": "phase WYAWuEm8DrIk-133-4052: 2-class names on 5 injected slots → 37 InvalidCharacterErrors + dead composer; single-class → 0 errors, hydration restored (live-verified 2026-07-07).",
+      "destination": "guide",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "Velt renders wireframes by CLONING the <velt-*-wireframe> template into plain DOM that carries your custom .vc-* classes but DROPS the velt-*-wireframe tag name (the template tag remains in the DOM but empty / 0-size). Custom CSS and any liveSelector MUST key off the .vc-* classes (or Velt's runtime .velt-* classes), NEVER the velt-*-wireframe tag name: a rule scoped under a .velt-*-wireframe class matches nothing, and a tag-name liveSelector resolves to the empty template. first-shot-css/planner should emit .vc-* clone-class selectors and avoid tag-name liveSelectors for cloned surfaces.",
+      "evidence": "phase WYAWuEm8DrIk-133-4052: card-chrome scoped under class .velt-comments-sidebar-list-wireframe matched 0 → cards rendered transparent not #ffffff; re-scoped to clone class .vc-veltcommentssidebarwireframe-list-root → white cards. Card liveSelector 'velt-comments-sidebar-list-wireframe .velt-comment-dialog' (tag) matched 0 while '.vc-veltcommentssidebarwireframe-list-root .velt-comment-dialog' matched 11.",
+      "destination": "guide",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "capture-block.mjs cannot capture a toggle-gated surface: it waits for the liveSelector to be VISIBLE before running the --eval drive, but a sidebar panel is 0-size until the drive opens it, so it times out. And its --toggle only fires when --select-user is also given. For toggle-gated / auth-gated demos, drive a headless browser directly (trusted playwright click opens the sidebar; a JS element.click() does NOT) after pre-seeding the app's demo-auth localStorage keys.",
+      "evidence": "phase WYAWuEm8DrIk-133-4052: capture-block waitForSelector('.vc-panel-tabs') resolved-hidden→timeout; a fresh headless browser showed 0 comments + inert toggle until velt-demo-userId/documentId were pre-seeded (userAvatars 0→51, cards 0→11).",
+      "destination": "script",
+      "scope": "general"
+    }
+  ]
+}

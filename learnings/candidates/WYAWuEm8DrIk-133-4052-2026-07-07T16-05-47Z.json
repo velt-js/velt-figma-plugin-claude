@@ -1,0 +1,96 @@
+{
+  "runId": "WYAWuEm8DrIk-133-4052-2026-07-07T16-05-47Z",
+  "phaseId": "WYAWuEm8DrIk-133-4052",
+  "app": "privado",
+  "mode": "strictly wireframe",
+  "node": {
+    "fileKey": "WYAWuEm8DrIkAyx03e8fG9",
+    "nodeId": "133-4052",
+    "loop": "Loop 1 - Add simple comment (Page Mode Demo)"
+  },
+  "pluginSha": "3bdb366",
+  "publishedAt": "2026-07-07T16:05:47.999Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "Author velt-customize probe briefs against the CLONED live DOM, not the wireframe registry. Velt drops the <velt-*-wireframe> registry TAGS when it clones the template into the live DOM; the .vc-* classes and runtime velt-*-internal / .velt-*--* classes survive. Key each block's drive.assert/waitFor/surfaceSelector/liveSelector + element/contract/stability selectors to those surviving runtime selectors, and rebase frameRegion from raw Figma canvas coords to the cropped-frame margin. SYMPTOM: an identical drive.assert / element-not-found failure across ALL blocks means the briefs are mis-keyed, not that the build is wrong.",
+      "category": "mapping-pattern",
+      "destination": "script",
+      "evidence": "measure-block/verdict-gate were unrunnable until re-key; block6 drove successfully (driven=true, 5 artifacts) the moment drive.assert was swapped to .vc-thread-card. Both Judge and builder independently hit it.",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "kind": "general",
+      "statement": "In @veltdev/react 6.0.0-beta.3, Composer.ActionButton wireframe slots never instantiate (Composer.Avatar/Input do). Deliver composer action buttons via CSS-on-native or treat attach/@mention as mode_blocked.",
+      "category": "sdk-gotcha",
+      "destination": "guide",
+      "evidence": "SDK types + full-container render test",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "kind": "general",
+      "statement": "In @veltdev/react 6.0.0-beta.3, VeltData field filteredCommentAnnotationsCount is empty under embedMode+pageMode, so a page-mode sidebar header count renders no number.",
+      "category": "sdk-gotcha",
+      "destination": "guide",
+      "evidence": "live probe of the count tokens; only unreadCommentAnnotationCount populated",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "kind": "general",
+      "statement": "VeltCommentsSidebar dialogVariant routes BOTH the list cards AND the page-mode composer to that variant's wireframe; if the variant has no Composer slot the page-mode composer renders EMPTY. Set a DISTINCT unregistered pageModeComposerVariant to decouple the composer and force Velt's native composer.",
+      "category": "sdk-gotcha",
+      "destination": "guide",
+      "evidence": "composer was empty until pageModeComposerVariant='page-native' was added",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "kind": "mappings",
+      "intent": "page-mode composer",
+      "component": "native Velt composer via pageModeComposerVariant='page-native'",
+      "scope": "general",
+      "note": "Composer.ActionButton wireframe does not instantiate in beta.3; force native composer + CSS-theme .velt-composer--input-button"
+    },
+    {
+      "kind": "naming",
+      "convention": ".vc-* placeholder classes on wireframe markup",
+      "scope": "general",
+      "note": "these classes survive the wireframe->live template clone; CSS + measure-block selectors must key on .vc-* and the runtime velt-*-internal / .velt-*--* classes, never the dropped <velt-*-wireframe> registry tags"
+    },
+    {
+      "kind": "corrections",
+      "wrong": "leaving pageModeComposerVariant unset expecting native fallback",
+      "right": "set a DISTINCT unregistered pageModeComposerVariant so no wireframe binds -> Velt renders the native composer",
+      "scope": "general",
+      "evidence": "dialogVariant=sidebar routed the page-mode composer to the composer-less card wireframe -> EMPTY composer (no input/placeholder/send)"
+    },
+    {
+      "kind": "gaps",
+      "item": "Composer.ActionButton (attach/@mention) does not instantiate",
+      "veltVersion": "6.0.0-beta.3",
+      "scope": "general",
+      "evidence": "SDK types + full-container-tree test: Composer.Avatar/Input instantiate, ActionButton never renders"
+    },
+    {
+      "kind": "gaps",
+      "item": "filteredCommentAnnotationsCount VeltData empty -> header count number missing",
+      "veltVersion": "6.0.0-beta.3",
+      "scope": "general",
+      "evidence": "live probe: only unreadCommentAnnotationCount populated of the count tokens"
+    },
+    {
+      "kind": "gaps",
+      "item": "no wireframe slot for a comment context/reference banner; Velt renders zero context elements for the card",
+      "scope": "general",
+      "evidence": "contextCount 0 live"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "runId": "WYAWuEm8DrIk-133-4052-2026-07-07T01-10-09Z",
+  "phaseId": "WYAWuEm8DrIk-133-4052",
+  "app": "privado",
+  "mode": "strictly wireframe",
+  "node": "133:4052",
+  "pluginSha": "3322b1d",
+  "publishedAt": "2026-07-07T01:10:09.754Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "corrections",
+      "key": "velt-wireframe-template-tags-are-hidden",
+      "statement": "Velt clones each <VeltWireframe> registration into differently-named LIVE rendered tags; the velt-comments-sidebar-*-wireframe / *-wireframe custom-element tags themselves are HIDDEN 0x0 template clones. Measuring or asserting against them returns 0x0/MISSING. Target the live rendered tree (app-comment-sidebar-panel, velt-comment-dialog-composer-internal) or the builder's own .vc-* classes qualified to the visible non-zero-box instance (>> visible=true).",
+      "evidence": "All 4 families' probe + smoke briefs initially targeted *-wireframe tags and measured 0x0; re-keying to live tags made every measurement resolve.",
+      "scope": "general",
+      "destination": "script"
+    },
+    {
+      "kind": "corrections",
+      "key": "drive-open-sidebar-pattern",
+      "statement": "Opening the page-mode sidebar reliably needs: waitFor .privado-comment-sidebar-button, sleep ~15s (Angular hydration binds the click handler late), then a REAL Playwright click on velt-sidebar-button (JS-dispatched synthetic events do not fire Angular zone.js listeners).",
+      "scope": "general",
+      "destination": "guide"
+    },
+    {
+      "kind": "corrections",
+      "key": "host-app-cors-noise-non-blocking",
+      "statement": "A self-hosting host-app backend call (here localhost:8000/api/host-app/users/save) can throw a persistent CORS/Failed-to-fetch console error that is CAUGHT and fire-and-forget (host-app DB persistence) and does NOT block Velt identify/render — Velt auth is independent. Smoke specs must allowlist it via allowedConsoleErrorPatterns or every family false-fails the no-console-errors gate.",
+      "evidence": "verify-app veltRendered=1; /api/velt/token returns 200; composer/sidebar render when driven; adding allowedConsoleErrorPatterns took all 4 smokes from red to green.",
+      "scope": "general",
+      "destination": "guide"
+    },
+    {
+      "kind": "gaps",
+      "key": "velt-composer-open-one-way-flag",
+      "statement": "Velt's velt-composer-open class is a one-way/sticky flag WITHIN a page session: once the composer is focused/typed it never toggles off on blur/Escape/click-outside (velt-composer-input-focused does toggle off). The collapsed default-composer visual state is only capturable on a FRESH never-engaged load. Measurement drives must decouple comment-seeding from the measured capture (seed in a separate load, capture on a fresh reload that never focuses the composer).",
+      "evidence": "flow-default-sidebar Judge traced the class-list across focus/type/Enter/Escape/blur/click-outside; confirmed collapsed render on a fresh 20-comment doc with no composer engagement.",
+      "scope": "general",
+      "destination": "guide"
+    },
+    {
+      "kind": "gaps",
+      "key": "measure-drive-non-idempotent-debris",
+      "statement": "measure-block/smoke drives that post comments are NON-IDEMPOTENT against a shared backend document: repeated family measures accumulate seed-comment debris (this run reached ~40 thread cards vs a design handful) that inflates list-height/scroll diffs and makes flow re-measures drift WORSE (184->199 on one re-run). Seed to an isolated/reset document, or drive read-only where possible.",
+      "scope": "general",
+      "destination": "script"
+    },
+    {
+      "kind": "gaps",
+      "key": "host-props-can-disable-a-velt-surface",
+      "statement": "A host app can architecturally disable a Velt surface via component props: VeltCommentBubble openDialog={false} + VeltCommentTool contextInPageModeComposer={true} route all interaction into the sidebar and never open the floating comment dialog. A surface being unreachable can be a HOST-INTEGRATION GAP (out of wireframe-CSS scope, R18), not an SDK gap or a CSS failure — check host props before declaring the disposition.",
+      "evidence": "comment-dialog block: no click path (card body, reply btn, comment bubble) opens a dialog; root-caused to question-section.tsx props.",
+      "scope": "general",
+      "destination": "guide"
+    }
+  ]
+}

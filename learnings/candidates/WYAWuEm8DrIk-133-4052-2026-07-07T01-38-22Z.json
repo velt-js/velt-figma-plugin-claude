@@ -1,0 +1,87 @@
+{
+  "runId": "WYAWuEm8DrIk-133-4052-2026-07-07T01-38-22Z",
+  "phaseId": "WYAWuEm8DrIk-133-4052",
+  "app": "privado",
+  "mode": "strictly wireframe",
+  "node": "133:4052",
+  "pluginSha": "2416020",
+  "publishedAt": "2026-07-07T01:38:22.931Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "measure-block/block-iter store capture+frame paths via path.join(phaseDir, ...) VERBATIM; a RELATIVE phaseDir yields repo-relative paths the verdict gate cannot resolve ('missing PNG'). Always pass an ABSOLUTE phaseDir. Candidate fix: measure-block should path.resolve(phaseDir) (or store phaseDir-relative like report-block does for artifacts), or the gate should tolerate repo-relative paths.",
+      "destination": "script",
+      "evidence": "recurred 3x this run (composer judge, sidebar/comment-thread builders' blast-radius re-measures); each fixed by re-measuring with an absolute phaseDir",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "Smoke waitFor selectors must use :visible when a class also matches the hidden 0x0 registry twin under <velt-wireframe> (e.g. .velt-comment-dialog--page-mode-composer). runSteps 'waitFor' defaults to visible-wait and hangs forever on the invisible twin; measure-block itself avoids this with attached-wait + visible-resolve.",
+      "destination": "guide",
+      "evidence": "composer + sidebar + comment-thread smoke all timed out on the first-matched twin until :visible was appended",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "measure-block's boot-wait needs the block's liveSelector ATTACHED before the drive runs; for a surface gated behind a toggle (embedded comments sidebar) the drive cannot open it first. Use the app's deep-link to auto-open at page load (here ?commentId=<nonexistent> opens the sidebar with no selection); a plain velt-sidebar-button click TOGGLES an already-open sidebar CLOSED.",
+      "destination": "guide",
+      "evidence": "every comment surface in this Loop is gated behind velt-sidebar-button; ?commentId deep-link was the reliable open",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "Velt wireframes can render under the host app's own framework tags (here Angular: app-comment-sidebar-*, velt-*-internal) while the velt-*-wireframe registry tags are 0x0 twins. Box-owning CSS and probe selectors must target the LIVE host tags, not the wireframe twins.",
+      "destination": "guide",
+      "evidence": "sidebar + comment-thread families re-keyed all box owners + probes from velt-comments-sidebar-*-wireframe to app-comment-sidebar-* / velt-comment-dialog-thread-card-*-internal",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "A State-frame reference PNG can carry a non-design backdrop (the Figma artboard bleeding through a semi-transparent element's alpha, e.g. header background #ffffff99 over a grey artboard reads as grey). Validate a full-box visual region against the assembled/flow frame + the delta paint before treating it as a defect; correct the reference if it is an artifact.",
+      "destination": "guide",
+      "evidence": "panel-tabs 62% grey-backdrop region — the header is correctly light (flow-default-sidebar frame + #ffffff99 delta); recolored the reference grey->white, judge-validated",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "Comment-CARD blocks cannot pixel-match a design MOCKUP whose comment DATA is not reproducible in the live app (author name is current-user-driven, timestamps render SDK-relative not absolute, avatars are initials not photos, comment count differs). Verify the customization via structure + styling + icon-identity + smoke and disposition BLOCKED-data. The visual/delta pipeline needs stronger content masking + box-tolerance for data-driven card content to grade these fairly.",
+      "destination": "guide",
+      "evidence": "comment-thread (2) + flows (2) BLOCKED-data; both the builder self-measure and a fresh-context judge confirmed the customization correct, residuals 100% data/SDK-format/probe",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "Host-backend and Velt-backend transport errors (app backend 500s on localhost, firestore.googleapis.com Write/Listen 400/404) are attributable INFRASTRUCTURE noise, not customization defects (CSS + wireframes cannot cause network errors). Add them to the smoke allowedConsoleErrorPatterns so R30 grades the customization, not the env.",
+      "destination": "guide",
+      "evidence": "host-app/users/save 500 + Firestore 400/404 present across every family; allowlisted, smoke passed",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "A dialog/card wireframe container that omits a slot the surface actually renders DROPS that subtree. When the SAME component backs multiple surfaces (VeltCommentDialogWireframe backs both the thread card AND the page-mode composer here), declare the full slot tree (incl. a Composer slot) or the reused element collapses to 0-height.",
+      "destination": "guide",
+      "evidence": "the comment-thread dialog wireframe initially lacked a Composer slot -> the sidebar's page-mode composer collapsed to 356x0 until the slot was added",
+      "scope": "general"
+    },
+    {
+      "kind": "corrections",
+      "key": "reference-banner-token",
+      "value": "annotation.context.questionTitle — bind with <VeltIf condition> + <VeltData field> to render the per-comment question-reference banner only on referenced comments",
+      "scope": "general",
+      "note": "Velt annotation context carries questionTitle/questionId/questionNumber; usable with velt-if (answers the connect-map unknown->verify for the reference banner)"
+    },
+    {
+      "kind": "corrections",
+      "key": "sidebar-header-live-count",
+      "value": "useCommentAnnotationsCount (@veltdev/react) gives the live comment count for a '{n} Comments' header title",
+      "scope": "general"
+    },
+    {
+      "kind": "corrections",
+      "key": "remove-composer-recording-screenshot-buttons",
+      "value": "recordings=\"none\" (string, not boolean) + screenshot={false} on <VeltComments> remove the extra mic/video/screen-record/screenshot buttons from the composer toolbar",
+      "scope": "general"
+    }
+  ]
+}

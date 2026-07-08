@@ -1,0 +1,62 @@
+{
+  "runId": "WYAWuEm8DrIk-133-4052-2026-07-08T12-37-27Z",
+  "phaseId": "WYAWuEm8DrIk-133-4052",
+  "app": "privado",
+  "mode": "strictly wireframe",
+  "node": "133-4052",
+  "pluginSha": "3bdb366",
+  "publishedAt": "2026-07-08T12:37:27.671Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "Sidebar-shell Velt wireframe slots render with the live tag app-comment-sidebar-* (the .vc-* className survives the clone), while dialog/composer/thread wireframes render as *-internal (the type attr is preserved). CSS, probe selectors, and drive selectors must target the correct namespace per surface; a probe keyed to the wrong tag is a selector correction, not a defect.",
+      "category": "sdk-gotcha",
+      "destination": "knowledge",
+      "evidence": "privado Loop 133-4052; confirmed live by 3 builders + 2 judges + fixer",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "kind": "general",
+      "statement": "velt-judge and velt-builder wedge repeatedly on heavy browser seed/scroll/click smoke drives (the sidebar toggle's first click can no-op; the comment List scrollHeight settles ~2-3s after open). Targeted getBoundingClientRect with a write-first/verify-once discipline is wedge-resistant; prefer it over full-frame visualDiff + heavy smoke.",
+      "category": "model-reliability",
+      "destination": "guide",
+      "evidence": "3 browser-drive wedges in one phase (judge1, judge2, fixer-inspection); getBBox verification succeeded",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "kind": "general",
+      "statement": "Two concurrently-alive judges can race and clobber block-report.json — a wedged judge that RECOVERS after it was respawned runs alongside its replacement, and presence-only re-measures overwrite authoritative delta-compare defects. report-block.mjs offers no clean PASS-injection (only measure[browser] / account BLOCKED|GAP), so a clobbered report cannot be hand-restored. Enforce single-writer: confirm a wedged judge is truly dead before respawn, or freeze block-report (chmod 444) the instant a second writer appears.",
+      "category": "pipeline-trap",
+      "destination": "script",
+      "evidence": "double-judge clobber incident, Loop 133-4052",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "kind": "general",
+      "statement": "visualDiff/pixel-diff is unreliable — and will fail the gate even when delta-compare is clean — when the live fixture card-count differs from the design frame (14 seeded vs 2 designed) or the isolated artboard background differs from the live app background (semi-transparent over the Figma canvas). Treat delta-compare (exact element dims) as authoritative; a phase like this needs the measurement fixture corrected (seed the design's exact card count + match the bg) for the gate to conclude mechanically.",
+      "category": "pipeline-trap",
+      "destination": "guide",
+      "evidence": "gate exit 2 on visualDiff regions with deltaCompare.ok=true on all 8 blocks, Loop 133-4052",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "kind": "general",
+      "statement": "A delta-compare size defect can be a mis-measure (composer submit reported 42x42 vs a real live 24x24). Verify any claimed dimensional defect with a live getBoundingClientRect before spending a fix attempt on it.",
+      "category": "model-reliability",
+      "destination": "guide",
+      "evidence": "D1 confirmed non-defect after live check, Loop 133-4052",
+      "seenOn": [
+        "privado"
+      ]
+    }
+  ]
+}

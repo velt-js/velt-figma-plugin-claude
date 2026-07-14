@@ -132,7 +132,7 @@ All four mirror the migration-orchestrator pattern: sequential, shared JSON cont
   8. **Coverage analysis (for the §11 gate):** score each **surface × approach** cell — coverage % over *that surface's* goals, weighting + achievable/not per `guide/02-decision-tree.md` + `guide/edge-cases-and-limitations.md` (see §11) — and pick the recommended layer per surface. Produce the coverage matrix the orchestrator presents.
 - **Output:** the **work-list** (array of work-list items, §7) + global `designTokens` map + an out-of-scope/ignored list + the **coverage report** (§7) for the approach gate.
 
-### 6.3 `velt-builder` (model: sonnet) — the *maker*
+### 6.3 `velt-builder` (model: opus) — the *maker*
 - **Role:** implement **exactly one** component's customization per the plan, strictly.
 - **Scoped context (deliberately tight):** ONLY this work-list item + its guide refs + the global token map + the chosen layer + prior Judge feedback (if a retry). **Not** the whole design or other surfaces — context isolation keeps the maker focused and the run's context from bloating.
 - **Steps:** follow the per-layer procedure in the item's guide refs (`guide/approaches/<layer>.md`), place files under `ui-customization/`, use only verified identifiers (R10), obey all applicable rules (`guide/rules.md`); on a retry, address **each** unmet goal in the Judge's structured feedback; on any unmet need → run `guide/sdk-gaps-and-blockers.md`, and if it's a real gap write the gap entry (§7) + an R0 code comment, then finish the rest.
@@ -140,7 +140,7 @@ All four mirror the migration-orchestrator pattern: sequential, shared JSON cont
 
 ### 6.4 `velt-judge` (model: opus) — the *checker* (adversarial, fresh context)
 - **Role:** independently verify one built component against its goals — prompted to **disprove** "met," not confirm it. The maker never grades itself.
-- **Fresh-context mandate (anti-rubber-stamp):** the Judge receives ONLY `{the surface's goals, the Figma reference, the produced code, the running app}` — **never the Builder's reasoning or self-justification**. A separate model/role with no stake in the build passing.
+- **Fresh-context mandate (anti-rubber-stamp):** the Judge receives ONLY `{the surface's goals, the Figma reference, the produced code, the running app}` — **never the Builder's reasoning or self-justification**. A separate role in fresh context with no stake in the build passing.
 - **Evidence rule:** a goal flips to `met` **only** with observable evidence (a screenshot of the rendered state, or a performed behavior) — never on assertion. Colors must trace to a `--velt-*` token; states must be driven and captured.
 - **Steps:** the *bring-up mechanics* are §9.1 (start app, open Chrome, auth, seed); the *what-to-verify* follows `guide/verifying-a-customization.md` (drive states → qualitative compare vs Figma → behavior check → static rules scan against `guide/rules.md`) → verdict.
 - **Output:** verdict `PASS | FAIL | PARTIAL | BLOCKED` (per `guide/verifying-a-customization.md`) + **per-goal results, each `{met, evidence, why, hypothesis}`** (the actionable push-back the Builder must address) + screenshots + any gap entries the Judge newly identifies.
@@ -367,7 +367,7 @@ After planning and before building, the orchestrator presents a **per-surface co
 
 **What kind of loop this is.** A **bounded goal-loop over a finite, user-approved work-list** — not a heartbeat/cron loop. It runs `find-work → act → verify → remember` until every surface's goals are met or honestly capped, then stops. Design principles it enforces:
 
-- **Maker ≠ checker.** Builder (maker, sonnet) and Judge (checker, opus, fresh context) are separate so the loop never grades its own work (§6.3/§6.4).
+- **Maker ≠ checker.** Builder (maker, opus) and Judge (checker, opus, fresh context) are separate so the loop never grades its own work (§6.3/§6.4).
 - **Verify against reality, not assertion.** A goal is `met` only on observable browser/Figma evidence (§9). The verification gate is what makes an unattended loop trustworthy.
 - **Bounded + monitored.** Every escalation has a budget *and* a progress check — no blind spinning.
 - **Durable memory.** An append-only journal is the single source of run truth (resume, cost, learnings).

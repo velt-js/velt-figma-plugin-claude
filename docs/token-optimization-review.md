@@ -1,3 +1,5 @@
+> **⚠ SUPERSEDED — the model-tiering recommendations below (Sonnet for builder/planner/etc.) are OBSOLETE. Per the standing directive, ALL velt-customize agents run on Opus at max effort. Do not apply the model downgrades in this doc.**
+
 # Token Optimization Review
 
 Date: 2026-07-01

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // validate.mjs — plugin completeness + guide integrity gate. Exits non-zero on hard failures.
-// Hard fails: bad manifest, invalid .mcp.json, missing / self-check-failing guide.
+// Hard fails: bad manifest, invalid .mcp.json, missing / self-check-failing guide, a non-Opus agent model.
 // Warnings: component dirs (skills/agents/commands) not yet populated.
 
 import { promises as fs } from "node:fs";
@@ -57,6 +57,29 @@ for (const d of ["skills", "agents", "commands", "templates"]) {
   else {
     const entries = await fs.readdir(path.join(ROOT, d)).catch(() => []);
     if (!entries.length) warns.push(`${d}/ is empty`);
+  }
+}
+
+// 6. Agent model policy — ABSOLUTE: every agent MUST run on Opus (standing directive: Opus at max effort).
+//    Not a cross-port parity check (that's check-parity.mjs) — an absolute assertion so no agent silently
+//    drifts to Sonnet. Missing frontmatter, a missing model:, or any non-Opus value is a HARD failure.
+const isOpusModel = (v) => v === "opus" || v.startsWith("claude-opus-");
+{
+  const isFence = (l) => l.trim() === "---";
+  const agentFiles = (await fs.readdir(path.join(ROOT, "agents")).catch(() => [])).filter((f) => f.endsWith(".md"));
+  if (!agentFiles.length) warns.push("agents/: no agent .md files to check against the Opus model policy");
+  for (const f of agentFiles) {
+    const rel = "agents/" + f;
+    const src = await fs.readFile(path.join(ROOT, rel), "utf8").catch(() => "");
+    const lines = src.split("\n");
+    const first = lines.findIndex(isFence);
+    const end = first >= 0 ? lines.findIndex((l, i) => i > first && isFence(l)) : -1;
+    if (first !== 0 || end < 0) { errors.push(rel + ": no YAML frontmatter — cannot verify the Opus model policy"); continue; }
+    const modelLine = lines.slice(first + 1, end).find((l) => l.trimStart().startsWith("model:"));
+    if (!modelLine) { errors.push(rel + ": frontmatter has no model: field — every agent MUST pin an Opus model (opus or claude-opus-*)"); continue; }
+    let model = modelLine.slice(modelLine.indexOf(":") + 1).trim();
+    if ((model.startsWith('"') && model.endsWith('"')) || (model.startsWith("'") && model.endsWith("'"))) model = model.slice(1, -1);
+    if (!isOpusModel(model)) errors.push(rel + ': model "' + model + '" is NOT Opus — the standing directive pins ALL agents to Opus at max effort (use opus or claude-opus-*); do not downgrade.');
   }
 }
 

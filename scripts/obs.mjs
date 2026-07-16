@@ -126,7 +126,10 @@ export function obsIterHint(phaseDir, blockId) {
 // ---------------------------------------------------------------------------------------------
 // buildPlayer — assemble every on-disk trace into one self-contained player.html. Data is inlined
 // as JSON (fetch() doesn't work over file://); screenshots stay as relative <img> paths (which do).
-export function buildPlayer(phaseDir, { out = null } = {}) {
+// { inline: true } additionally embeds every referenced image as a data: URI so the ONE file can be
+// shared/viewed anywhere (mailed, uploaded, rendered from a headless/cloud run with no fs access) —
+// bigger output, zero external references.
+export function buildPlayer(phaseDir, { out = null, inline = false } = {}) {
   const readJson = (p) => { try { return JSON.parse(readFileSync(path.join(phaseDir, p), "utf8")); } catch { return null; } };
   const events = [];
   try {
@@ -152,6 +155,25 @@ export function buildPlayer(phaseDir, { out = null } = {}) {
     blockReport: readJson("block-report.json"),
     progressLog,
   };
+
+  if (inline) {
+    // embed every image an event (or block reference frame) points at, keyed by its
+    // phaseDir-relative path — the player's rel() checks this map before falling back to ../<path>
+    const assets = {};
+    const addAsset = (p) => {
+      if (!p) return;
+      const key = String(p).replace(/^\.?\//, "");
+      if (assets[key]) return;
+      try {
+        const buf = readFileSync(path.join(phaseDir, key));
+        if (buf.length > 8 * 1024 * 1024) return;   // an 8MB+ image would bloat the file past usefulness
+        assets[key] = "data:image/png;base64," + buf.toString("base64");
+      } catch { /* missing on disk — the player shows its placeholder */ }
+    };
+    for (const e of events) if (e.shots) for (const p of Object.values(e.shots)) addAsset(p);
+    for (const b of (run.blocks && run.blocks.blocks) || []) addAsset(b.framePng);
+    run.assets = assets;
+  }
 
   const template = readFileSync(TEMPLATE, "utf8");
   // </script-safe embedding: the only sequence that could terminate the inline script early
@@ -242,9 +264,10 @@ async function main() {
   }
 
   if (cmd === "build") {
-    const r = buildPlayer(phaseDir, { out: flag("--out", null) });
-    console.log(`✓ player built → ${path.relative(process.cwd(), r.outPath)} (${r.events} event(s), ${r.blocks} block(s))`);
-    console.log(`  open it directly (file://) or serve it: node scripts/obs.mjs serve ${phaseDir}`);
+    const inline = rest.includes("--inline");
+    const r = buildPlayer(phaseDir, { out: flag("--out", null), inline });
+    console.log(`✓ player built → ${path.relative(process.cwd(), r.outPath)} (${r.events} event(s), ${r.blocks} block(s)${inline ? ", images inlined — the file is fully self-contained/shareable" : ""})`);
+    if (!inline) console.log(`  open it directly (file://) or serve it: node scripts/obs.mjs serve ${phaseDir}\n  (pass --inline to embed the screenshots and get ONE shareable file — e.g. to view a cloud run's replay locally)`);
     return;
   }
 

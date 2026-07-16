@@ -17,7 +17,7 @@ Build (and serve) the **run replay player** for a phase in the **current project
    ```
    node <plugin>/scripts/obs.mjs serve <phaseDir> [--port 4173]
    ```
-   The page also opens directly via `file://<phaseDir>/obs/player.html` (data is inlined; images are relative), so if serving is inconvenient just print that path.
+   The page also opens directly via `file://<phaseDir>/obs/player.html` (data is inlined; images are relative), so if serving is inconvenient just print that path. **Headless/cloud runs** (no localhost the user can reach): build with `--inline` — the screenshots are embedded as data URIs and the single resulting file can be downloaded/shared and opened anywhere.
 4. **Orient the user in one line each**: red ticks = failures, amber = warnings (plateau / timeouts / env pauses); the player auto-selects the FIRST failing event; "issues only" + the per-loop filter jump straight to where the run drifted; `obs.mjs status <phaseDir>` summarizes the record.
 
 Mid-run is fine — events append live; rebuild (step 2) and reload to pick up the latest. `VELT_OBS=0` in the run's env disables recording entirely (then there is nothing to replay — say so rather than serving an empty page).

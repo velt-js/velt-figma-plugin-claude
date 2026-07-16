@@ -175,7 +175,8 @@
 const RUN = /*__VELT_OBS_RUN_DATA__*/null;
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const rel = (p) => p ? "../" + String(p).replace(/^\.?\//, "") : null;   // phaseDir-relative → player-relative
+// phaseDir-relative → player-relative; an --inline build carries RUN.assets (path → data: URI) instead
+const rel = (p) => { if (!p) return null; const n = String(p).replace(/^\.?\//, ""); return (RUN.assets && RUN.assets[n]) || "../" + n; };
 const fmtT = (iso) => iso ? iso.slice(11, 19) + "Z" : "—";
 const fmtDur = (ms) => { if (ms == null) return "—"; const s = Math.round(ms / 1000); return s < 90 ? s + "s" : (s / 60).toFixed(1) + "m"; };
 

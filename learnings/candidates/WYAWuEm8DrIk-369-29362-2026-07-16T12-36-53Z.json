@@ -1,0 +1,100 @@
+{
+  "runId": "WYAWuEm8DrIk-369-29362-2026-07-16T12-36-53Z",
+  "phaseId": "WYAWuEm8DrIk-369-29362",
+  "app": "ai-harvey-implementation",
+  "mode": "strictly wireframe",
+  "node": "WYAWuEm8DrIkAyx03e8fG9-369-29362",
+  "pluginSha": "62c9ce2",
+  "publishedAt": "2026-07-16T12:36:53.908Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "A wireframe block's liveSelector must be the REAL rendered surface, never the `<component>-wireframe` registry twin — the twin has a 0-size box and makes measure-block refuse ('captured surface is missing/near-zero').",
+      "category": "sdk-gotcha",
+      "evidence": "velt-comments-sidebar-wireframe = 0x0; the live surface is velt-comments-sidebar (353x765). Fixing liveSelector unblocked measurement.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "guide",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "The Planner's `assumed` selectors frequently do NOT match the built DOM — reconcile brief measurement selectors + liveSelectors against the LIVE rendered DOM before the Judge, or the Judge floods with false MISSING defects (delta-compare counts a dead selector as a defect).",
+      "category": "model-reliability",
+      "evidence": "11/23 harvey brief selectors were dead; the builder re-mapped to .vc-*/.velt-thread-card--* real classes. Remapping 102 selectors + dropping 24 unmeasurable svg/connector elements made 18/18 live.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "guide",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "measure-block requires connect-map.json for first-shot-css, but a Planner that fills briefs directly may never emit it — the orchestrator must generate connect-map.json + selector-map.json from the briefs' browser.elements (selector + expected) before the build loop.",
+      "category": "pipeline-trap",
+      "evidence": "harvey planner filled 11 briefs but wrote no connect-map.json; contract-check passed via its golden fixture and missed it.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "An app can boot SIGNED-OUT and gate the comment surface behind its OWN React state (a host toggle + a user-select), not Velt's toggleCommentSidebar() — the generic auto-drive is a false-pass; use measure-block's selectUser + the host's real toggle, and encode it in probes AND smoke specs.",
+      "category": "model-reliability",
+      "evidence": "harvey: currentUserId starts null; sidebar gated by sidebarOpen via .hw-sidebar-toggle; env-scaffolded smoke specs used toggleCommentSidebar and timed out 0/5.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "guide",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "A demo app may hard-pin allowed documentIds in its permission provider (deny otherwise) — the run-unique isolation documentId the entry point appends can conflict with it, blocking comment writes. Check the app's permissions.ts / RTPP before assuming the isolation doc is writable.",
+      "category": "pipeline-trap",
+      "evidence": "harvey permissions.ts: ALLOWED_DOCUMENT_IDS={'harvey-doc-7'}; document access denied for the run doc. Reads still rendered existing comments; writes/seeding were gated.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "guide",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "`npm run dev` wired as `concurrently --kill-others-on-fail` (frontend + backend) will tear down the frontend if the backend can't bind its port — common when a second copy of the repo is already running. Start the frontend alone (`next dev -p <port>`) for measurement when the app needs no backend (Velt-cloud comments), and point the env-watchdog's --restart-cmd at that.",
+      "category": "pipeline-trap",
+      "evidence": "harvey: our Django couldn't bind :8000 (held by a separate harvey/ repo on :3000), --kill-others-on-fail killed Next on :3001; next dev -p 3001 alone recovered it.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "guide",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "measure-block can WEDGE (>7 min, no output) on a large whole-surface acceptance block (the full sidebar 'flow') — likely the visual-diff/probe over a big surface. Time-box per-block measures and treat a wedged flow as a measurement-limited block, not a build defect.",
+      "category": "pipeline-trap",
+      "evidence": "harvey flow (velt-comments-sidebar, 70 nodes) ran 7+ min with no result and was killed; state blocks measured in ~2-4 min.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "A CDP browser's /devtools/browser/<GUID> ws endpoint rotates — discover it fresh (curl http://host:port/json/version) right before each measure batch rather than pinning a GUID, or measure-block fails with a 404 websocket error mid-run.",
+      "category": "pipeline-trap",
+      "evidence": "harvey: the pinned ws GUID went stale between setup and the fix stage; connectOverCDP 404'd until re-discovered.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "guide",
+      "scope": "general"
+    }
+  ]
+}

@@ -45,6 +45,7 @@
 import { promises as fs } from "node:fs";
 import { pathToFileURL } from "node:url";
 import path from "node:path";
+import { obsEvent } from "./obs.mjs";
 
 const STATUS_EXIT = { PASS: 0, FAIL: 2, INCOMPLETE: 3, STOPPED: 4 };
 const TERMINAL = new Set(["BLOCKED", "GAP", "STUCK"]);
@@ -229,6 +230,11 @@ async function main() {
   const acc = r.accounted || {};
   for (const [k, label] of [["stuck", "STUCK (hit bounds — hand to human)"], ["remaining", "REMAINING (soft-cap reached — not started)"], ["blocked", "BLOCKED (env can't reach)"], ["gap", "GAP (verified SDK gap)"]])
     if (acc[k] && acc[k].length) { console.log(`  ${label}:`); for (const m of acc[k].slice(0, 24)) console.log("    · " + m); }
+  obsEvent(path.dirname(path.resolve(rp)), {
+    type: "verdict", src: "verdict-gate", ok: r.verdict === "PASS",
+    summary: `gate: ${r.verdict} — coverage ${r.coverage}%, ${r.missing.length} missing, ${r.failures.length} failing`,
+    data: { verdict: r.verdict, coverage: r.coverage, missing: r.missing.slice(0, 24), failures: r.failures.slice(0, 24) },
+  });
   process.exit(STATUS_EXIT[r.verdict]);
 }
 

@@ -22,6 +22,7 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { obsEvent } from "./obs.mjs";
 
 const DEFAULT_CAPS = { plan: 20, briefs: 15, report: 10 };
 const FALLBACK_CAP = 15;
@@ -77,6 +78,7 @@ async function main() {
     if (existing && existing.endedAt) console.error(`⚠ --force: re-running completed stage '${stage}' (prior duration ${existing.durationMin} min is overwritten)`);
     state.stages[stage] = { startedAt: nowIso(), capMin: cap, endedAt: null, stoppedByTimer: false };
     await save(dir, state);
+    obsEvent(dir, { type: "stage.start", src: "stage-timer", stage, summary: `stage '${stage}' started (cap ${cap} active min)`, data: { capMin: cap } });
     console.log(`▶ stage '${stage}' started — cap ${cap} active min (env stalls excluded). Poll: stage-timer.mjs check ${dir} ${stage}`);
     process.exit(0);
   }
@@ -92,6 +94,7 @@ async function main() {
     }
     s.stoppedByTimer = true;
     await save(dir, state);
+    obsEvent(dir, { type: "stage.timeout", src: "stage-timer", stage, ok: false, summary: `stage '${stage}' hit its cap (${elapsed.toFixed(1)} ≥ ${s.capMin} active min) — stopped by timer`, data: { elapsedMin: +elapsed.toFixed(1), capMin: s.capMin } });
     console.log(`■ stage '${stage}' HIT ITS CAP (${elapsed.toFixed(1)} ≥ ${s.capMin} active min) — STOP NOW: emit the stage's output with what exists, tag unverified items 'assumed', and hand back. Do NOT keep refining; the loop's gates catch what the partial output got wrong.`);
     process.exit(4);
   }
@@ -102,6 +105,7 @@ async function main() {
       s.endedAt = nowIso();
       s.durationMin = +(await activeMinutesSince(dir, s.startedAt)).toFixed(1);
       await save(dir, state);
+      obsEvent(dir, { type: "stage.end", src: "stage-timer", stage, ok: !s.stoppedByTimer, summary: `stage '${stage}' ended — ${s.durationMin} active min${s.stoppedByTimer ? " (stopped by timer)" : ""}`, data: { durationMin: s.durationMin, capMin: s.capMin, stoppedByTimer: s.stoppedByTimer } });
     }
     console.log(`✓ stage '${stage}' ended — ${s.durationMin} active min (cap ${s.capMin}${s.stoppedByTimer ? ", STOPPED BY TIMER" : ""})`);
     process.exit(0);

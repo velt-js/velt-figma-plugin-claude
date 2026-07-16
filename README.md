@@ -101,6 +101,18 @@ If no token is configured, preflight HALTs with the fix — design intake cannot
 4. **Build → Judge loop** (sequential, one surface at a time — R16): the Builder implements one surface; an independent, fresh-context Judge verifies it against the design in Chrome (evidence required). Retry → escalate layer → SDK gap, with stuck-detection.
 5. **Report:** coverage (estimated vs actual), the SDK-gap report, screenshots, and the code under `components/velt/ui-customization/`.
 
+## Observability — replay any run like a session recording
+
+Every run records itself automatically (no agent compliance needed — the pipeline **scripts** emit the events): one structured event per stage / measurement / fix-loop iteration in `<phaseDir>/obs/events.jsonl`, and a **snapshot of each iteration's screenshot + judge artifacts** in `obs/snapshots/<blockId>/<seq>-iterN/` — preserved *before* the next measurement overwrites `results/<blockId>/shot.png`, so the history survives.
+
+```bash
+node scripts/obs.mjs build <phaseDir>    # generate obs/player.html (self-contained; also auto-built at handoff)
+node scripts/obs.mjs serve <phaseDir>    # …or serve it: http://127.0.0.1:4173/obs/player.html
+node scripts/obs.mjs status <phaseDir>   # event/snapshot counts
+```
+
+Or just `/velt-customize:replay` in the target project. The player is a session-replay UI over the run: a timeline scrubber with stage bands + color-coded event ticks (red = failure, amber = plateau/timeout/pause), per-loop lanes with diff-count sparklines, Live / Figma-reference / Diff / **Compare** (split-slider) screenshot views, and the judge's structured output (delta diffs, contract violations, stability) per event — so "which stage of which iteration did it break in?" is one scrub, not an afternoon of folder spelunking. It auto-opens on the first failing event. `VELT_OBS=0` disables recording; recording is fail-safe (it can never break or slow a run).
+
 ## Layout
 
 ```

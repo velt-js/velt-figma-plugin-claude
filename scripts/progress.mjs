@@ -19,6 +19,7 @@ import { appendFileSync, mkdirSync, readdirSync, statSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import os from "node:os";
+import { obsEvent } from "./obs.mjs";
 
 const a = process.argv.slice(2);
 
@@ -72,5 +73,6 @@ if (a[0] === "--watch") {
   const t = new Date().toISOString().slice(11, 19) + "Z";   // HH:MM:SSZ
   const line = `[${t}] ${msg}`;
   try { mkdirSync(dir, { recursive: true }); appendFileSync(path.join(dir, "progress.log"), line + "\n"); } catch { /* best-effort; never block the run on logging */ }
+  obsEvent(dir, { type: "log", src: "progress", summary: msg });   // mirror into the replay timeline (fail-safe)
   console.log(line);
 }

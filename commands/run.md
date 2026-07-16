@@ -20,6 +20,8 @@ node <plugin>/scripts/progress.mjs --watch        # zsh-safe (tail -F); auto-res
 ```
 Steady new lines = working; a multi-minute gap = genuinely stuck (safe to interrupt). Reliable liveness regardless of heartbeat compliance: `node <plugin>/scripts/progress.mjs --activity`. **Avoid the raw glob `tail -f .velt-customize/phases/*/progress.log`** — under zsh (default `nomatch`) it errors `no matches found` the instant the file isn't there yet, which is exactly the startup window.
 
+Beyond the live heartbeat, the run also **records itself for replay automatically** (every stage, every measurement, every fix iteration — with its screenshot and judge output, preserved per iteration under `<phaseDir>/obs/`). After (or during) the run, `/velt-customize:replay` opens the session-replay player to pinpoint exactly where things drifted; `write-handoff.mjs` prints the player path at the end of every run.
+
 ### 1. Setup (once) — invoke `velt-orchestrator` in **setup mode**, in the FOREGROUND
 **Do NOT run setup as a background subagent.** Setup is interactive — it can HALT-and-ask on a preflight failure and it *always* stops at the Approach Gate for the user's per-surface choice; a background agent can neither ask those questions nor stream its output (including the `▶ Watch live` line), so backgrounding setup reproduces the silent-black-box failure this design exists to kill. (Only the later **owned-loop** may optionally be backgrounded, and only because the heartbeat file already exists by then.) There is also no lockfile, so "setup is already running" is only your own memory of dispatching — never assume a prior background agent is still alive; check `.velt-customize/phases/*/progress.log` (or `--activity`) instead.
 

@@ -28,6 +28,7 @@ import { promises as fs } from "node:fs";
 import { pathToFileURL } from "node:url";
 import path from "node:path";
 import { verdictGateBlocks, auditReportArtifacts } from "./verdict-gate-blocks.mjs";
+import { obsEvent, buildPlayerSafe } from "./obs.mjs";
 
 const EXIT = { PASS: 0, FAIL: 2, INCOMPLETE: 3, STOPPED: 4 };
 // POSITIVE assertions that the UI is right — forbidden unless the gate verdict is PASS. Kept tight to
@@ -105,7 +106,11 @@ async function main() {
   const fill = +argv("--max-region-fill", "0.05");
   const { md, verdict, exit } = await buildHandoff(phaseDir, { maxRegionFill: fill });
   await fs.writeFile(out, md);
+  obsEvent(phaseDir, { type: "handoff", src: "write-handoff", ok: verdict === "PASS", summary: `handoff written — gate ${verdict}`, data: { verdict, out: path.basename(out) } });
+  // the run's last act regenerates the replay player so obs/player.html is always current
+  const player = buildPlayerSafe(phaseDir);
   console.error(`${verdict === "PASS" ? "✓" : "⚠"} handoff written (gate=${verdict}) → ${path.relative(process.cwd(), out)}${verdict === "PASS" ? "" : " — NOT VERIFIED banner is authoritative; do not claim done"}`);
+  if (player) console.error(`▶ run replay: ${path.relative(process.cwd(), player.outPath)} (${player.events} events) — open directly or 'node scripts/obs.mjs serve ${phaseDir}'`);
   process.exit(exit);
 }
 

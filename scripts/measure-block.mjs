@@ -37,6 +37,7 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { BROWSER_PROBE, LAYER_PROBE, CONTRACT_PROBE, STABILITY_PROBE } from "./delta-compare.mjs";
+import { obsEvent, obsSnapshotBlock, obsIterHint } from "./obs.mjs";
 
 const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
 
@@ -225,6 +226,15 @@ async function measure(phaseDir, blockId, opts) {
   const liveSelector = probes.liveSelector || block.liveSelector;
   if (!liveSelector) { console.error(`✗ no liveSelector for '${blockId}' (blocks.json or the probe brief must set it)`); process.exit(3); }
 
+  // observability: which fix-loop iteration this measurement will feed (best-effort; null pre-loop),
+  // and a fail-safe recorder — a snapshot preserves shot/diff/probe artifacts BEFORE the next
+  // measurement overwrites results/<blockId>/, so the replay player has one frame per iteration.
+  const iterHint = obsIterHint(phaseDir, blockId);
+  const record = (type, ok, summary, data) => {
+    const snap = obsSnapshotBlock(phaseDir, blockId, { iter: iterHint });
+    obsEvent(phaseDir, { type, src: "measure-block", blockId, ...(iterHint != null ? { iter: iterHint } : {}), ok, summary, data, ...(snap ? { shots: snap.shots, artifacts: snap.artifacts } : {}) });
+  };
+
   const chromium = await loadChromium();
   const browser = await acquireBrowser(chromium, opts.connect, { requireConnect: opts.requireConnect });
   let driven = false, consoleErrors = [];
@@ -261,6 +271,7 @@ async function measure(phaseDir, blockId, opts) {
         : `the surface never became VISIBLE after the drive (proof selector '${liveSelector}') — it likely never opened (e.g. a closed sidebar/dialog). A blank capture is a false-pass; the brief must OPEN the surface (drive.steps) and PROVE it (drive.assert).`;
       console.error(`✗ '${blockId}': ${why}`);
       await fs.writeFile(path.join(resDir, "triage.json"), JSON.stringify({ error: String(e.message), reason: why, driven: false, consoleErrors, at: new Date().toISOString() }, null, 2));
+      record("measure.fail", false, `'${blockId}' could not be driven — surface never opened/proven`, { reason: why.slice(0, 400), consoleErrors: consoleErrors.length });
       process.exit(3);
     }
     await page.waitForTimeout(500);
@@ -296,6 +307,7 @@ async function measure(phaseDir, blockId, opts) {
       await fs.writeFile(path.join(resDir, "triage.json"), JSON.stringify({ ...anomaly, consoleErrors, at: new Date().toISOString() }, null, 2));
       console.error(`✗ LAYOUT ANOMALY: '${liveSelector}' measures ${Math.round(bb.width)}×${Math.round(bb.height)}px against a ${vp.width}×${vp.height} viewport — fix the runaway dimension before any visual measurement.`);
       console.log(JSON.stringify(anomaly));
+      record("measure.fail", false, `'${blockId}' layout anomaly: ${Math.round(bb.width)}×${Math.round(bb.height)}px vs ${vp.width}×${vp.height} viewport`, { reason: "layout anomaly (runaway dimension)", ...anomaly.layoutAnomaly });
       process.exit(2);
     }
     // EMPTY-SHELL BACKSTOP: a null or near-zero capture means we're about to screenshot a closed/empty
@@ -305,6 +317,7 @@ async function measure(phaseDir, blockId, opts) {
       const empty = { blockId, emptyCapture: { box: bb, liveSelector }, hint: "the surface is missing or collapsed to ~0px — it likely never opened; a blank capture is not a valid measurement" };
       await fs.writeFile(path.join(resDir, "triage.json"), JSON.stringify({ ...empty, consoleErrors, at: new Date().toISOString() }, null, 2));
       console.error(`✗ '${blockId}': captured surface is missing/near-zero (${bb ? Math.round(bb.width) + "×" + Math.round(bb.height) : "no box"}px) — refusing to measure an empty shell.`);
+      record("measure.fail", false, `'${blockId}' empty/near-zero capture — surface likely never opened`, { reason: "empty capture", box: bb });
       process.exit(3);
     }
     await el.screenshot({ path: shotPng });
@@ -313,7 +326,9 @@ async function measure(phaseDir, blockId, opts) {
       // structural visit: capture + visual-diff only (gross-structure catch, before styling compounds)
       const vd = runVisualDiff({ framePng, shotPng, specPath, block, resDir, acceptGlyph: false, maskFrameOk });
       console.log(JSON.stringify({ mode: "structure-only", driven, regions: vd.regions?.length ?? -1, consoleErrors: consoleErrors.length }));
-      process.exit((vd.regions || []).length ? 2 : 0);
+      const nReg = (vd.regions || []).length;
+      record("measure", nReg === 0, `'${blockId}' structure-only: ${nReg} visual region(s)`, { mode: "structure-only", driven, visualRegions: nReg, consoleErrors: consoleErrors.length });
+      process.exit(nReg ? 2 : 0);
     }
 
     // PROBES (live DOM, persisted verbatim)
@@ -372,7 +387,16 @@ async function measure(phaseDir, blockId, opts) {
       stability: { ok: stability.ok }, consoleErrors: consoleErrors.length,
       ...(fixtureCheck ? { fixture: fixtureCheck } : {}),
     }, null, 2));
-    process.exit(diffCount === 0 && driven && consoleErrors.length === 0 ? 0 : 2);
+    const clean = diffCount === 0 && driven && consoleErrors.length === 0;
+    record("measure", clean, `'${blockId}'${iterHint != null ? ` iter ${iterHint}` : ""}: diffCount=${diffCount} (delta ${delta.ok ? "clean" : (delta.diffs || []).length + " diffs"}, stability ${stability.ok ? "ok" : "FAIL"}, ${sigRegions.length} visual region(s))`, {
+      diffCount, driven,
+      delta: { ok: delta.ok, diffs: (delta.diffs || []).length, checked: (delta.checked || []).length, gaps: (delta.gaps || []).length },
+      deltaDiffs: (delta.diffs || []).slice(0, 12),
+      ...(contract ? { contract: { ok: contract.ok, violations: (contract.violations || []).length }, contractViolations: (contract.violations || []).slice(0, 12) } : {}),
+      stability: { ok: stability.ok }, visualRegions: sigRegions.length, consoleErrors: consoleErrors.length,
+      ...(fixtureCheck ? { fixture: fixtureCheck } : {}),
+    });
+    process.exit(clean ? 0 : 2);
   } finally {
     if (opts.connect) await browser.close().catch(() => {});
     else await browser.close();
@@ -451,6 +475,7 @@ async function smoke(phaseDir, familyId, opts) {
   await fs.writeFile(p, JSON.stringify(out, null, 2));
   console.log(`${ok ? "✓" : "✗"} smoke '${familyId}': ${results.filter((r) => r.ok).length}/${results.length} steps ok, ${consoleErrors.length} console error(s) → ${path.relative(process.cwd(), p)}`);
   if (!ok) for (const r of results.filter((x) => !x.ok)) console.log(`    · ${r.name}: ${r.error || (r.consoleErrors || []).join(" | ")}`);
+  obsEvent(phaseDir, { type: "smoke", src: "measure-block", stage: "judge", ok, summary: `family '${familyId}' smoke: ${results.filter((r) => r.ok).length}/${results.length} steps ok, ${disallowed.length} console error(s)`, data: { familyId, ok, steps: results.map((r) => ({ name: r.name, ok: r.ok, error: r.error })).slice(0, 20), consoleErrors: disallowed.length } });
   process.exit(ok ? 0 : 2);
 }
 

@@ -31,6 +31,7 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { obsEvent } from "./obs.mjs";
 
 const TERMINAL = new Set(["STUCK", "BLOCKED", "GAP"]);
 // pre-lock guard: a finalized entry only ever transitions BACK to measured via an explicit --force,
@@ -133,6 +134,7 @@ async function account(phaseDir, blockId, disposition, note, evidence, force) {
     report.blocks[blockId] = { ...(report.blocks[blockId] || {}), disposition: d, note, evidence: path.relative(phaseDir, path.resolve(evidence)) };
     await fs.writeFile(rp, JSON.stringify(report, null, 2));
   });
+  obsEvent(phaseDir, { type: "disposition", src: "report-block", blockId, ok: false, summary: `'${blockId}' finalized as ${d}: ${note.slice(0, 160)}`, data: { disposition: d, note, evidence } });
   console.log(`✓ ${blockId}: ${d} recorded with evidence ${evidence}`);
 }
 

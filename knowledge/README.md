@@ -23,5 +23,10 @@ It ships WITH the plugin (committed here), so every client that updates the plug
 - `component-difficulty.json` — per-component difficulty + fix-attempt caps + build-minimal flags. Read by the orchestrator/builder to stop grinding on known-hard blocks.
 - `mapping-patterns.json` — recurring design-intent → Velt-component mappings. Read by the planner as priors.
 - `model-reliability.json` — observations about agent/model reliability (wedges, which config works).
+- `mock-fidelity.json` — empirical rules for drawing a pixel-faithful HTML/CSS mock from a designSpec slice (the builder's free-draw step). Read by the builder before it draws a mock. These are TOOL/render learnings, NOT Velt SDK facts — the reason they live here and not in `guide/`.
+
+## Why here and not `guide/` (the two-tier split)
+`guide/` is **Velt SDK documentation** — the stable knowledge base of what the SDK exposes (slots, props, CSS classes, behaviors). It is treated as read-only reference and ideally mirrors Velt's own docs; run-derived findings are NEVER written into it.
+`knowledge/` (this dir) is the **empirical layer** — facts the pipeline discovered by RUNNING (SDK gotchas, component difficulty, intent→component mappings, mock-fidelity rules, model reliability). It grows via the learning loop above. When a run learns something, it becomes a `knowledge/` candidate, not a `guide/` edit.
 
 Confidence: `confirmed` (seen on ≥2-3 different designs — safe to auto-apply) · `tentative` (1 design — advisory only).

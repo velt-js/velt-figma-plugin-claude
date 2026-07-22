@@ -98,17 +98,28 @@ async function measure(phaseDir, blockId, f) {
   await withReportLock(phaseDir, async () => {
     const report = JSON.parse(await fs.readFile(rp, "utf8").catch(() => '{"blocks":{}}'));
     report.blocks = report.blocks || {};
+    // Paths MUST be phaseDir-relative — the gate joins phaseDir + capturePng/framePng.
+    // Storing repo-relative `runs/<id>/results/...` doubles the prefix and false-INCOMPLETEs the audit.
+    const relCapture = path.relative(path.resolve(phaseDir), path.resolve(f.capture));
+    const relFrame = path.relative(path.resolve(phaseDir), path.resolve(f.frame));
     report.blocks[blockId] = {
       built: true,
       driven: !!f.driven,
-      capturePng: f.capture, framePng: f.frame,
+      capturePng: relCapture, framePng: relFrame,
       // visualDiff is ADVISORY (pixel-diff vs the dummy-data design frame) unless the block was captured
       // against matched fixture data — the gate honours `dataMatched` from blocks.json; by default it does
       // not FAIL on these regions (real-vs-dummy data would false-fail every content-bearing surface).
       visualDiff: { diffPct: visual.diffPct, regions: visual.regions },
       // deltaCompare is the AUTHORITY: per-element style/box/gap, content-independent. `checked`/`gaps`
       // are the COVERAGE the gate audits — a block whose delta spec covered too little cannot certify clean.
-      deltaCompare: { ok: deltaOk, diffs: deltaDiffs, checked: Array.isArray(delta.checked) ? delta.checked : [], gaps: Array.isArray(delta.gaps) ? delta.gaps : [] },
+      deltaCompare: {
+        ok: deltaOk,
+        diffs: deltaDiffs,
+        checked: Array.isArray(delta.checked) ? delta.checked : [],
+        gaps: Array.isArray(delta.gaps) ? delta.gaps : [],
+        ...(delta.coverage ? { coverage: delta.coverage } : {}),
+      },
+      ...(delta.coverage ? { coverage: delta.coverage } : {}),
       ...(reconciliation ? { reconciliation } : {}),
       ...(contract ? { contract } : {}),
       stability: { ok: stability.ok, targets: stability.targets },

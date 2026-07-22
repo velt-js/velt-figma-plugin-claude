@@ -41,13 +41,13 @@ import { obsEvent, obsSnapshotBlock, obsIterHint } from "./obs.mjs";
 
 const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
 
-async function loadChromium() {
+export async function loadChromium() {
   const candidates = [process.env.PLAYWRIGHT_CORE, "playwright-core",
     path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js")].filter(Boolean);
   for (const c of candidates) { try { const m = await import(c); return (m.default || m).chromium; } catch { /* next */ } }
   throw new Error("playwright-core not found — `npm i -D playwright-core` or set $PLAYWRIGHT_CORE");
 }
-async function acquireBrowser(chromium, connectWs, { requireConnect = false } = {}) {
+export async function acquireBrowser(chromium, connectWs, { requireConnect = false } = {}) {
   if (!connectWs) {
     // FAIL LOUD, never a silent blank headless browser. A throwaway headless Chromium has no auth/
     // session and can't open the React-state-gated Velt sidebar — it would measure an empty surface
@@ -63,19 +63,24 @@ async function acquireBrowser(chromium, connectWs, { requireConnect = false } = 
     return chromium.launch({ headless: true });   // bare headless: golden/offline calibration only
   }
   const looksCdp = /^https?:|\/devtools\//.test(connectWs);
-  try { return await (looksCdp ? chromium.connectOverCDP(connectWs) : chromium.connect({ wsEndpoint: connectWs })); }
-  catch { return await (looksCdp ? chromium.connect({ wsEndpoint: connectWs }) : chromium.connectOverCDP(connectWs)); }
+  // 15s connect timeout: a STALE ws endpoint (Chrome restarted since it was pinned) can hang the
+  // connect indefinitely with zero output — fail loud so the caller re-resolves via browser-endpoint
+  const T = { timeout: 60000 };
+  try { return await (looksCdp ? chromium.connectOverCDP(connectWs, T) : chromium.connect({ wsEndpoint: connectWs, ...T })); }
+  catch { return await (looksCdp ? chromium.connect({ wsEndpoint: connectWs, ...T }) : chromium.connectOverCDP(connectWs, T)); }
 }
-const vis = (page, sel) => page.locator(`${sel} >> visible=true`).first();
-// waitVisible (BUG-4b, found live): plain page.waitForSelector(sel, {state:'visible'}) targets the
-// FIRST DOM match for `sel` and waits for THAT element to become visible. For any wireframe tag,
-// the first DOM match is the permanently-hidden 0-size registry twin under <velt-wireframe> — it
-// never becomes visible, so the wait hangs/times out even though a live, visible clone matching the
-// same selector exists elsewhere in the DOM. Route every "wait until this becomes visible" through
-// the same visible-first locator the click/hover helper (`vis`) already uses.
-const waitVisible = (page, sel, timeout) => page.locator(`${sel} >> visible=true`).first().waitFor({ state: "visible", timeout });
+// vis / waitVisible (BUG-4b + BUG-4c, found live):
+//   BUG-4b: plain waitForSelector(sel) targets the FIRST DOM match — for wireframe tags that is the
+//   permanently-hidden 0-size registry twin under <velt-wireframe>, so the wait hangs forever.
+//   BUG-4c: `${sel} >> visible=true` breaks COMMA selectors — Playwright parses
+//   `.vc-actions, .vc-resolve >> visible=true` as `.vc-actions` OR (`.vc-resolve >> visible=true`),
+//   so wait/click sticks on the hidden wireframe `.vc-actions` and never sees the live hover-reveal.
+//   `.filter({ visible: true })` applies to the whole locator match set — use that form always.
+export const vis = (page, sel) => page.locator(sel).filter({ visible: true }).first();
+export const waitVisible = (page, sel, timeout) =>
+  page.locator(sel).filter({ visible: true }).first().waitFor({ state: "visible", timeout });
 
-async function resetState(page) {
+export async function resetState(page) {
   await page.keyboard.press("Escape").catch(() => {});
   await page.evaluate(() => {
     for (const ed of document.querySelectorAll("[contenteditable]:not([contenteditable='false'])")) {
@@ -93,11 +98,24 @@ async function resetState(page) {
 // enabled, and the app alive — a velt-* element or window.Velt), set + dispatch, then VERIFY the value
 // took and the app reaches an identified state; retry up to 3 times; fail loudly, never silently.
 async function selectUserRobust(page, user, timeout = 20000) {
-  await page.waitForFunction(() => {
+  // ALREADY-SIGNED-IN short-circuit (BUG-5, found live in the two-phase run): when several blocks
+  // drive the SAME reused page, the first selectUser consumes the sign-in <select> (the host swaps
+  // it for signed-in UI) — every later selectUser then waited the full timeout for a select that
+  // will never return. If the app is alive and no select appears within a short grace window,
+  // treat the session as already identified and return.
+  const ready = await page.waitForFunction(() => {
     const sel = document.querySelector("select");
     const alive = !!window.Velt || [...document.querySelectorAll("*")].some((el) => el.tagName.toLowerCase().startsWith("velt-"));
-    return !!sel && !sel.disabled && alive;
+    if (sel && !sel.disabled && alive) return "select";
+    if (!sel && alive) return "signed-in";
+    return false;
   }, { timeout });
+  if ((await ready.jsonValue()) === "signed-in") {
+    // settle guard: on a FRESH page Velt can boot before the select hydrates — re-check once
+    await page.waitForTimeout(1200);
+    const sel = await page.evaluate(() => !!document.querySelector("select"));
+    if (!sel) return;   // genuinely signed in (no select after settle)
+  }
   for (let attempt = 1; attempt <= 3; attempt++) {
     await page.evaluate((u) => {
       const sel = document.querySelector("select");
@@ -159,13 +177,65 @@ export function validateDriveSteps(drive, { requireSteps = false, label = "drive
   return problems;
 }
 
-async function runSteps(page, steps, { timeout = 15000 } = {}) {
+// Velt Angular hosts often re-render while visible (composer polling / zone ticks), so Playwright's
+// "stable" actionability check times out even though the live element is on-screen and DOM-clickable.
+// Prefer a normal click; if actionability fails after the locator resolved visible, force the gesture.
+/** Interaction cause packet — bbox/opacity/pointer-events/elementFromPoint for Judge→Builder work orders. */
+async function diagnoseSelector(page, sel) {
+  try {
+    return await page.evaluate((selector) => {
+      let el = null;
+      try { el = document.querySelector(selector); } catch (e) { return { error: "bad-selector", selector }; }
+      const matched = (() => { try { return document.querySelectorAll(selector).length; } catch (e) { return 0; } })();
+      if (!el) return { matched, present: false, selector };
+      const r = el.getBoundingClientRect();
+      const cs = getComputedStyle(el);
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const top = document.elementFromPoint(cx, cy);
+      return {
+        matched, present: true, selector,
+        box: { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) },
+        opacity: cs.opacity, visibility: cs.visibility, display: cs.display,
+        pointerEvents: cs.pointerEvents,
+        disabled: !!(el.disabled || el.getAttribute("aria-disabled") === "true"),
+        topmost: top ? `${top.tagName.toLowerCase()}${top.className ? "." + String(top.className).trim().split(/\s+/).slice(0, 3).join(".") : ""}` : null,
+        coveredByOther: !!(top && top !== el && !el.contains(top)),
+      };
+    }, sel);
+  } catch (e) {
+    return { error: String(e.message || e).slice(0, 200), selector: sel };
+  }
+}
+
+async function actVisible(page, sel, kind, timeout) {
+  const loc = vis(page, sel);
+  try {
+    if (kind === "click") await loc.click({ timeout });
+    else if (kind === "dblclick") await loc.dblclick({ timeout });
+    else if (kind === "hover") await loc.hover({ timeout });
+  } catch (e) {
+    const msg = String(e.message || e);
+    if (!/Timeout|stable|intercepts|not visible|not enabled/i.test(msg)) throw e;
+    try {
+      if (kind === "click") await loc.click({ timeout, force: true });
+      else if (kind === "dblclick") await loc.dblclick({ timeout, force: true });
+      else if (kind === "hover") await loc.hover({ timeout, force: true });
+    } catch (e2) {
+      const causePacket = await diagnoseSelector(page, sel);
+      const err = new Error(`${String(e2.message || e2).slice(0, 180)} | cause=${JSON.stringify(causePacket).slice(0, 400)}`);
+      err.causePacket = causePacket;
+      throw err;
+    }
+  }
+}
+
+export async function runSteps(page, steps, { timeout = 15000 } = {}) {
   for (const s of steps || []) {
     const a = s.action;
-    if (a === "click") await vis(page, s.selector).click({ timeout });
-    else if (a === "dblclick") await vis(page, s.selector).dblclick({ timeout });
-    else if (a === "hover") await vis(page, s.selector).hover({ timeout });
-    else if (a === "type") { if (s.selector) await vis(page, s.selector).click({ timeout }); await page.keyboard.type(s.text ?? "", { delay: 20 }); }
+    if (a === "click") await actVisible(page, s.selector, "click", timeout);
+    else if (a === "dblclick") await actVisible(page, s.selector, "dblclick", timeout);
+    else if (a === "hover") await actVisible(page, s.selector, "hover", timeout);
+    else if (a === "type") { if (s.selector) await actVisible(page, s.selector, "click", timeout); await page.keyboard.type(s.text ?? "", { delay: 20 }); }
     else if (a === "press") await page.keyboard.press(s.key || s.text);
     else if (a === "waitFor") await waitVisible(page, s.selector, s.ms || timeout);
     else if (a === "sleep") await page.waitForTimeout(s.ms || 300);
@@ -176,17 +246,84 @@ async function runSteps(page, steps, { timeout = 15000 } = {}) {
   }
 }
 
-async function openPage(browser, url, { scale = 2, selectUser = null, timeout = 30000 } = {}) {
-  const ctx = await browser.newContext({ viewport: { width: 1512, height: 900 }, deviceScaleFactor: scale });
-  const page = await ctx.newPage();
+// ONE TAB PER RUN. Every pipeline invocation used to open (and close) its own tab — dozens of
+// tab spawns + full page-loads per run, resource-heavy AND the primary trigger for the dev-server
+// fresh-navigation wedge (a live judge run had to invent page-reuse to route around it). Now the
+// FIRST connected invocation creates one tab and NAMES it (window.name survives navigation); every
+// later invocation FINDS it and RELOADS it (same tab — auth survives, and a reload rebuilds the
+// Velt wireframe registry so a *Wf.tsx markup edit is reflected; an earlier version SKIPPED the
+// reload when already on the URL and served stale markup), leaving it open for the next script.
+// `node scripts/run-tab.mjs close --connect <ws>` closes it at run end.
+// VELT_SINGLE_TAB=0 restores the old tab-per-call behavior.
+export const RUN_TAB_NAME = "velt-customize-run-tab";
+const singleTab = () => process.env.VELT_SINGLE_TAB !== "0";
+export async function findRunTab(ctx, { originHint = null } = {}) {
+  // The default context is the user's WHOLE Chrome — dozens of tabs, some busy/wedged, where an
+  // unbounded evaluate hangs forever (found live). Bound every probe to 800ms, and when the app
+  // origin is known, probe ONLY tabs on that origin (the run tab always lives on the app).
+  const timebox = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error("timebox")), ms))]);
+  let pages = ctx.pages().filter((p) => !p.isClosed());
+  if (originHint) {
+    try { const o = new URL(originHint).origin; pages = pages.filter((p) => { try { return new URL(p.url()).origin === o; } catch { return false; } }); } catch { /* keep all */ }
+  }
+  for (const p of pages) {
+    try { if ((await timebox(p.evaluate(() => window.name), 800)) === RUN_TAB_NAME) return p; } catch { /* busy/cross-origin — skip */ }
+  }
+  // SELF-HEAL: window.name can be lost (an app that sets it, a recreated tab). When the app origin
+  // is known and exactly ONE tab lives on it, that IS the run tab — adopt and re-name it. (With
+  // several candidate tabs we stay conservative and return null: better a fresh tab than a guess.)
+  if (originHint && pages.length === 1) {
+    try { await timebox(pages[0].evaluate((n) => { window.name = n; }, RUN_TAB_NAME), 800); return pages[0]; } catch { /* busy — caller creates one */ }
+  }
+  return null;
+}
+
+export async function openPage(browser, url, { scale = 2, selectUser = null, timeout = 30000, reuseContext = false } = {}) {
+  // Over a CDP-connected REAL browser, browser.newContext() is a fresh incognito profile with EMPTY
+  // storage — it does NOT carry the app's auth session (Firebase/IndexedDB lives in the DEFAULT
+  // context), so the Velt document never authenticates and the sidebar stays a 0-size skeleton
+  // (measured live on this app: fresh ctx => title 0x0 / 0 visible cards; default authed ctx =>
+  // title 321x24 / 6 visible cards). So when connected, REUSE the authenticated default context —
+  // and within it, the ONE named run tab (see above) instead of spawning a tab per call.
+  let ctx, reused = false;
+  if (reuseContext && browser.contexts().length) { ctx = browser.contexts()[0]; reused = true; }
+  else ctx = await browser.newContext({ viewport: { width: 1512, height: 900 }, deviceScaleFactor: scale });
+  let page = null, persistentTab = false;
+  if (reused && singleTab()) {
+    page = await findRunTab(ctx, { originHint: url });
+    persistentTab = !!page;
+  }
+  if (!page) {
+    page = await ctx.newPage();
+    if (reused && singleTab()) {
+      await page.evaluate((n) => { window.name = n; }, RUN_TAB_NAME).catch(() => {});
+      persistentTab = true;   // newly created run tab — also kept open for the next invocation
+    }
+  }
+  if (reused) await page.setViewportSize({ width: 1512, height: 900 }).catch(() => {});
   const consoleErrors = [];
   // keep the source URL: network-noise errors ("Failed to load resource") are only
   // attributable/filterable by origin (see allowedConsoleErrorPatterns in smoke()).
   page.on("console", (m) => { const loc = m.location && m.location(); consoleErrors.push(...(m.type() === "error" ? [(m.text().slice(0, 300)) + (loc && loc.url ? ` [${loc.url.slice(0, 120)}]` : "")] : [])); });
   page.on("pageerror", (e) => consoleErrors.push(String(e).slice(0, 300)));
-  await page.goto(url, { waitUntil: "domcontentloaded", timeout });
+  // Get the tab onto a FRESH load of the target. When reusing the persistent run tab that is
+  // already on the URL we RELOAD it (same tab, not a new one) rather than skip — a skip served
+  // the STALE markup/registry after a *Wf.tsx edit (the Velt wireframe registry is built at mount,
+  // so hot-reload alone doesn't rebuild it; the builder's structure-verify loop measured the
+  // previous markup until it force-closed the tab). Reload is safe: auth/session lives in the
+  // DEFAULT context's IndexedDB and survives a reload; drives re-run after this, so transient
+  // state is re-established anyway.
+  // NOTE: waitUntil is "domcontentloaded", NOT "networkidle" — Velt holds realtime websockets so
+  // the network never idles (a networkidle wait would hang until timeout). The caller's drive
+  // waitFor(assert) awaits the registry mount afterward.
+  const norm = (u) => String(u || "").replace(/[/#]+$/, "");
+  if (persistentTab && norm(page.url()) === norm(url)) {
+    await page.reload({ waitUntil: "domcontentloaded", timeout });
+  } else {
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout });
+  }
   if (selectUser) await runSteps(page, [{ action: "selectUser", text: selectUser }]);
-  return { page, consoleErrors };
+  return { page, consoleErrors, reused, persistentTab };
 }
 
 const probeEval = (page, probe, spec) => page.evaluate(`${probe}(${JSON.stringify(spec)})`);
@@ -237,10 +374,10 @@ async function measure(phaseDir, blockId, opts) {
 
   const chromium = await loadChromium();
   const browser = await acquireBrowser(chromium, opts.connect, { requireConnect: opts.requireConnect });
-  let driven = false, consoleErrors = [];
+  let driven = false, consoleErrors = [], openedPage = null, reusedCtx = false, keepTab = false;
   try {
-    const o = await openPage(browser, opts.url, { scale: opts.scale, selectUser: opts.selectUser, timeout: opts.timeout });
-    const page = o.page; consoleErrors = o.consoleErrors;
+    const o = await openPage(browser, opts.url, { scale: opts.scale, selectUser: opts.selectUser, timeout: opts.timeout, reuseContext: !!opts.connect });
+    const page = o.page; consoleErrors = o.consoleErrors; openedPage = page; reusedCtx = o.reused; keepTab = o.persistentTab;
     // Pre-drive boot wait: state 'attached', NOT the default 'visible' (BUG-4, found live): a
     // wireframe liveSelector's FIRST DOM match is the hidden 0-size registry twin under
     // <velt-wireframe>, and the visible clone often only renders after the drive signs in /
@@ -333,8 +470,19 @@ async function measure(phaseDir, blockId, opts) {
 
     // PROBES (live DOM, persisted verbatim)
     const put = async (name, obj) => { await fs.writeFile(path.join(resDir, name), JSON.stringify(obj, null, 2)); };
+    // fallbackSurface (v4 judge bug): a stale browser.surfaceSelector (registry-twin tag) made the
+    // delta probe fall back to PAGE-ABSOLUTE boxes — pass the block's liveSelector as the fallback
+    // so the rebase survives a stale brief, and the probe reports (never noise) if BOTH fail.
+    if (probes.browser && liveSelector && !probes.browser.fallbackSurface) probes.browser.fallbackSurface = liveSelector;
     const delta = probes.browser ? await probeEval(page, BROWSER_PROBE, probes.browser) : { ok: false, verdict: "FAIL", diffs: [{ note: "no BROWSER_PROBE spec in the probe brief" }] };
     delta.ok = typeof delta.ok === "boolean" ? delta.ok : delta.verdict === "PASS";
+    // Coverage census from the brief — gate raises the floor above historic ≥2 when paint+text slots warrant it.
+    if (probes.coverage) delta.coverage = probes.coverage;
+    else {
+      const els = probes.browser?.elements || [];
+      const paintText = els.filter((e) => e.nodeKind === "paint" || e.nodeKind === "text").length;
+      delta.coverage = { paintText, minAssert: paintText >= 5 ? Math.min(paintText, Math.max(4, Math.min(12, Math.ceil(paintText * 0.5)))) : 2 };
+    }
     await put("delta.json", delta);
     let reconciliation = null;
     if (probes.layer) {
@@ -398,6 +546,7 @@ async function measure(phaseDir, blockId, opts) {
     });
     process.exit(clean ? 0 : 2);
   } finally {
+    if (reusedCtx && openedPage && !keepTab) await openedPage.close().catch(() => {});   // the ONE run tab stays open for the next invocation (run-tab.mjs closes it at run end)
     if (opts.connect) await browser.close().catch(() => {});
     else await browser.close();
   }
@@ -435,10 +584,10 @@ async function smoke(phaseDir, familyId, opts) {
   const chromium = await loadChromium();
   const browser = await acquireBrowser(chromium, opts.connect, { requireConnect: opts.requireConnect });
   const results = [];
-  let consoleErrors = [];
+  let consoleErrors = [], openedPage = null, reusedCtx = false, keepTab = false;
   try {
-    const o = await openPage(browser, opts.url, { scale: 1, selectUser: opts.selectUser, timeout: opts.timeout });
-    const page = o.page; consoleErrors = o.consoleErrors;
+    const o = await openPage(browser, opts.url, { scale: 1, selectUser: opts.selectUser, timeout: opts.timeout, reuseContext: !!opts.connect });
+    const page = o.page; consoleErrors = o.consoleErrors; openedPage = page; reusedCtx = o.reused; keepTab = o.persistentTab;
     for (const step of spec.steps || []) {
       const before = consoleErrors.length;
       try {
@@ -451,7 +600,15 @@ async function smoke(phaseDir, familyId, opts) {
         const newErr = consoleErrors.slice(before).filter((e) => !isAllowed(e));
         results.push({ name: step.name, ok: newErr.length === 0 || !(spec.forbidConsoleErrors ?? true), consoleErrors: newErr });
       } catch (e) {
-        results.push({ name: step.name, ok: false, error: String(e.message).slice(0, 300) });
+        const causePacket = e.causePacket || null;
+        results.push({
+          name: step.name,
+          ok: false,
+          error: String(e.message).slice(0, 500),
+          ...(causePacket ? { causePacket } : {}),
+          // Heuristic selector from first click/hover action for emit-judge-defects
+          selector: (step.actions || []).find((a) => a.selector)?.selector || null,
+        });
       }
       if (step.resetAfter !== false) await resetState(page);
     }
@@ -464,6 +621,7 @@ async function smoke(phaseDir, familyId, opts) {
       } catch (e) { results.push({ name: "resize", ok: false, error: String(e.message).slice(0, 300) }); }
     }
   } finally {
+    if (reusedCtx && openedPage && !keepTab) await openedPage.close().catch(() => {});   // the ONE run tab stays open for the next invocation (run-tab.mjs closes it at run end)
     if (opts.connect) await browser.close().catch(() => {});
     else await browser.close();
   }
@@ -501,4 +659,4 @@ async function main() {
   else await measure(phaseDir, id, opts);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) main().catch((e) => { console.error("✗ " + e.message); process.exit(1); });
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main().catch((e) => { console.error("✗ " + e.message); process.exit(1); });

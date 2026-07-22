@@ -43,12 +43,14 @@ async function main() {
   if (cmd === "gotchas") console.log(JSON.stringify(await gotchas({ cssOnly: argv.includes("--css"), version }), null, 2));
   else if (cmd === "css") process.stdout.write(await cssFixBlock(version));
   else if (cmd === "difficulty") console.log(JSON.stringify(await difficulty(arg), null, 2));
+  else if (cmd === "mock-fidelity") console.log(JSON.stringify(await loadJson("mock-fidelity.json"), null, 2));
   else if (cmd === "load" || !cmd) console.log(JSON.stringify({
     gotchas: await loadJson("sdk-gotchas.json"),
     difficulty: await loadJson("component-difficulty.json"),
     mapping: await loadJson("mapping-patterns.json"),
     modelReliability: await loadJson("model-reliability.json"),
+    mockFidelity: await loadJson("mock-fidelity.json"),
   }, null, 2));
-  else { console.error("usage: knowledge.mjs load | gotchas [--css] [--version <v>] | css [--version <v>] | difficulty <blockId>"); process.exit(1); }
+  else { console.error("usage: knowledge.mjs load | gotchas [--css] [--version <v>] | css [--version <v>] | difficulty <blockId> | mock-fidelity"); process.exit(1); }
 }
-if (import.meta.url === pathToFileURL(process.argv[1]).href) main().catch((e) => { console.error("✗ " + e.message); process.exit(1); });
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main().catch((e) => { console.error("✗ " + e.message); process.exit(1); });

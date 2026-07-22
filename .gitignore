@@ -2,3 +2,7 @@
 .context/
 .DS_Store
 node_modules/
+
+# experiment run artifacts (archived sessions in runs-archive/)
+runs/
+runs-archive/

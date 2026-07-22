@@ -15,6 +15,8 @@
 //
 // Default caps (active minutes; env stalls from loop-state.json are EXCLUDED, same as block-iter):
 //   plan 20 · briefs 15 · report 10 · anything else 15.
+//   Two-phase planning stages: plan-structure 15 · build-structure 20 · plan-style 15 · build-style 20
+//   (they replace the single plan box; total ≈ the old plan+build budget — tune after loop2).
 // --first-phase applies a documented 1.5x multiplier (a no-memory first run legitimately reads more).
 // Exit-code contract mirrors block-iter: the orchestrator calls `check` between its own steps and
 // polls it while a stage subagent runs; on 4 it terminates/wraps the stage and PROCEEDS — it never
@@ -24,7 +26,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { obsEvent } from "./obs.mjs";
 
-const DEFAULT_CAPS = { plan: 20, briefs: 15, report: 10 };
+const DEFAULT_CAPS = { plan: 20, briefs: 15, report: 10, "plan-structure": 15, "build-structure": 20, "plan-style": 15, "build-style": 20 };
 const FALLBACK_CAP = 15;
 const FIRST_PHASE_MULTIPLIER = 1.5;
 

@@ -107,7 +107,8 @@ Every run records itself automatically (no agent compliance needed — the pipel
 
 ```bash
 node scripts/obs.mjs build <phaseDir>    # generate obs/player.html (self-contained; also auto-built at handoff)
-node scripts/obs.mjs serve <phaseDir>    # …or serve it: http://127.0.0.1:4173/obs/player.html
+node scripts/obs.mjs serve <runsRoot>    # ONE server, ALL runs — toggle between them in the header dropdown (http://127.0.0.1:4173/)
+node scripts/obs.mjs serve <phaseDir>    # …or a single run: http://127.0.0.1:4173/obs/player.html
 node scripts/obs.mjs status <phaseDir>   # event/snapshot counts
 ```
 

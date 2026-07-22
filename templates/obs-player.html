@@ -24,7 +24,12 @@
     background: var(--bg); color: var(--fg);
     font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     display: grid; grid-template-rows: 44px 1fr auto; overflow: hidden;
+    /* minmax(0,1fr): the implicit auto column's MIN width is the widest child's min-content —
+       a long filmstrip (many screenshots) silently made the whole PAGE pannable sideways.
+       Pin the column to the viewport; the strip/timeline scroll INTERNALLY instead. */
+    grid-template-columns: minmax(0, 1fr);
   }
+  #hdr, #main, #bottom { min-width: 0; }
   button { font: inherit; color: inherit; background: var(--bg3); border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; cursor: pointer; }
   button:hover { border-color: var(--accent); }
   button.active { background: var(--accent); color: #0b1220; border-color: var(--accent); font-weight: 600; }
@@ -114,13 +119,46 @@
   #strip .fr img { width: 100%; height: 54px; object-fit: cover; object-position: top; display: block; background: #fff; }
   #strip .fr .cap { font-size: 9px; padding: 1px 4px; color: var(--fg-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--mono); }
   kbd { font-family: var(--mono); font-size: 10px; background: var(--bg3); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; }
+
+  /* ---------- gallery (trial compare view) ---------- */
+  #gallery { display: none; overflow: auto; background: var(--bg); padding: 14px 18px; height: 100%; width: 100%; }
+  body.gallery #gallery { display: block; }
+  /* gallery replaces the 3-pane grid entirely — block layout so wide content scrolls (x and y)
+     instead of being clipped by the fixed 290px/1fr/360px grid columns */
+  body.gallery #main { display: block; min-width: 0; overflow: auto; }
+  body.gallery #main > :not(#gallery) { display: none; }
+  #gallery .gbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: var(--fg-dim); font-size: 12px; }
+  #gallery .grp { margin-bottom: 26px; }
+  #gallery .grp > h3 { margin: 0 0 8px; font-size: 13px; color: var(--fg-dim); font-family: var(--mono); border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  /* one ROW per frame: the Figma reference ONCE at left, then every attempt side by side —
+     the same frame's model attempts sit next to each other for direct comparison */
+  #gallery .cmprow { display: flex; gap: 10px; overflow-x: auto; align-items: flex-start; padding-bottom: 6px; }
+  #gallery .cell { flex: none; width: 250px; background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 7px; }
+  #gallery .cell.refcell { border-color: var(--accent); position: sticky; left: 0; z-index: 2; box-shadow: 6px 0 14px rgba(0,0,0,.35); }
+  #gallery .cell .row { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; min-height: 20px; }
+  #gallery .cell .lbl { font-family: var(--mono); font-size: 11px; font-weight: 700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #gallery .cell .score { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; }
+  #gallery .cell .score.ok { background: #14351f; color: #59d98a; } #gallery .cell .score.bad { background: #3a1715; color: #ff8b84; } #gallery .cell .score.na { background: var(--bg3); color: var(--fg-dim); }
+  #gallery .cell figure { margin: 0 0 5px; }
+  #gallery .cell figure:last-child { margin-bottom: 0; }
+  #gallery .cell img { width: 100%; height: auto; display: block; background: #fff; border-radius: 5px; }
+  #gallery .cell figcaption { font-size: 9px; color: var(--fg-faint); text-align: center; padding-top: 2px; text-transform: uppercase; letter-spacing: .6px; }
+  #gallery .acell { cursor: pointer; } #gallery .acell:hover { border-color: var(--accent); }
+  #gallery .best { outline: 2px solid var(--ok); }
+  #gallery .best .lbl::after { content: " ★"; color: var(--ok); }
+  #liveDot { display: none; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--ok); }
+  #liveDot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
 </style>
 </head>
 <body>
   <div id="hdr">
     <span class="title">velt-customize · run replay</span>
+    <select id="runSel" style="display:none;max-width:340px;background:var(--bg3);color:var(--fg);border:1px solid var(--bg3);border-radius:6px;padding:3px 6px;font:12px var(--mono)" title="toggle between runs — every run under the served root, newest first; new runs appear automatically"></select>
     <span class="phase" id="hPhase"></span>
     <span class="badge UNKNOWN" id="hVerdict">NO VERDICT</span>
+    <button id="galleryBtn" title="side-by-side compare of every screenshotted attempt (trials, measures)">◫ Gallery</button>
+    <span id="liveDot" title="served page — polling /run.json; new events and screenshots appear automatically">LIVE</span>
     <span class="stats" id="hStats"></span>
   </div>
 
@@ -146,6 +184,7 @@
     </div>
 
     <div id="details" class="pane"></div>
+    <div id="gallery" style="grid-column: 1 / -1"></div>
   </div>
 
   <div id="bottom">
@@ -172,24 +211,37 @@
 <script>
 "use strict";
 // ---------------------------------------------------------------------------- data
-const RUN = /*__VELT_OBS_RUN_DATA__*/null;
+let RUN = /*__VELT_OBS_RUN_DATA__*/null;
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// MULTI-RUN mode: the server injected {multi:true} instead of one run's data — the page loads
+// /runs.json, shows the run switcher, and every asset path is served under /r/<runId>/….
+const MULTI = !!(RUN && RUN.multi);
+let RUNBASE = "../";           // single-run: player lives at obs/player.html → assets one level up
+let currentRunId = null;
 // phaseDir-relative → player-relative; an --inline build carries RUN.assets (path → data: URI) instead
-const rel = (p) => { if (!p) return null; const n = String(p).replace(/^\.?\//, ""); return (RUN.assets && RUN.assets[n]) || "../" + n; };
+const rel = (p) => { if (!p) return null; const n = String(p).replace(/^\.?\//, ""); return (RUN.assets && RUN.assets[n]) || RUNBASE + n; };
 const fmtT = (iso) => iso ? iso.slice(11, 19) + "Z" : "—";
 const fmtDur = (ms) => { if (ms == null) return "—"; const s = Math.round(ms / 1000); return s < 90 ? s + "s" : (s / 60).toFixed(1) + "m"; };
 
 if (!RUN) { document.body.innerHTML = "<div class='placeholder' style='margin:80px auto'>No run data was injected — regenerate this page with <code>node scripts/obs.mjs build &lt;phaseDir&gt;</code>.</div>"; throw new Error("no data"); }
+if (MULTI) RUN = { events: [], phaseId: "(pick a run…)" };   // placeholder until the switcher loads one
 
-const EVENTS = (RUN.events || []).slice().sort((a, b) => String(a.t).localeCompare(String(b.t)));
-EVENTS.forEach((e, i) => { e._i = i; e._s = JSON.stringify(e).toLowerCase(); });   // _s: precomputed filter haystack
-const T0 = EVENTS.length ? new Date(EVENTS[0].t).getTime() : Date.now();
-const T1 = EVENTS.length ? new Date(EVENTS[EVENTS.length - 1].t).getTime() : T0 + 1;
-const SPAN = Math.max(1, T1 - T0);
-const BLOCKS = (RUN.blocks && RUN.blocks.blocks) || [];
-const REPORT = (RUN.blockReport && RUN.blockReport.blocks) || {};
-const LOOP = RUN.loopState || {};
+// data-derived state is RE-INITIALIZABLE: the served page polls /run.json and re-applies, so the
+// player updates LIVE while a run/trial appends events — no rebuild, no reload.
+let EVENTS, T0, T1, SPAN, BLOCKS, REPORT, LOOP;
+function applyRun(run) {
+  RUN = run;
+  EVENTS = (RUN.events || []).slice().sort((a, b) => String(a.t).localeCompare(String(b.t)));
+  EVENTS.forEach((e, i) => { e._i = i; e._s = JSON.stringify(e).toLowerCase(); });   // _s: precomputed filter haystack
+  T0 = EVENTS.length ? new Date(EVENTS[0].t).getTime() : Date.now();
+  T1 = EVENTS.length ? new Date(EVENTS[EVENTS.length - 1].t).getTime() : T0 + 1;
+  SPAN = Math.max(1, T1 - T0);
+  BLOCKS = (RUN.blocks && RUN.blocks.blocks) || [];
+  REPORT = (RUN.blockReport && RUN.blockReport.blocks) || {};
+  LOOP = RUN.loopState || {};
+}
+applyRun(RUN);
 
 // severity: bad > warn > ok > neutral (drives tick colors, dots, filters)
 function sevOf(e) {
@@ -247,7 +299,7 @@ function shotsFor(e) {
 }
 
 // ---------------------------------------------------------------------------- header
-(function header() {
+function renderHeader() {
   $("#hPhase").textContent = RUN.phaseId || "";
   let verdict = null;
   for (let i = EVENTS.length - 1; i >= 0; i--) {
@@ -260,8 +312,90 @@ function shotsFor(e) {
   $("#hStats").innerHTML =
     `<span><b>${EVENTS.length}</b> events</span><span><b>${BLOCKS.length}</b> blocks</span>` +
     `<span><b>${iters}</b> iterations</span><span><b>${shots}</b> screenshots</span>` +
-    `<span>span <b>${fmtDur(SPAN)}</b></span><span style="color:var(--fg-faint)">built ${fmtT(RUN.generatedAt)}</span>`;
-})();
+    `<span>span <b>${fmtDur(SPAN)}</b></span><span style="color:var(--fg-faint)">data ${fmtT(RUN.generatedAt)}</span>`;
+}
+renderHeader();
+
+// ---------------------------------------------------------------------------- live polling
+// Served over http → poll the current run's /run.json and re-render when new events arrive
+// (file:// keeps the inlined snapshot). Selection/filters/gallery state survive re-renders.
+const runJsonUrl = () => MULTI ? (currentRunId ? `/run.json?run=${encodeURIComponent(currentRunId)}` : null) : "/run.json";
+let lastKey = "";
+if (location.protocol.startsWith("http")) {
+  $("#liveDot").style.display = "inline-flex";
+  lastKey = EVENTS.length + ":" + (EVENTS[EVENTS.length - 1]?.t || "");
+  setInterval(async () => {
+    try {
+      const url = runJsonUrl();
+      if (!url) return;
+      const r = await fetch(url, { cache: "no-store" });
+      if (!r.ok) return;
+      const run = await r.json();
+      if (MULTI && run.runId !== currentRunId) return;   // stale response after a switch
+      const evs = run.events || [];
+      const key = (run.runId || "") + ":" + evs.length + ":" + (evs[evs.length - 1]?.t || "");
+      if (key === lastKey) return;
+      lastKey = key;
+      const keepSel = sel;
+      applyRun(run);
+      sel = Math.min(keepSel, EVENTS.length - 1);
+      renderHeader(); renderAll();
+    } catch { /* server gone — the page keeps its last snapshot */ }
+  }, 4000);
+}
+
+// ---------------------------------------------------------------------------- multi-run switcher
+// One server over the runs ROOT: /runs.json lists every run (newest first, live-refreshed so new
+// runs appear while you watch); picking one loads its /run.json and re-roots asset paths.
+async function refreshRunsList() {
+  const r = await fetch("/runs.json", { cache: "no-store" });
+  if (!r.ok) return [];
+  const { runs } = await r.json();
+  const selEl = $("#runSel");
+  const keep = currentRunId;
+  selEl.innerHTML = runs.map((x) => {
+    const done = x.stages.filter((s) => s.done).length;
+    const bits = [
+      x.verdict || (x.stages.length ? `${done}/${x.stages.length} stages` : null),
+      x.events ? `${x.events}ev` : null,
+      x.blocks ? `${x.blocks}blk` : null,
+    ].filter(Boolean).join(" · ");
+    return `<option value="${esc(x.id)}">${esc(x.id)}${bits ? "  —  " + bits : ""}</option>`;
+  }).join("");
+  if (keep && runs.some((x) => x.id === keep)) selEl.value = keep;
+  return runs;
+}
+async function loadRun(id) {
+  currentRunId = id;
+  RUNBASE = `/r/${encodeURIComponent(id)}/`;
+  const url = new URL(location); url.searchParams.set("run", id); history.replaceState(null, "", url);   // deep-linkable
+  const r = await fetch(runJsonUrl(), { cache: "no-store" });
+  if (!r.ok) return;
+  const run = await r.json();
+  lastKey = (run.runId || "") + ":" + (run.events || []).length + ":" + ((run.events || [])[run.events?.length - 1]?.t || "");
+  blockFilter = null; galleryMode = false;
+  applyRun(run);
+  $("#runSel").value = id;
+  // set the initial selection BEFORE a FULL render — select() alone skips the rail + gallery, so a
+  // multi-run switch left "no blocks enumerated" even with 8 blocks. renderAll() paints everything.
+  const firstBad = EVENTS.find((e) => sevOf(e) === "bad");
+  sel = firstBad ? firstBad._i : (EVENTS.length ? EVENTS[0]._i : -1);
+  renderHeader();
+  renderAll();
+  $("#poslbl").textContent = sel >= 0 ? `event ${visibleIdx().indexOf(sel) + 1}/${visibleIdx().length} · ${fmtT(EVENTS[sel].t)}` : `0/${visibleIdx().length}`;
+}
+if (MULTI) {
+  const selEl = $("#runSel");
+  selEl.style.display = "inline-block";
+  selEl.onchange = () => loadRun(selEl.value);
+  (async () => {
+    const runs = await refreshRunsList();
+    const want = new URL(location).searchParams.get("run");
+    if (runs.length) await loadRun(want && runs.some((x) => x.id === want) ? want : runs[0].id);
+    else $("#details").innerHTML = `<h3>No runs found</h3><div style="color:var(--fg-dim)">Nothing under the served root looks like a run yet — start one and it will appear here automatically.</div>`;
+  })();
+  setInterval(refreshRunsList, 10000);   // new runs show up while you watch
+}
 
 // ---------------------------------------------------------------------------- left rail
 function sparkline(attempts) {
@@ -584,7 +718,71 @@ for (const id of ["showLogs", "onlyIssues"]) $("#" + id).onchange = renderAll;
 $("#q").oninput = renderAll;
 window.addEventListener("resize", drawTimeline);
 
-function renderAll() { renderRail(); renderViewer(); renderDetails(); drawTimeline(); renderStrip(); }
+// ---------------------------------------------------------------------------- gallery (trial compare)
+// Every event carrying screenshots becomes a card: live | reference | diff, with its score.
+// Grouped by data.group (trials set it: blockId for extraction runs, frame name for mocks),
+// falling back to blockId/stage. The lowest diffPct per group is starred "best".
+let galleryMode = false;
+let galleryView = "render";   // render | diff | both — what each attempt cell shows
+// the gate score: vs-spec-render when present (same-rasterizer, ~0 achievable), else vs-Figma
+function scoreOf(e) {
+  const s = e.data && e.data.specDiffPct, f = e.data && e.data.diffPct;
+  return typeof s === "number" ? s : typeof f === "number" ? f : null;
+}
+function scoreText(e) {
+  const s = e.data && e.data.specDiffPct, f = e.data && e.data.diffPct;
+  if (typeof s === "number") return `Δspec ${s}%` + (typeof f === "number" ? ` · Δfig ${f}%` : "");
+  return typeof f === "number" ? `Δ ${f}%` : "n/a";
+}
+function renderGallery() {
+  document.body.classList.toggle("gallery", galleryMode);
+  $("#galleryBtn").classList.toggle("active", galleryMode);
+  if (!galleryMode) return;
+  const cards = EVENTS.filter((e) => e.shots && (e.shots.live || e.shots.ref));
+  const groups = new Map();
+  for (const e of cards) {
+    const g = (e.data && e.data.group) || e.blockId || e.stage || "other";
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g).push(e);
+  }
+  if (!groups.size) { $("#gallery").innerHTML = `<div class="placeholder" style="margin:60px auto">No screenshotted attempts yet — trials (<code>scripts/trials.mjs</code>) and measurements record them automatically.</div>`; return; }
+  const fig = (src, cap) => src
+    ? `<figure><img loading="lazy" src="${esc(rel(src))}" onerror="this.style.opacity=.15"><figcaption>${cap}</figcaption></figure>`
+    : `<figure><div style="height:90px;background:var(--bg3);border-radius:5px"></div><figcaption>${cap} — none</figcaption></figure>`;
+  let html = `<div class="gbar">view:
+    <button data-gv="render" class="${galleryView === "render" ? "active" : ""}">rendered</button>
+    <button data-gv="diff" class="${galleryView === "diff" ? "active" : ""}">diff</button>
+    <button data-gv="both" class="${galleryView === "both" ? "active" : ""}">both</button>
+    <span style="color:var(--fg-faint)">— one row per frame: Figma reference first (sticky), every attempt beside it; scroll a row sideways; click an attempt for the full-size Compare slider</span></div>`;
+  for (const [g, evs] of [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    const scored = evs.map(scoreOf).filter((x) => x != null);
+    const best = scored.length ? Math.min(...scored) : null;
+    const refSrc = (evs.find((e) => e.shots.ref) || {}).shots?.ref || null;
+    html += `<div class="grp"><h3>${esc(g)} <span style="color:var(--fg-faint)">· ${evs.length} attempt(s)${best != null ? ` · best Δ ${best}%` : ""}</span></h3><div class="cmprow">`;
+    html += `<div class="cell refcell"><div class="row"><span class="lbl" style="color:var(--accent)">FIGMA reference</span></div>${fig(refSrc, "design")}</div>`;
+    for (const e of evs) {
+      const s = scoreOf(e);
+      const isBest = best != null && s === best && scored.length > 1;
+      const scoreCls = s == null ? "na" : s === best || s < 12 ? "ok" : "bad";
+      const imgs = (galleryView === "render" ? [fig(e.shots.live, "rendered")]
+        : galleryView === "diff" ? [fig(e.shots.diff, "diff")]
+        : [fig(e.shots.live, "rendered"), fig(e.shots.diff, "diff")]).join("");
+      html += `<div class="cell acell${isBest ? " best" : ""}" data-i="${e._i}" title="${esc(e.summary || "")} — click for the full-size Compare slider">
+        <div class="row"><span class="dot ${sevOf(e)}"></span><span class="lbl">${esc((e.data && e.data.label) || e.summary || e.type)}</span>
+          <span class="score ${scoreCls}">${esc(scoreText(e))}</span></div>${imgs}</div>`;
+    }
+    html += `</div></div>`;
+  }
+  const gal = $("#gallery");
+  const keepScroll = gal.scrollTop;   // live re-renders must not yank the scroll position
+  gal.innerHTML = html;
+  gal.scrollTop = keepScroll;
+  gal.querySelectorAll(".acell").forEach((el) => el.onclick = () => { galleryMode = false; renderGallery(); select(+el.dataset.i); });
+  gal.querySelectorAll("[data-gv]").forEach((el) => el.onclick = () => { galleryView = el.dataset.gv; renderGallery(); });
+}
+$("#galleryBtn").onclick = () => { galleryMode = !galleryMode; renderGallery(); };
+
+function renderAll() { renderRail(); renderViewer(); renderDetails(); drawTimeline(); renderStrip(); renderGallery(); }
 
 // initial selection: first bad event if any (the "pinpoint where it broke" default), else first event
 (function init() {

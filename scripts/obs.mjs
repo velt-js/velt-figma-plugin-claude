@@ -60,6 +60,24 @@ export function obsEvent(phaseDir, evt) {
   if (!enabled() || !phaseDir) return null;
   try {
     const e = { t: nowIso(), ...evt };
+    // SHOT ARCHIVING (phase-filmstrip fix): live/diff shot paths often point at files the pipeline
+    // OVERWRITES on every capture (dom-snapshot/<id>.png) — every gallery card then shows the
+    // LATEST pixels and the stage-by-stage visual history is destroyed. Archive a per-event copy
+    // under obs/shots/ and point the event at the copy, so each card keeps ITS OWN frame.
+    // (ref frames are write-once and paths already under obs/ are already archived — left as-is.)
+    if (e.shots) {
+      const stamp = e.t.replace(/[-:TZ.]/g, "").slice(4, 15);   // MMDDhhmmssm — unique enough per block
+      for (const k of ["live", "diff"]) {
+        const rel = e.shots[k];
+        if (!rel || String(rel).startsWith("obs/")) continue;
+        const src = path.join(phaseDir, rel);
+        if (!existsSync(src)) continue;
+        const dst = path.join(obsDir(phaseDir), "shots", `${stamp}-${path.basename(rel)}`);
+        mkdirSync(path.dirname(dst), { recursive: true });
+        copyFileSync(src, dst);
+        e.shots = { ...e.shots, [k]: ["obs", "shots", path.basename(dst)].join("/") };
+      }
+    }
     if (typeof e.summary === "string" && e.summary.length > 2000) e.summary = e.summary.slice(0, 2000) + "…";
     // keep lines bounded: a runaway data payload must not turn the event log into a memory hazard
     let line = JSON.stringify(e);
@@ -67,6 +85,23 @@ export function obsEvent(phaseDir, evt) {
     mkdirSync(obsDir(phaseDir), { recursive: true });
     appendFileSync(eventsPath(phaseDir), line + "\n");   // O_APPEND: atomic for lines of this size
     return e;
+  } catch { return null; }
+}
+
+// ---------------------------------------------------------------------------------------------
+// obsActiveStage — the pipeline phase running NOW per stage-timer's ledger (stage-state.json):
+// the started-but-not-ended stage, else the most recently ended one. Lets capture events label
+// themselves by PHASE ("after build-style") instead of wall-clock time, so the replay gallery
+// reads as a phase filmstrip. FAIL-SAFE: null when no ledger.
+export function obsActiveStage(phaseDir) {
+  try {
+    const stages = JSON.parse(readFileSync(path.join(phaseDir, "stage-state.json"), "utf8")).stages || {};
+    let running = null, lastEnded = null, lastEndT = 0;
+    for (const [name, s] of Object.entries(stages)) {
+      if (s.startedAt && !s.endedAt) running = name;
+      if (s.endedAt && Date.parse(s.endedAt) > lastEndT) { lastEndT = Date.parse(s.endedAt); lastEnded = name; }
+    }
+    return running || lastEnded;
   } catch { return null; }
 }
 
@@ -129,7 +164,9 @@ export function obsIterHint(phaseDir, blockId) {
 // { inline: true } additionally embeds every referenced image as a data: URI so the ONE file can be
 // shared/viewed anywhere (mailed, uploaded, rendered from a headless/cloud run with no fs access) —
 // bigger output, zero external references.
-export function buildPlayer(phaseDir, { out = null, inline = false } = {}) {
+// assembleRun — read every on-disk trace into the RUN data object (shared by the build-time
+// inlining AND the live /run.json endpoint the served player polls).
+export function assembleRun(phaseDir) {
   const readJson = (p) => { try { return JSON.parse(readFileSync(path.join(phaseDir, p), "utf8")); } catch { return null; } };
   const events = [];
   try {
@@ -145,7 +182,7 @@ export function buildPlayer(phaseDir, { out = null, inline = false } = {}) {
     progressLog = lines.slice(-4000).join("\n");
   } catch { /* optional */ }
 
-  const run = {
+  return {
     generatedAt: nowIso(),
     phaseId: path.basename(path.resolve(phaseDir)),
     events,
@@ -155,6 +192,11 @@ export function buildPlayer(phaseDir, { out = null, inline = false } = {}) {
     blockReport: readJson("block-report.json"),
     progressLog,
   };
+}
+
+export function buildPlayer(phaseDir, { out = null, inline = false } = {}) {
+  const run = assembleRun(phaseDir);
+  const events = run.events;
 
   if (inline) {
     // embed every image an event (or block reference frame) points at, keyed by its
@@ -194,16 +236,126 @@ export function buildPlayerSafe(phaseDir) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// serve — a tiny static server rooted at phaseDir so the player is one URL (file:// also works).
+// serve — a tiny static server. TWO modes, auto-detected from the directory you point it at:
+//   * RUN dir      → the original single-run player (unchanged; /run.json live polling).
+//   * RUNS ROOT    → ONE server over ALL runs (e.g. `node scripts/obs.mjs serve runs`): the player
+//                    gets a run SWITCHER (toggle between iterations without restarting anything),
+//                    /runs.json lists every run with verdict/events/stage summaries, new runs
+//                    appear in the dropdown live, and each run's files serve under /r/<runId>/….
+//                    This replaces the old start-a-server-per-run workflow.
 const MIME = { ".html": "text/html; charset=utf-8", ".png": "image/png", ".json": "application/json",
   ".jsonl": "application/x-ndjson", ".svg": "image/svg+xml", ".log": "text/plain; charset=utf-8",
   ".js": "text/javascript", ".css": "text/css", ".md": "text/plain; charset=utf-8" };
 
+// a directory is a RUN when it carries any of the run-trace files the pipeline writes
+export function isRunDir(d) {
+  return ["obs", "blocks.json", "stage-state.json", "progress.log", "designSpec.json"]
+    .some((f) => existsSync(path.join(d, f)));
+}
+export function listRuns(root) {
+  try {
+    return readdirSync(root).filter((name) => {
+      const d = path.join(root, name);
+      try { return statSync(d).isDirectory() && isRunDir(d); } catch { return false; }
+    }).sort();
+  } catch { return []; }
+}
+// cheap per-run summary for the switcher: id, when, verdict, counts, stage progress
+export function runSummary(root, id) {
+  const d = path.join(root, id);
+  let events = 0, lastEventAt = null, verdict = null, screenshots = 0;
+  try {
+    for (const line of readFileSync(path.join(d, "obs", "events.jsonl"), "utf8").split("\n")) {
+      if (!line.trim()) continue;
+      events++;
+      try {
+        const e = JSON.parse(line);
+        lastEventAt = e.t || lastEventAt;
+        if (e.shots && e.shots.live) screenshots++;
+        if ((e.type === "verdict" || e.type === "handoff") && e.data?.verdict) verdict = e.data.verdict;
+      } catch { /* torn line */ }
+    }
+  } catch { /* no events */ }
+  let blocks = 0, stages = [];
+  try { blocks = (JSON.parse(readFileSync(path.join(d, "blocks.json"), "utf8")).blocks || []).length; } catch { /* none */ }
+  try {
+    const st = JSON.parse(readFileSync(path.join(d, "stage-state.json"), "utf8")).stages || {};
+    stages = Object.entries(st).map(([name, s]) => ({ name, done: !!s.endedAt, cap: !!s.stoppedByTimer }));
+  } catch { /* none */ }
+  let mtime = 0;
+  try { mtime = statSync(d).mtimeMs; } catch { /* gone */ }
+  return { id, events, screenshots, lastEventAt, verdict, blocks, stages, mtime };
+}
+
+function serveMulti(root, port) {
+  const server = createServer((req, res) => {
+    try {
+      const u = new URL(req.url, "http://x");
+      const urlPath = decodeURIComponent(u.pathname);
+      if (urlPath === "/" || urlPath === "/index.html") {
+        // template read per-request → editing the template or adding runs never needs a restart
+        const html = readFileSync(TEMPLATE, "utf8")
+          .replace("/*__VELT_OBS_RUN_DATA__*/null", JSON.stringify({ multi: true, root: path.basename(root) }));
+        res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
+        res.end(html);
+        return;
+      }
+      if (urlPath === "/runs.json") {
+        const runs = listRuns(root).map((id) => runSummary(root, id)).sort((a, b) => b.mtime - a.mtime);
+        res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
+        res.end(JSON.stringify({ root: path.basename(root), generatedAt: nowIso(), runs }));
+        return;
+      }
+      if (urlPath === "/run.json") {
+        const id = u.searchParams.get("run") || "";
+        const d = path.resolve(root, id);
+        if (!id || !d.startsWith(path.resolve(root) + path.sep) || !existsSync(d) || !isRunDir(d)) {
+          res.writeHead(404); res.end("unknown run"); return;
+        }
+        const run = assembleRun(d);
+        run.runId = id;
+        res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
+        res.end(JSON.stringify(run));
+        return;
+      }
+      if (urlPath.startsWith("/r/")) {
+        const fp = path.normalize(path.join(root, urlPath.slice(3)));
+        if (!fp.startsWith(path.resolve(root) + path.sep)) { res.writeHead(403); res.end("forbidden"); return; }
+        if (!existsSync(fp) || statSync(fp).isDirectory()) { res.writeHead(404); res.end("not found"); return; }
+        res.writeHead(200, { "content-type": MIME[path.extname(fp)] || "application/octet-stream", "cache-control": "no-store" });
+        res.end(readFileSync(fp));
+        return;
+      }
+      res.writeHead(404); res.end("not found");
+    } catch { res.writeHead(500); res.end("error"); }
+  });
+  server.listen(port, "127.0.0.1", () => {
+    const p = server.address().port;
+    const runs = listRuns(root);
+    console.log(`▶ observability (ALL runs): http://127.0.0.1:${p}/   (Ctrl-C to stop)`);
+    console.log(`  root: ${root} — ${runs.length} run(s): ${runs.slice(0, 6).join(", ")}${runs.length > 6 ? ", …" : ""}`);
+    console.log(`  toggle runs in the header dropdown; new runs appear live; each run polls its own /run.json`);
+  });
+}
+
 function serve(phaseDir, port) {
   const root = path.resolve(phaseDir);
+  // RUNS ROOT (not itself a run, but contains runs — or is empty and named like a root) → multi-run
+  if (!isRunDir(root) || listRuns(root).length) {
+    serveMulti(root, port);
+    return;
+  }
   const server = createServer((req, res) => {
     try {
       const urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
+      // LIVE data endpoint: the player polls this and re-renders — no rebuild/reload needed
+      if (urlPath === "/run.json") {
+        res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
+        res.end(JSON.stringify(assembleRun(root)));
+        return;
+      }
+      // the player itself is rebuilt on every request, so a plain reload is also always fresh
+      if (urlPath === "/" || urlPath === "/obs/player.html") buildPlayerSafe(root);
       const fp = path.normalize(path.join(root, urlPath === "/" ? "/obs/player.html" : urlPath));
       if (!fp.startsWith(root + path.sep) && fp !== root) { res.writeHead(403); res.end("forbidden"); return; }
       if (!existsSync(fp) || statSync(fp).isDirectory()) { res.writeHead(404); res.end("not found"); return; }
@@ -213,17 +365,23 @@ function serve(phaseDir, port) {
   });
   server.listen(port, "127.0.0.1", () => {
     const p = server.address().port;
-    console.log(`▶ replay player: http://127.0.0.1:${p}/obs/player.html   (Ctrl-C to stop)`);
-    console.log(`  re-run 'obs.mjs build ${phaseDir}' after new events to refresh the data (then reload)`);
+    console.log(`▶ replay player (single run): http://127.0.0.1:${p}/obs/player.html   (Ctrl-C to stop)`);
+    console.log(`  LIVE: the page polls /run.json and re-renders as new events/screenshots arrive — no reload needed`);
+    console.log(`  tip: serve the runs ROOT instead (node scripts/obs.mjs serve runs) to toggle between ALL runs in one UI`);
   });
 }
 
 // ---------------------------------------------------------------------------------------------
 async function main() {
-  const [cmd, phaseDir, ...rest] = process.argv.slice(2);
+  let [cmd, phaseDir, ...rest] = process.argv.slice(2);
+  // `serve` with no dir (or a flag first) defaults to the runs ROOT — one server, all runs
+  if (cmd === "serve" && (!phaseDir || phaseDir.startsWith("--"))) {
+    if (phaseDir) rest.unshift(phaseDir);
+    phaseDir = "runs";
+  }
   const flag = (k, d) => { const i = rest.indexOf(k); return i >= 0 ? rest[i + 1] : d; };
   if (!cmd || !phaseDir) {
-    console.error("usage: obs.mjs event|snapshot|build|serve|status <phaseDir> [flags]");
+    console.error("usage: obs.mjs event|snapshot|build|status <phaseDir> [flags]\n       obs.mjs serve [runsRoot|phaseDir] [--port n]   (default root: runs/ — ONE server, ALL runs, toggle in the UI)");
     process.exit(1);
   }
 
@@ -272,8 +430,12 @@ async function main() {
   }
 
   if (cmd === "serve") {
-    try { const r = buildPlayer(phaseDir); console.log(`✓ player rebuilt (${r.events} event(s))`); }
-    catch (e) { console.error(`⚠ player build failed (${e.message}) — serving whatever exists`); }
+    const root = path.resolve(phaseDir);
+    const multi = !isRunDir(root) || listRuns(root).length;
+    if (!multi) {
+      try { const r = buildPlayer(phaseDir); console.log(`✓ player rebuilt (${r.events} event(s))`); }
+      catch (e) { console.error(`⚠ player build failed (${e.message}) — serving whatever exists`); }
+    }
     serve(phaseDir, +flag("--port", "4173"));
     return;
   }
@@ -302,4 +464,4 @@ async function main() {
   process.exit(1);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) main().catch((e) => { console.error("✗ " + e.message); process.exit(1); });
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main().catch((e) => { console.error("✗ " + e.message); process.exit(1); });

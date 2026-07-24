@@ -290,3 +290,20 @@ Landed in plugin scripts + agents (offline gates green: `golden/run-golden.mjs`,
 | 5 | Done | `mock-gate.mjs` before plan-style |
 
 Frozen-run dry score (old deltas + refreshed briefs + new emitter): **gold detection 17/19 (89%)**. No block may leave measured FAILs without builder/plan/noise rows. Live canary re-measure still required for outcome (≥90% resolved).
+
+---
+
+## Demo-polish doctrine (landed 2026-07-23)
+
+Teaching the plugin the Harvey human-fix loop (options kebab, ToggleReply, sidebar scroll, CSS debt):
+
+| Artifact | Change |
+|---|---|
+| `knowledge/mechanism-polish.json` | Playbook: doctrine, vision loop, checklist, traps |
+| `knowledge/sdk-gotchas.json` | options-collapse, sidebar-flex-scrollport, composer-presence `:has` trap |
+| `scripts/knowledge.mjs` | `mechanism-polish` command + load key |
+| `agents/velt-builder.md` | DEMO-POLISH mandatory in style + fix; VALUES vs MECHANISM |
+| `agents/velt-orchestrator.md` | Plan once; refuse first-shot-only handoff; CSS-debt after structure patch |
+| `agents/velt-judge.md` | Mechanism checklist → first-class builder-errors |
+| `agents/velt-planner-style.md` | Do not plan 0×0 host collapses / mock-height scroll kills |
+| `skills/velt-operating-brief/SKILL.md` | Inner loop = Builder DEMO-POLISH ↔ Judge |

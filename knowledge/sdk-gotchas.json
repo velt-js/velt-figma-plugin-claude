@@ -294,6 +294,55 @@
       "seenOn": [
         "harvey (build-structure trial, live-verified)"
       ]
+    },
+    {
+      "id": "options-collapse-clips-design-trigger",
+      "veltVersion": "6.x",
+      "component": "ThreadCard.Options / Options.Trigger",
+      "kind": "css-fix",
+      "selectorHints": [
+        ".vc-options",
+        ".vc-options-trigger",
+        ".options-trigger-container"
+      ],
+      "symptom": "Design kebab inside Options.Trigger is invisible (resolve may still show) after a prior patch collapsed .vc-options to 0\u00d70 overflow:hidden to hide the SDK default \u2022\u2022\u2022.",
+      "cssFix": "/* knowledge:options-collapse-clips-design-trigger — size Options host; hide only SDK \u2022\u2022\u2022 glyph */\n.vc-options { width: 16px !important; height: 16px !important; overflow: visible !important; }\n.vc-options svg.comment-dialog-options-dropdown-trigger { width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; }\n.vc-options .options-trigger-container,\n.vc-options .mat-mdc-menu-trigger,\n.vc-options .v-dropdown-menu-trigger { width: 16px !important; height: 16px !important; overflow: visible !important; opacity: 1 !important; pointer-events: auto !important; }",
+      "fix": "Never zero the Options host or the mat trigger container when the design glyph lives inside Options.Trigger. Rest-hide via opacity on .vc-options; reveal on card/dialog hover.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey"
+      ]
+    },
+    {
+      "id": "sidebar-flex-scrollport",
+      "veltVersion": "6.x",
+      "component": "comments sidebar list",
+      "kind": "css-fix",
+      "selectorHints": [
+        "velt-comments-sidebar",
+        ".vc-list",
+        "app-comment-sidebar-list.vc-list",
+        ".velt-sidebar-content"
+      ],
+      "symptom": "Long comment lists are clipped by the host rail with no working scroll — list/content grow with min-height:auto until overflow:hidden ancestors clip them.",
+      "cssFix": "/* knowledge:sidebar-flex-scrollport */\nvelt-comments-sidebar { height: 100% !important; max-height: 100% !important; min-height: 0 !important; overflow: hidden !important; }\n.vc-panel, app-comment-sidebar-panel.vc-panel { flex: 1 1 0 !important; min-height: 0 !important; overflow: hidden !important; height: 100% !important; }\n.vc-list, app-comment-sidebar-list.vc-list { flex: 1 1 0 !important; min-height: 0 !important; overflow: auto !important; }\n.velt-sidebar-content { flex: 0 0 auto !important; height: auto !important; overflow: visible !important; }",
+      "fix": "Scrollport = the list (flex:1 + min-height:0 + overflow:auto). Do not pin the sidebar to a mock frame height (e.g. 832px) that fights the host rail.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey"
+      ]
+    },
+    {
+      "id": "composer-presence-has-hides-reply",
+      "veltVersion": "6.x",
+      "component": "ToggleReply / reply composer",
+      "kind": "behavior",
+      "symptom": "Body-level ToggleReply stays display:none on every thread because a CSS :has() keyed on composer NOT having inline style display:none — composer is always mounted and only hidden via a CSS class.",
+      "fix": "Hide Reply only under .velt-comment-dialog--selected / .selected. Never gate on :has(.vc-reply-composer:not([style*=\"display: none\"])).",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey"
+      ]
     }
   ]
 }

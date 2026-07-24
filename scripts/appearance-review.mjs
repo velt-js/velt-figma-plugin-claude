@@ -43,6 +43,9 @@ async function check(phaseDir, familyId) {
   const list = (blocks.blocks || []).filter((b) => !familyId || b.familyId === familyId);
   const missing = [];
   const blocked = [];
+  const silentClean = [];
+  let composedAudit = null;
+  try { composedAudit = JSON.parse(await fs.readFile(path.join(phaseDir, "composed-audit.json"), "utf8")); } catch { /* optional until Judge runs */ }
   for (const b of list) {
     const p = path.join(phaseDir, "appearance", `${b.id}.json`);
     if (!(await exists(p))) { missing.push(b.id); continue; }
@@ -50,17 +53,31 @@ async function check(phaseDir, familyId) {
     if (doc.status !== "appearance-reviewed") missing.push(b.id);
     if (!doc.figmaFramePng && !doc.mockScreenshot) missing.push(b.id + "(no-ref-image)");
     if (!doc.liveScreenshot) missing.push(b.id + "(no-live)");
-    if ((doc.unresolved || []).length && !["blocked-for-replan", "plan-error", "accepted-noise"].includes(doc.disposition)) {
+    if ((doc.unresolved || []).length && !["blocked-for-replan", "plan-error", "accepted-noise", "open"].includes(doc.disposition)) {
       blocked.push(b.id);
     }
-    if (doc.disposition === "blocked-for-replan") blocked.push(b.id);
+    if (doc.disposition === "blocked-for-replan" || doc.disposition === "open") blocked.push(b.id);
+    // Ban silent clean: disposition clean/resolved with empty unresolved while composed-audit failed
+    if (composedAudit && composedAudit.ok === false
+      && (!doc.unresolved || !doc.unresolved.length)
+      && (doc.disposition === "clean" || doc.disposition === "resolved")) {
+      silentClean.push(b.id);
+    }
+  }
+  if (composedAudit && composedAudit.ok === false && !composedAudit.blocks) {
+    console.error("✗ appearance-review: composed-audit.json ok:false — re-run composed-audit.mjs before claiming clean");
+    process.exit(2);
+  }
+  if (silentClean.length) {
+    console.error(`✗ appearance-review SILENT_CLEAN (composed-audit failed): ${silentClean.join(", ")}`);
+    process.exit(2);
   }
   if (missing.length) {
     console.error(`✗ appearance-review incomplete: ${missing.join(", ")}`);
     process.exit(2);
   }
   if (blocked.length) {
-    console.error(`✗ appearance-review BLOCKED_FOR_REPLAN: ${[...new Set(blocked)].join(", ")}`);
+    console.error(`✗ appearance-review has unresolved composed misses: ${[...new Set(blocked)].join(", ")}`);
     process.exit(2);
   }
   console.log(`✓ appearance-review: ${list.length} block(s) reviewed`);

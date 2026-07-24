@@ -86,6 +86,32 @@ export function compareProp(prop, expected, rendered, tol = {}) {
     const fam = String(expected).replace(/["']/g, "").split(",")[0].trim().toLowerCase();
     return { pass: String(rendered).toLowerCase().includes(fam), why: "family not in computed stack" };
   }
+  if (prop === "box-shadow" || prop === "text-shadow") {
+    // Canonical shadow compare (F5): computed style reorders colour-first and pads units
+    // ("rgb(228, 225, 221) 0px 0px 0px 1px" vs spec "0 0 0 1px #e4e1dd") — a string compare
+    // fails IDENTICAL values. Compare colour by ΔE and lengths within ±px, per shadow.
+    const split = (s) => String(s).split(/,(?![^(]*\))/).map((x) => x.trim()).filter((x) => x && x !== "none");
+    const es = split(expected), rs = split(rendered);
+    if (es.length !== rs.length) return { pass: false, why: `shadow count ${es.length}≠${rs.length}` };
+    for (let i = 0; i < es.length; i++) {
+      const colorTok = (s) => (s.match(/#[0-9a-f]{3,8}|rgba?\([^)]+\)|transparent/i) || [""])[0];
+      const et = colorTok(es[i]), rt = colorTok(rs[i]);
+      const ec = parseColor(et), rc = parseColor(rt);
+      if (!!ec !== !!rc) return { pass: false, why: `shadow ${i} colour presence differs` };
+      if (ec && rc) {
+        if ((ec.a === 0) !== (rc.a === 0)) return { pass: false, why: `shadow ${i} alpha differs` };
+        if (ciede2000(ec, rc) >= dE) return { pass: false, why: `shadow ${i} colour ΔE ${ciede2000(ec, rc).toFixed(2)}` };
+      }
+      const en = nums(es[i].replace(et, "")), rn = nums(rs[i].replace(rt, ""));
+      while (en.length < 4) en.push(0);
+      while (rn.length < 4) rn.push(0);
+      for (let j = 0; j < 4; j++) {
+        if (Math.abs((en[j] || 0) - (rn[j] || 0)) > px) return { pass: false, why: `shadow ${i} length[${j}] Δ${((en[j] || 0) - (rn[j] || 0)).toFixed(1)}px` };
+      }
+      if (/\binset\b/.test(es[i]) !== /\binset\b/.test(rs[i])) return { pass: false, why: `shadow ${i} inset differs` };
+    }
+    return { pass: true };
+  }
   if (LEN_PROPS.has(prop)) {
     const e = nums(expected), r = nums(rendered);
     if (e.length !== r.length) {
@@ -96,8 +122,14 @@ export function compareProp(prop, expected, rendered, tol = {}) {
     const ok = e.every((v, i) => Math.abs(v - r[i]) <= px);
     return { pass: ok, why: ok ? "" : `Δ ${e.map((v, i) => (v - r[i]).toFixed(0)).join(",")}px` };
   }
-  // font-weight: 500 vs "500"; flex/keywords: normalize whitespace + trailing units
-  const norm = (s) => String(s).trim().toLowerCase().replace(/\s+/g, " ").replace(/0px|0%/g, "0");
+  // font-weight: 500 vs "500"; flex/keywords: normalize whitespace + trailing units.
+  // F5: canonicalize embedded colour tokens to rgba() first — "#e4e1dd" and
+  // "rgb(228, 225, 221)" are the same value and must never fail a string compare.
+  const canonColors = (s) => String(s).replace(/#[0-9a-f]{3,8}\b|rgba?\([^)]+\)/gi, (tok) => {
+    const c = parseColor(tok);
+    return c ? `rgba(${c.r},${c.g},${c.b},${+c.a.toFixed(3)})` : tok;
+  });
+  const norm = (s) => canonColors(s).trim().toLowerCase().replace(/\s+/g, " ").replace(/0px|0%/g, "0");
   if (prop === "flex" || prop === "align-self") {
     return { pass: norm(rendered).startsWith(norm(expected).split(" ").slice(0, 2).join(" ")), expected, rendered };
   }
@@ -338,10 +370,33 @@ export const BROWSER_PROBE = `(function(SPEC){
   // geometry is unattributable for ANY selector shared by >1 row (real collision OR benign flatten);
   // suppress boxes for all of them, but only REAL painter-collisions become reported findings.
   var collidedSel={};for(var g=0;g<order.length;g++){if(groups[order[g]].length>1)collidedSel[order[g]]=true;}
+  // F4 PAINT-BINDING (v5 judge precision): a wireframe HOST element is often a transparent
+  // wrapper (bg transparent / radius 0 / pad 0) around the styled child that actually paints
+  // the card. Probing paint props on the host emits ~20 false container rows per run. When a
+  // row EXPECTS paint and the bound node paints nothing, walk down to the first descendant
+  // that paints (non-transparent bg / visible border / shadow / radius) and shares the host's
+  // box — and compare against THAT node.
+  var PAINT_EXPECT={'background':1,'background-color':1,'border':1,'border-color':1,'border-width':1,'border-radius':1,'box-shadow':1};
+  function expectsPaint(exp){for(var k in (exp||{})){if(PAINT_EXPECT[k])return true;}return false;}
+  function paintsAny(c){var bg=parseColor(c.backgroundColor);return (bg&&bg.a>0)||((parseFloat(c.borderTopWidth)||0)>0&&c.borderTopStyle!=='none')||(!!c.boxShadow&&c.boxShadow!=='none')||((parseFloat(c.borderTopLeftRadius)||0)>0);}
+  function descendToPainter(host){
+    var hb=host.getBoundingClientRect();var cand=host.querySelectorAll('*');
+    for(var ci=0;ci<cand.length&&ci<40;ci++){var d=cand[ci];var db=d.getBoundingClientRect();
+      if(db.width<hb.width*0.6||db.height<4)continue;
+      if(db.left<hb.left-4||db.top<hb.top-4||db.right>hb.right+4||db.bottom>hb.bottom+4)continue;
+      if(paintsAny(getComputedStyle(d)))return d;
+    }
+    return null;
+  }
   for(var i=0;i<list.length;i++){var s=list[i];
     var scope=(surf&&surf!==document.body)?surf:document;
     var el=visMatches(scope,s.selector)[0]||visMatches(document,s.selector)[0]||null;
     if(!el){els.push({name:s.name,present:false,expectedBox:s.box});continue;}
+    var boundDescendant=null;
+    if(expectsPaint(s.expected)&&!paintsAny(getComputedStyle(el))){
+      var painted=descendToPainter(el);
+      if(painted){boundDescendant=((painted.className&&painted.className.toString)?painted.className.toString().split(/\\s+/)[0]:'')||(painted.tagName||'').toLowerCase();el=painted;}
+    }
     var cs=getComputedStyle(el),rendered={};
     for(var p in (s.expected||{})){rendered[p]=readProp(cs,p);}
     var r=el.getBoundingClientRect();
@@ -364,7 +419,7 @@ export const BROWSER_PROBE = `(function(SPEC){
         }
       }catch(e){renderedText='';}
     }
-    els.push({name:s.name,present:true,table:compareDecls(s.expected||{},rendered),box:box,expectedBox:s.box,expectedText:s.expectedText||null,renderedText:renderedText,rendered:paintSnap,liveBox:{x:Math.round(r.left-sr.left),y:Math.round(r.top-sr.top),w:Math.round(r.width),h:Math.round(r.height)}});
+    els.push({name:s.name,present:true,table:compareDecls(s.expected||{},rendered),box:box,expectedBox:s.box,expectedText:s.expectedText||null,renderedText:renderedText,rendered:paintSnap,boundTo:boundDescendant,liveBox:{x:Math.round(r.left-sr.left),y:Math.round(r.top-sr.top),w:Math.round(r.width),h:Math.round(r.height)}});
   }
   if(surfaceUnresolved){
     els.unshift({name:'(surface)',present:false,note:'surface selector unresolved: '+(SPEC.surfaceSelector||'')+(SPEC.fallbackSurface?' / '+SPEC.fallbackSurface:'')+' — box comparisons skipped; fix the brief surfaceSelector'});

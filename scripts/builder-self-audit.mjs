@@ -6,9 +6,9 @@
 //
 // Usage:
 //   node scripts/builder-self-audit.mjs <phaseDir> --url <url> --connect <ws>
-//        [--family <id>] [--skip-measure] [--require-appearance]
+//        [--family <id>] [--skip-measure] [--require-appearance] [--skip-host] [--skip-checklist]
 // Exit 0 = audit artifacts present and no hard blockers
-// Exit 2 = failed measures / missing appearance / structural invariants / unresolved text
+// Exit 2 = failed measures / missing appearance / structural invariants / host-wiring / mechanism-checklist / unresolved text
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
@@ -44,6 +44,15 @@ async function main() {
   await fs.mkdir(auditDir, { recursive: true });
   const summary = { at: new Date().toISOString(), familyId: familyId || null, blocks: {}, ok: true, blockers: [] };
 
+  // 0) Host wiring (GOLDEN-PATH — plan hostProps must be baked, not listed as manual)
+  if (!has("--skip-host")) {
+    const hw = run([path.join(SCRIPTS, "verify-host-wiring.mjs"), phaseDir]);
+    if (hw.status !== 0) {
+      summary.ok = false;
+      summary.blockers.push("host-wiring missing — run verify-host-wiring.mjs --apply (R18 exception: APPLY+KEEP plan hostProps)");
+    }
+  }
+
   // 1) Structural invariants (when connect available)
   if (url && ws && !has("--skip-invariants")) {
     const inv = run([path.join(SCRIPTS, "structural-invariants.mjs"), phaseDir, "--url", url, "--connect", ws, ...(familyId ? ["--family", familyId] : [])]);
@@ -59,6 +68,15 @@ async function main() {
     if (ap.status !== 0) {
       summary.ok = false;
       summary.blockers.push("appearance-review incomplete or BLOCKED_FOR_REPLAN");
+    }
+  }
+
+  // 2b) Mechanism / demo-polish checklist (terminate on appearance, not diffCount plateau)
+  if (!has("--skip-checklist") && (has("--require-appearance") || !has("--skip-appearance"))) {
+    const mc = run([path.join(SCRIPTS, "mechanism-checklist.mjs"), "check", phaseDir, ...(familyId ? ["--family", familyId] : [])]);
+    if (mc.status !== 0) {
+      summary.ok = false;
+      summary.blockers.push("mechanism-checklist incomplete or FAIL — DEMO-POLISH required before handoff");
     }
   }
 

@@ -17,4 +17,4 @@ Fix the specific mismatch described in **$ARGUMENTS**, in the **current project*
 6. **Update** `block-report.json` + `journal.jsonl`; append the correction to memory as `tentative` (promoted to `confirmed` only on "phase N complete").
 7. **Re-emit the phase handoff** ([`templates/phase-handoff.md`](../templates/phase-handoff.md)) with before/after evidence, the blast-radius blocks re-checked, and residual risk.
 
-Termination is still mechanical (`verdict-gate-blocks.mjs`), never `/goal`. Touch only `components/velt/ui-customization/` (R18). Never invent identifiers (R10); never hack (R0).
+Termination is still mechanical (`verdict-gate-blocks.mjs`), never `/goal`. Touch `components/velt/ui-customization/` plus plan hostProps / unstyled / `<VeltCustomization/>` on the host (R18 exception — APPLY+KEEP via `verify-host-wiring.mjs --apply`). Require DEMO-POLISH checklist (`mechanism-checklist.mjs`). Never invent identifiers (R10); never hack (R0).

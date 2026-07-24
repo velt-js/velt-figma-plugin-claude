@@ -501,6 +501,36 @@ export function enrichBriefForStyle(brief, block, sliceNodes, snapshot, comp = n
   return out;
 }
 
+// ---- style-plan authorship / thinness (lint-style + golden calibration) ----
+// A verified failure class: the style planner wedged → orchestrator wrote a deterministic
+// "spec-join" plan-style.json with a thin rule set and proceeded. That cannot produce a
+// golden-class demo. Fail closed: refuse deterministic/assumed authorship; require a floor
+// of rules relative to block count.
+export function stylePlanAuthorshipProblems(planStyle, blocksDoc = null) {
+  const problems = [];
+  if (!planStyle) { problems.push({ kind: "missing", note: "plan-style.json missing" }); return problems; }
+  const gen = String(planStyle.generatedBy || planStyle.authorship || "");
+  if (/deterministic|spec-join|assume|fallback|dead-planner|orchestrator deterministic/i.test(gen)) {
+    problems.push({
+      kind: "thin-authorship",
+      note: `generatedBy/authorship is a dead-planner fallback (${gen.slice(0, 80)}) — re-dispatch velt-planner-style; do NOT ship a deterministic join as the style plan`,
+    });
+  }
+  if (planStyle.assumedFills || planStyle.assumed === true || planStyle.authorship === "assumed") {
+    problems.push({ kind: "assumed", note: "style plan marked assumed — HALT and re-plan style; --assume-remaining is forbidden for --stage style" });
+  }
+  const rules = planStyle.rules || [];
+  const blockN = (blocksDoc?.blocks || []).length || 0;
+  const minRules = Math.max(12, blockN * 3);
+  if (rules.length && rules.length < minRules) {
+    problems.push({
+      kind: "thin-rules",
+      note: `only ${rules.length} style rule(s); need ≥${minRules} for ${blockN || "?"} block(s) — style planner under-shipped`,
+    });
+  }
+  return problems;
+}
+
 // ---- style-plan selector validation (lint-style + golden calibration) ----
 // Every selector in plan-style.json must be REAL — its class/tag tokens must exist in a dom-snapshot.
 // A guessed selector binds to nothing and fails SILENTLY (half of a verified run's defects). Pseudo
@@ -653,6 +683,22 @@ export function planStructureProblems(plan, manifest) {
       }
     }
   }
+  // Structure-producing host props: if the plan maps MoreReply / Show-N, collapsed* must be listed
+  const planBlob = JSON.stringify(plan || {});
+  const needsCollapsed = /MoreReply|Show\s*\d+\s*replies|collapsedRepliesPreview|collapsedComments/i.test(planBlob);
+  if (needsCollapsed) {
+    const allHp = (plan.components || []).flatMap((c) => (c.hostProps || []).map((h) => h.prop));
+    for (const need of ["collapsedComments", "collapsedRepliesPreview"]) {
+      if (!allHp.includes(need)) {
+        problems.push({
+          kind: "missing-host-prop",
+          slot: need,
+          note: "design/plan references collapsed Show-N / MoreReply structure — list collapsedComments + collapsedRepliesPreview on the VeltComments hostProps (R21); CSS cannot fake this",
+        });
+      }
+    }
+  }
+
   // dedupe
   const seen = new Set();
   return problems.filter((p) => { const k = JSON.stringify(p); if (seen.has(k)) return false; seen.add(k); return true; });
@@ -724,6 +770,11 @@ async function main() {
     if (!planStyle) { console.log("✗ plan-style.json missing — the style planner must emit it before the style build"); bad++; }
     else if (!snaps.length) { console.log("✗ no dom-snapshot/*.json with a tree — run dom-snapshot.mjs after the structure build"); bad++; }
     else {
+      const blocksDoc = await loadJson(path.join(phaseDir, "blocks.json")).catch(() => null);
+      for (const p of stylePlanAuthorshipProblems(planStyle, blocksDoc)) {
+        console.log(`✗ plan-style authorship: ${p.note}`);
+        bad++;
+      }
       const corpus = snapshotCorpus(snaps);
       const rules = planStyle.rules || [];
       if (!rules.length) { console.log("✗ plan-style.json has 0 rules — an empty style plan is the silent no-op failure class; HALT"); bad++; }

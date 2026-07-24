@@ -13,18 +13,24 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { compareDecls, compareText, verdictOf, BROWSER_PROBE, LAYER_PROBE, reconcilePlan, mountMapDiff, CONTRACT_PROBE, STABILITY_PROBE } from "../scripts/delta-compare.mjs";
+import { compareDecls, compareProp, compareText, verdictOf, BROWSER_PROBE, LAYER_PROBE, reconcilePlan, mountMapDiff, CONTRACT_PROBE, STABILITY_PROBE } from "../scripts/delta-compare.mjs";
 import { verdictGateBlocks } from "../scripts/verdict-gate-blocks.mjs";
 import { assignIcons, normalizeBoxes } from "../scripts/figma-extract.mjs";
 import { verdictGate } from "../scripts/verdict-gate.mjs";
 import { buildChecklist } from "../scripts/build-checklist.mjs";
-import { selectorTokensExist, snapshotCorpus, planSpecValueConflicts, planStructureProblems, structureFingerprint, styleCoverageGaps, nodeKindOf, textContentOf, isStaticChromeText, scaffoldProbes, probeBindingProblems, deriveThreadStructureContracts } from "../scripts/brief-scaffold.mjs";
+import { selectorTokensExist, snapshotCorpus, planSpecValueConflicts, planStructureProblems, structureFingerprint, styleCoverageGaps, nodeKindOf, textContentOf, isStaticChromeText, scaffoldProbes, probeBindingProblems, deriveThreadStructureContracts, stylePlanAuthorshipProblems } from "../scripts/brief-scaffold.mjs";
 import { evaluateInvariantResult } from "../scripts/structural-invariants.mjs";
-import { classifyDiff, issueKey } from "../scripts/emit-judge-defects.mjs";
+import { classifyDiff, issueKey, workOrderPriority, isTemplatedMiss, boxIoU } from "../scripts/emit-judge-defects.mjs";
+import { collectRequiredWiring, evaluateHostSource, checkPropInSource } from "../scripts/verify-host-wiring.mjs";
+import { applicableChecklist, evaluateChecklistDoc } from "../scripts/mechanism-checklist.mjs";
+import { goldenPathProblems } from "../scripts/golden-path-check.mjs";
 import { findRegressions, fingerprintBlock } from "../scripts/regression-guard.mjs";
 import { selectorMatchesSnapshots, repairSelector, repairDrive } from "../scripts/drive-repair.mjs";
 import { skeletonProblems } from "../scripts/skeleton-check.mjs";
 import { SNAPSHOT_FN } from "../scripts/dom-snapshot.mjs";
+import { calibrateJudgeValidation } from "./judge-validation.mjs";
+import { calibrateDefectContract } from "./defect-contract.mjs";
+import { calibrateCompiledOracle } from "./compiled-oracle.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -724,7 +730,7 @@ function calibrateTwoPhase() {
 }
 
 /** Accuracy-plan calibrations: expectedTexts from n.text.content, compareText, probe misbind, coverage floor, invariants. */
-function calibrateAccuracyFixes() {
+async function calibrateAccuracyFixes() {
   const problems = [];
 
   // (a) textContentOf reads object OR string
@@ -803,18 +809,100 @@ function calibrateAccuracyFixes() {
   if (!(withRoot.browser.elements || []).some((e) => e.surfaceRoot || e.sourceNodeId === "root"))
     problems.push("painted root surfaces must be scaffolded as measurable elements");
 
-  // (i) emit-judge-defects classification — no silent drop; avatar→plan; layout-frame→noise; content-height→builder
+  // (i) emit-judge-defects classification — no silent drop; avatar→plan; layout-frame→noise;
+  // content-height→noise ONLY below the F9 severity floor (>30% off surfaces as layout-spacing)
   const av = classifyDiff({ element: "avatar", property: "background", spec: "#eee", rendered: "transparent" }, { nodeKind: "paint" });
   if (av.attribution !== "plan-error(style)") problems.push("avatar diffs must be plan-error(style)");
   const lf = classifyDiff({ element: "frame-1", property: "padding", spec: "8px", rendered: "0px" }, { nodeKind: "layout-frame" });
   if (lf.attribution !== "noise") problems.push("layout-frame padding must be noise ledger, not silent drop");
-  const ch = classifyDiff({ element: "(gross)", property: "content-height", spec: "100px", rendered: "400px" }, {});
-  if (ch.attribution !== "builder-error") problems.push("content-height must be builder-error");
+  const chSmall = classifyDiff({ element: "(gross)", property: "content-height", spec: "100px", rendered: "110px" }, {});
+  if (chSmall.attribution !== "noise") problems.push("content-height within floor must be noise (data-density)");
+  const chBig = classifyDiff({ element: "(gross)", property: "content-height", spec: "100px", rendered: "400px" }, {});
+  if (chBig.attribution !== "builder-error" || chBig.severityFloor !== true)
+    problems.push("F9: content-height >30% off must cross the severity floor to builder-error, not noise");
+  const gapBig = classifyDiff({ element: "card↔card", property: "gap.y", spec: "16px", rendered: "8px" }, {});
+  if (gapBig.attribution !== "builder-error" || gapBig.severityFloor !== true)
+    problems.push("F9: gap 2x off spec must cross the severity floor");
+  if (workOrderPriority({ issueKey: "x.gap.y", property: "gap.y", severityFloor: true }).label !== "layout-spacing")
+    problems.push("F9: severity-floor rows must rank P1 layout-spacing");
+  const dataText = classifyDiff({ element: "name", property: "text", spec: "Reply", rendered: "Me" }, {});
+  if (dataText.attribution !== "noise") problems.push("F5: user-data text rows (name/timestamp) must be noise — data is never a defect");
+  const phText = classifyDiff({ element: "composer-placeholder", property: "text", spec: "Comment or tag others", rendered: "" }, {});
+  if (phText.attribution !== "builder-error") problems.push("placeholder text rows must stay builder-error");
   const key = issueKey({ element: "iconbutton", property: "box.w" });
   if (!/\.size$/.test(key)) problems.push("width/height must collapse to issueKey …size");
+  if (workOrderPriority({ issueKey: "host-wiring.collapsedComments" }).tier !== "P0")
+    problems.push("host-wiring must be workOrder P0");
+  if (workOrderPriority({ issueKey: "x.content-height", property: "content-height", element: "(gross)" }).tier !== "P3")
+    problems.push("content-height (below floor) must be workOrder P3");
+  // F1: templated region ids can never rank as composed-vision P0
+  if (workOrderPriority({ issueKey: "composed.flow.visual-chrome-0", composed: false, unnamedRegion: true }).tier !== "P1")
+    problems.push("F1: unnamed regions must rank P1, never P0");
+  if (!isTemplatedMiss({ id: "visual-chrome-0", issue: "significant chrome mismatch vs Figma in region 24,132 288x60" }))
+    problems.push("F1: region-templated glance rows must be detected as laundered");
+  if (isTemplatedMiss({ id: "card-border-chrome", issue: "thread cards render as a flat divider list — no border/radius" }))
+    problems.push("F1: named semantic misses must NOT be flagged as templated");
+  // F6: box IoU identity
+  if (boxIoU({ x: 0, y: 0, w: 100, h: 100 }, { x: 5, y: 5, w: 100, h: 100 }) < 0.8)
+    problems.push("F6: near-identical boxes must exceed IoU 0.8");
+  if (boxIoU({ x: 0, y: 0, w: 100, h: 100 }, { x: 200, y: 200, w: 50, h: 50 }) !== 0)
+    problems.push("F6: disjoint boxes must have IoU 0");
+  // F5: canonical comparisons — identical box-shadow written two ways must PASS
+  const shadowSame = compareProp("box-shadow", "0 0 0 1px #e4e1dd", "rgb(228, 225, 221) 0px 0px 0px 1px");
+  if (!shadowSame.pass) problems.push("F5: identical box-shadow (hex vs rgb, colour-first) must pass canonical compare");
+  const shadowDiff = compareProp("box-shadow", "0 4px 12px rgba(0,0,0,.04)", "none");
+  if (shadowDiff.pass !== false) problems.push("F5: missing shadow must still fail");
+  const bgSame = compareProp("border-width", "1px #e4e1dd", "1px rgb(228, 225, 221)");
+  if (!bgSame.pass) problems.push("F5: embedded colour tokens must canonicalize in default string compare");
+
+  // (j) style-plan thin authorship must fail closed (no deterministic spec-join)
+  const thin = stylePlanAuthorshipProblems({
+    generatedBy: "orchestrator deterministic spec-join (style planner looped)",
+    rules: Array.from({ length: 28 }, (_, i) => ({ selector: `.vc-x${i}`, decls: { color: "#000" } })),
+  }, { blocks: Array.from({ length: 8 }, (_, i) => ({ id: `b${i}` })) });
+  if (!thin.some((p) => p.kind === "thin-authorship")) problems.push("deterministic generatedBy must be refused by stylePlanAuthorshipProblems");
+
+  // (k) host-wiring prop presence + required collection
+  const hostSrc = `export function X(){ return (<><VeltCustomization/><VeltComments shadowDom={false} collapsedComments commentPlaceholder="Hi" /><VeltCommentsSidebar embedMode pageMode shadowDom={false} /></>); }`;
+  if (checkPropInSource(hostSrc, "VeltComments", "collapsedComments", true) !== true) problems.push("checkPropInSource must see bare boolean collapsedComments");
+  const req = collectRequiredWiring({
+    components: [{ id: "c", veltComponents: { onComponent: "VeltComments" }, hostProps: [{ prop: "collapsedComments", value: true }] }],
+  }, { alwaysOn: [{ id: "velt-customization-mount", check: "<VeltCustomization />" }] });
+  const ev = evaluateHostSource([{ file: "x.tsx", text: hostSrc }], req);
+  if (ev.missing.length) problems.push("evaluateHostSource should find customization mount + collapsedComments");
+
+  // (l) mechanism checklist requires recorded pass/na
+  const appl = applicableChecklist({ checklist: [{ id: "sidebar-list-scrolls", surface: "comments sidebar" }] }, [{ id: "flow", familyId: "flows", component: "sidebar" }]);
+  const badCheck = evaluateChecklistDoc({ items: [] }, appl);
+  if (badCheck.ok) problems.push("empty mechanism checklist must not evaluate ok");
+  const goodCheck = evaluateChecklistDoc({ items: [{ id: "sidebar-list-scrolls", status: "pass", evidence: "scrollTop=200" }] }, appl);
+  if (!goodCheck.ok) problems.push("recorded pass must evaluate ok");
+
+  // (m) host-chrome notes → noise ledger
+  const hc = classifyDiff({ element: "filter", property: "box.x", spec: "0", rendered: "15", note: "host-chrome offset (R18 out of shared-stylesheet scope)" }, { nodeKind: "paint" });
+  if (hc.attribution !== "noise") problems.push("host-chrome offset note must classify as noise");
+
+  // (n) golden-path-check fails closed on thin style + missing host/checklist
+  {
+    const tmp = await fs.mkdtemp(path.join(ROOT, "golden", ".gp-"));
+    try {
+      await fs.writeFile(path.join(tmp, "blocks.json"), JSON.stringify({ blocks: [{ id: "flow", component: "sidebar" }] }));
+      await fs.writeFile(path.join(tmp, "plan-style.json"), JSON.stringify({
+        generatedBy: "orchestrator deterministic spec-join",
+        rules: Array.from({ length: 40 }, (_, i) => ({ selector: `.a${i}`, decls: { color: "#000" } })),
+      }));
+      await fs.writeFile(path.join(tmp, "host-wiring.json"), JSON.stringify({ ok: false, missing: [{ prop: "collapsedComments" }] }));
+      const gps = await goldenPathProblems(tmp);
+      if (!gps.some((p) => p.gate === "host-wiring")) problems.push("goldenPathProblems must flag host-wiring");
+      if (!gps.some((p) => p.gate === "style-plan")) problems.push("goldenPathProblems must flag thin style authorship");
+      if (!gps.some((p) => p.gate === "mechanism-checklist")) problems.push("goldenPathProblems must flag missing mechanism-checklist");
+    } finally {
+      await fs.rm(tmp, { recursive: true, force: true }).catch(() => {});
+    }
+  }
 
   if (problems.length) { for (const p of problems) console.error("  ✗ accuracy-fixes: " + p); return false; }
-  console.log("✓ Accuracy-fix calibrations — expectedTexts from n.text.content; compareText; placeholder misbind lint; coverage minAssert floor; thread contracts; structural invariants; emit classification");
+  console.log("✓ Accuracy-fix calibrations — expectedTexts; compareText; placeholder misbind; coverage; thread contracts; structural invariants; emit; golden-path authorship/host/checklist");
   return true;
 }
 
@@ -856,8 +944,14 @@ async function main() {
   if (!stabilityCalibrated) failed++;
   const twoPhaseCalibrated = calibrateTwoPhase();
   if (!twoPhaseCalibrated) failed++;
-  const accuracyCalibrated = calibrateAccuracyFixes();
+  const accuracyCalibrated = await calibrateAccuracyFixes();
   if (!accuracyCalibrated) failed++;
+  const judgeValidationCalibrated = await calibrateJudgeValidation();
+  if (!judgeValidationCalibrated) failed++;
+  const defectContractCalibrated = await calibrateDefectContract();
+  if (!defectContractCalibrated) failed++;
+  const compiledOracleCalibrated = await calibrateCompiledOracle();
+  if (!compiledOracleCalibrated) failed++;
 
   if (failed) { console.error(`\n✗ golden offline guard FAILED for ${failed} check(s)`); process.exit(1); }
   console.log(`\n✓ golden offline guard passed (probe/gate/judge calibration suites all green)`);

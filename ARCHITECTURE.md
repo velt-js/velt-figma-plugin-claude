@@ -2,7 +2,7 @@
 
 > **Status: implemented.** This was the build plan; the plugin now exists (manifest, agents, skills, command, scripts, guide bundle, golden test). It's kept as the **architecture/design reference** — the *why* behind the structure. For the *how-to-use*, see `README.md`; for the runtime brief, see `skills/velt-operating-brief/`.
 
-> A Claude Code plugin that turns a **Figma design** into **clean, rule-compliant Velt UI customization** (comments + notifications) on a client's **existing React app**, iterating Planner → Builder → Judge until each component visually matches or is honestly reported as an SDK gap. Always uses the **latest** customization guide.
+> A Claude Code plugin that turns a **Figma design** into **clean, rule-compliant Velt UI customization** (comments + notifications) on a client's **existing React app**. **Plan once** (structure + style values), then converge on **Builder DEMO-POLISH ↔ Judge** (vision→live DOM→mechanism CSS for composed appearance; planner only on bounded `plan-error`). Always uses the **latest** customization guide + `knowledge/mechanism-polish.json`.
 
 ---
 

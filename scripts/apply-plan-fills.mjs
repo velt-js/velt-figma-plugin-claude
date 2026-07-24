@@ -93,6 +93,12 @@ async function main() {
     console.error("usage: apply-plan-fills.mjs <phaseDir> <fills.json> [--assume-remaining] [--stage structure|style]");
     process.exit(1);
   }
+  // GOLDEN-PATH: a thin/deterministic style plan is exactly how demos miss composed polish.
+  // --assume-remaining is allowed for structure briefs only — never for --stage style.
+  if (assumeRemaining && stage === "style") {
+    console.error("✗ --assume-remaining is FORBIDDEN with --stage style — re-dispatch velt-planner-style (or HALT). A deterministic/assumed style plan cannot enter the style build.");
+    process.exit(2);
+  }
 
   const fills = await readJson(fillsPath);
   const briefsDir = path.join(phaseDir, "briefs");
@@ -113,7 +119,13 @@ async function main() {
     }
     if (snaps.length) fills.planJson.structureFingerprint = structureFingerprint(snaps);
   }
-  if (fills.planJson) { await writeJson(path.join(phaseDir, planFile), fills.planJson); out.wrote.push(planFile); }
+  if (fills.planJson) {
+    if (stage === "style" && !fills.planJson.generatedBy && !fills.planJson.authorship) {
+      fills.planJson.authorship = "planner";
+    }
+    await writeJson(path.join(phaseDir, planFile), fills.planJson);
+    out.wrote.push(planFile);
+  }
   else out.warnings.push("no planJson in fills");
   if (fills.connectMapJson) { await writeJson(path.join(phaseDir, "connect-map.json"), fills.connectMapJson); out.wrote.push("connect-map.json"); }
   else if (stage !== "style") out.warnings.push("no connectMapJson in fills");

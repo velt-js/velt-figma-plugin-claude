@@ -1,0 +1,9 @@
+{"t":"2026-07-28T08:04:38.371Z","type":"run.start","src":"phase-init","summary":"phase WYAWuEm8DrIk-351-15578 initialized — preflight next","data":{"phaseId":"WYAWuEm8DrIk-351-15578"}}
+{"t":"2026-07-28T08:04:58.824Z","type":"log","src":"progress","summary":"preflight: mode=strictly wireframe budget=balanced --auto (unattended, fail-fast)"}
+{"t":"2026-07-28T08:04:58.872Z","type":"log","src":"progress","summary":"preflight: plugin repo = velt-figma-plugin-claude @ 7046d13 (branch cursor/open-envoy-wireframe-loop-d5c4)"}
+{"t":"2026-07-28T08:04:58.908Z","type":"log","src":"progress","summary":"preflight ✗ HARD: FIGMA_TOKEN absent — 'figma-extract.mjs token status' => no token. REST is the ONLY design-intake path (no Figma MCP fallback); design intake impossible."}
+{"t":"2026-07-28T08:05:52.649Z","type":"log","src":"progress","summary":"preflight ✓ machine hygiene clean (/etc/hosts no velt.dev pin; clock UTC). No dev-server port listening in 3000-9999 (only 5901 Xtigervnc)."}
+{"t":"2026-07-28T08:05:52.688Z","type":"log","src":"progress","summary":"preflight: api.figma.com reachable, returns HTTP 403 unauthenticated => egress OK, ONLY the credential is missing (actionable)."}
+{"t":"2026-07-28T08:05:52.726Z","type":"log","src":"progress","summary":"preflight ✗ HARD: no target app in cwd — /workspace is the PLUGIN repo (no package.json, no components/). Harvey / velt-customization-cloud-demo is NOT cloned in this run and is not reachable via gh (velt-js has 52 repos, none match)."}
+{"t":"2026-07-28T08:05:52.763Z","type":"log","src":"progress","summary":"preflight ✗ browser: browser-endpoint.mjs exit 3 — no CDP endpoint pinned (moot without an app to measure)."}
+{"t":"2026-07-28T08:05:52.800Z","type":"log","src":"progress","summary":"HALTED (--auto fail-fast): 2 hard preflight failures — (1) FIGMA_TOKEN missing, (2) no target app. Design intake and measurement are both impossible; no build attempted."}

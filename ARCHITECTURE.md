@@ -2,7 +2,7 @@
 
 > **Status: implemented.** This was the build plan; the plugin now exists (manifest, agents, skills, command, scripts, guide bundle, golden test). It's kept as the **architecture/design reference** — the *why* behind the structure. For the *how-to-use*, see `README.md`; for the runtime brief, see `skills/velt-operating-brief/`.
 
-> A Claude Code plugin that turns a **Figma design** into **clean, rule-compliant Velt UI customization** (comments + notifications) on a client's **existing React app**, iterating Planner → Builder → Judge until each component visually matches or is honestly reported as an SDK gap. Always uses the **latest** customization guide.
+> A Claude Code plugin that turns a **Figma design** into **clean, rule-compliant Velt UI customization** (comments + notifications) on a client's **existing React app**. **Plan once** (structure + style values), then converge on **Builder DEMO-POLISH ↔ Judge** (vision→live DOM→mechanism CSS for composed appearance; planner only on bounded `plan-error`). Always uses the **latest** customization guide + `knowledge/mechanism-polish.json`.
 
 ---
 
@@ -51,7 +51,7 @@ velt-customize-plugin/
 ├── guide/                         # the knowledge base — single source of truth (edited + read directly)
 │   └── …all guide files…
 ├── skills/                        # thin pointer skills (SKILL.md per skill)
-├── agents/                        # velt-orchestrator, velt-planner, velt-builder, velt-judge
+├── agents/                        # velt-orchestrator, planners, velt-builder, velt-judge-2 (loop), velt-judge (legacy)
 ├── commands/
 │   └── velt-customize.md          # /velt-customize entry command
 ├── scripts/
@@ -138,12 +138,11 @@ All four mirror the migration-orchestrator pattern: sequential, shared JSON cont
 - **Steps:** follow the per-layer procedure in the item's guide refs (`guide/approaches/<layer>.md`), place files under `ui-customization/`, use only verified identifiers (R10), obey all applicable rules (`guide/rules.md`); on a retry, address **each** unmet goal in the Judge's structured feedback; on any unmet need → run `guide/sdk-gaps-and-blockers.md`, and if it's a real gap write the gap entry (§7) + an R0 code comment, then finish the rest.
 - **Output:** code edits (file list + diffs), updated item status `built`, any new gap entries.
 
-### 6.4 `velt-judge` (model: opus) — the *checker* (adversarial, fresh context)
-- **Role:** independently verify one built component against its goals — prompted to **disprove** "met," not confirm it. The maker never grades itself.
-- **Fresh-context mandate (anti-rubber-stamp):** the Judge receives ONLY `{the surface's goals, the Figma reference, the produced code, the running app}` — **never the Builder's reasoning or self-justification**. A separate role in fresh context with no stake in the build passing.
-- **Evidence rule:** a goal flips to `met` **only** with observable evidence (a screenshot of the rendered state, or a performed behavior) — never on assertion. Colors must trace to a `--velt-*` token; states must be driven and captured.
-- **Steps:** the *bring-up mechanics* are §9.1 (start app, open Chrome, auth, seed); the *what-to-verify* follows `guide/verifying-a-customization.md` (drive states → qualitative compare vs Figma → behavior check → static rules scan against `guide/rules.md`) → verdict.
-- **Output:** verdict `PASS | FAIL | PARTIAL | BLOCKED` (per `guide/verifying-a-customization.md`) + **per-goal results, each `{met, evidence, why, hypothesis}`** (the actionable push-back the Builder must address) + screenshots + any gap entries the Judge newly identifies.
+### 6.4 `velt-judge-2` (model: opus) — the *checker* (owned-loop Judge)
+- **Role:** whole-design chromatic compare of Figma frames vs the live demo (resting + driven hover/selected/focus) plus **chrome probes** for defects pixel-diff buries (card ring, double border, thread rail, Show-N lines, inter-dialog gap). Names findings; writes Builder `workOrderP0` via `judge2-record-findings.mjs` / `judge2-to-workorder.mjs`.
+- **Fresh-context mandate:** never grades the Builder's own work from the same context that built it. Orchestrator Sequence **5c** invokes this agent — **not** legacy `velt-judge`.
+- **Evidence rule:** demo-breaking / chrome-probe rows are never discarded; clean only when chromatic regions are empty-or-noise **and** chrome probes pass **and** required interaction states were driven.
+- **Legacy:** `velt-judge` + `composed-audit` / `emit-judge-defects` remain for golden/calibration only — not the owned-loop path.
 
 ---
 
@@ -449,6 +448,16 @@ Written to the target repo under `velt-customization-report/` (and surfaced in c
 3. **`sdk-gap-report.md`** — the collected gap entries (§7) as a table: `surface · requirement · why · attempted layer · clean alternative · suggested SDK addition · guide ref` — the field set defined in `guide/sdk-gaps-and-blockers.md`. This is the artifact the client hands back to Velt.
 4. **`screenshots/`** — Figma reference + Chrome actual per component per state.
 5. **Code changes** — under `components/velt/ui-customization/` (one stylesheet, one `<VeltWireframe>`, per-surface `*Wf.tsx` / primitive compositions), each with R0 comments where a gap was hit.
+
+### 14b. Observability — the run replay record (`<phaseDir>/obs/`)
+
+Every run additionally records a **session-replay trace of itself**, mechanically (`scripts/obs.mjs`; the pipeline scripts emit — no agent compliance involved, the same trust posture as report-block/verdict-gate):
+
+- **`obs/events.jsonl`** — one structured JSON line per meaningful step, UTC ISO timestamps: `run.start` (phase-init) · `stage.start/end/timeout` (stage-timer) · `block.start`, `iter.record` (with diffCount / normalized-diff hash / plateau signals / verdict), `pause`/`resume`, `phase.softcap` (block-iter) · `measure` / `measure.fail` / `smoke` with the judge's summary payload (measure-block) · `disposition` (report-block account) · `verdict` (verdict-gate CLI) · `handoff` (write-handoff) · `log` (every `progress.mjs` heartbeat line, mirrored).
+- **`obs/snapshots/<blockId>/<seq>[-iterN]/`** — a copy of `results/<blockId>/{shot,diff}.png` + every probe JSON taken at each measurement, **before** the next iteration overwrites the fixed filenames — the per-iteration history `results/` itself cannot keep. The Figma reference frame stays referenced (not copied — `frames/` is write-once).
+- **`obs/player.html`** — the replay UI, generated by `obs.mjs build` (and automatically by `write-handoff.mjs` at run end) from `templates/obs-player.html` + inlined run data: timeline scrubber with stage bands, stall shading and color-coded event ticks; per-loop lanes with diff-count sparklines; Live / Reference / Diff / Compare(split-slider) screenshot views; per-event judge output. Self-contained — works over `file://` or `obs.mjs serve`. **Multi-run mode:** `obs.mjs serve <runsRoot>` (or bare `obs.mjs serve`, default root `runs/`) serves ONE UI over ALL runs — a header dropdown toggles between them (`/runs.json` summaries: verdict, stage progress, event/screenshot counts; new runs appear live; `?run=<id>` deep-links; assets under `/r/<runId>/…`). Entry point for users: `/velt-customize:replay`.
+
+Failure isolation is absolute: every recording call is fail-safe (never throws, never changes an exit code), payloads are size-capped, and `VELT_OBS=0` disables the layer entirely. The record answers the debugging question the autopsies kept paying for by hand: *which stage of which iteration did the defect enter, and what did the judge actually see there?*
 
 ---
 

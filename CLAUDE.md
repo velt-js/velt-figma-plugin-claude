@@ -27,9 +27,15 @@ Don't test by pushing to `main` and letting the GitHub marketplace auto-update �
 
 `main` = released (GitHub-marketplace users get it via `autoUpdate`); commit + push only once it's verified locally.
 
+## Two knowledge tiers — `guide/` (SDK docs) vs `knowledge/` (empirical learnings)
+There are **two** distinct knowledge stores, and where a fact goes depends on what KIND of fact it is:
+- **`guide/` = Velt SDK documentation.** The stable reference of what the SDK exposes — slots, props, CSS classes/variables, wireframe components, behaviors, data models. Treat it as **read-only reference** (it ideally mirrors Velt's own docs). It is the source of truth for *Velt facts*, and skills/agents carry zero SDK knowledge of their own — they point at `guide/`.
+- **`knowledge/` = empirical learnings.** Facts the pipeline discovered by RUNNING — SDK gotchas + fixes, component difficulty, intent→component mappings, mock-fidelity render rules, **mechanism-polish (demo vision→DOM→CSS playbook)**, model reliability. These grow via the learning loop (run journals a `scope:"general"` candidate → `learnings-push.mjs` → `plugin-learnings` branch → human review → merge into `knowledge/`). See `knowledge/README.md`.
+- **The rule:** a run-derived finding is a **`knowledge/` candidate, never a `guide/` edit**. Do not write empirical/operational lore into `guide/` (it would pollute the SDK docs); do not put SDK reference facts in `knowledge/`. A learning is promoted to `knowledge/` only after it holds across **multiple different designs** (the `seenOn` corroboration test) — e.g. `mock-fidelity.json` was validated on 3 designs before landing.
+
 ## Working on the plugin
-- **Edit knowledge** directly in `guide/` — the single source of truth. The plugin reads `guide/` at runtime; there is no separate bundle and no sync step.
+- **Edit SDK knowledge** directly in `guide/`. **Add empirical learnings** to `knowledge/` (per the tiers above). The plugin reads both at runtime; there is no separate bundle and no sync step.
 - **Gate before shipping:** `node scripts/check-guide.mjs` (guide integrity), `node scripts/validate.mjs`, and `claude plugin validate .`.
-- **Golden test:** `node golden/run-golden.mjs` (offline checks) + the E2E checklist in `golden/README.md`.
-- **Separation of concerns:** skills/agents carry zero customization knowledge — they point at `guide/`. Keep it that way.
+- **Golden test:** `node golden/run-golden.mjs` (offline probe/gate/judge calibration suites) + the E2E checklist in `golden/README.md`.
+- **Separation of concerns:** skills/agents carry zero customization knowledge — they point at `guide/` (SDK facts) and read `knowledge/` (learnings). Keep it that way.
 - **Strict templates:** every file under `guide/approaches/`, `guide/features/`, and `guide/reference/behaviors/` follows the per-folder template defined in that folder's `_template.md`. New/edited files must conform.

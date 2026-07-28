@@ -1,0 +1,26 @@
+{
+  "run": "2026-07-22-fresh-1",
+  "source": ["learnings/iteration-1.md", "learnings/iteration-2.md"],
+  "note": "Human gold checklist for canary scoring. detectionClass is baseline BEFORE accuracy fixes.",
+  "issues": [
+    { "id": "sidebar-shape", "title": "Sidebar shape/boundary (large bottom radius)", "detectionClass": "never-asserted", "category": "chrome" },
+    { "id": "header-typography", "title": "Header typography oversized", "detectionClass": "measured-but-filtered", "category": "typography" },
+    { "id": "header-filter-icon", "title": "Filter icon as black dot / wrong glyph", "detectionClass": "measured-but-filtered", "category": "icon" },
+    { "id": "composer-height", "title": "Composer too tall / wrong structure", "detectionClass": "never-asserted", "category": "composer" },
+    { "id": "composer-wrapper", "title": "Extra composer wrapper / double border", "detectionClass": "never-asserted", "category": "composer" },
+    { "id": "composer-border-state", "title": "Main composer has focused black border", "detectionClass": "never-asserted", "category": "composer" },
+    { "id": "composer-placeholder", "title": "Missing composer placeholder text", "detectionClass": "never-asserted", "category": "text" },
+    { "id": "composer-controls", "title": "Composer avatar/send sizing", "detectionClass": "would-measure-today", "category": "composer" },
+    { "id": "section-spacing", "title": "Excessive vertical section spacing", "detectionClass": "measured-but-filtered", "category": "spacing" },
+    { "id": "card-border", "title": "Broken/fragmented card borders", "detectionClass": "never-asserted", "category": "chrome" },
+    { "id": "thread-grouping", "title": "Replies/actions as separate cards", "detectionClass": "never-asserted", "category": "structure" },
+    { "id": "reply-alignment", "title": "Reply action centred/detached", "detectionClass": "never-asserted", "category": "structure" },
+    { "id": "reply-chevron", "title": "Chevron detached / multi-reply control missing", "detectionClass": "would-measure-today", "category": "structure" },
+    { "id": "connector-line", "title": "Connector line wrong geometry", "detectionClass": "never-asserted", "category": "structure" },
+    { "id": "content-alignment", "title": "Inconsistent content grid / 28px offset", "detectionClass": "measured-but-filtered", "category": "spacing" },
+    { "id": "card-typography", "title": "Card typography oversized", "detectionClass": "measured-but-filtered", "category": "typography" },
+    { "id": "overflow-clip", "title": "List overflow / clipped reply action", "detectionClass": "never-asserted", "category": "layout" },
+    { "id": "hover-actions", "title": "Hover resolve/options not revealed", "detectionClass": "would-measure-today", "category": "interaction" },
+    { "id": "comment-gap", "title": "Inter-comment gap 4px vs 8px", "detectionClass": "would-measure-today", "category": "spacing" }
+  ]
+}

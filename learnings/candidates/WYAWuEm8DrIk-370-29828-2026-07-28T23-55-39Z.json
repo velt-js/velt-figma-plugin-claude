@@ -1,0 +1,194 @@
+{
+  "runId": "WYAWuEm8DrIk-370-29828-2026-07-28T23-55-39Z",
+  "phaseId": "WYAWuEm8DrIk-370-29828",
+  "app": "privado",
+  "mode": "strictly wireframe",
+  "node": "370:29828",
+  "pluginSha": "7046d13",
+  "publishedAt": "2026-07-28T23:55:39.080Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "A Figma 1px stroke is an INSIDE stroke, so it costs children no width; translating it to a CSS `border` on a box-sizing:border-box element silently steals 2px from every child. Redraw it as `box-shadow: inset 0 0 0 1px <hex>` instead.",
+      "context": "privado / Loop 1 - Add simple comment",
+      "evidence": "Design frame is 12 + 356 + 12 = 380 exactly. With border:1px the panel content box was 378 and every card measured 354 vs the design's 356. After switching to an inset ring: .vc-panel clientWidth 378 -> 380 and all 14 .vc-card 354 -> 356, ring still painting rgb(237,240,248) 0 0 0 1px inset. Same fault one level down on the composer dock.",
+      "destination": "knowledge",
+      "category": "mapping-pattern",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "A hard 1px band under a card is often NOT the card's box-shadow: a zero-height :empty SDK host sitting on the card's bottom edge still paints its SPREAD ring as a visible 1px rule. Bisect with `* { box-shadow: none !important }` — if the band survives, the shadow is innocent.",
+      "context": "privado / Loop 1 - Add simple comment",
+      "evidence": "Judge measured live decay 191,199,217 -> 194,202,219 -> 230,234,241 vs Figma 215,220,229 -> 219,225,233 -> 227,232,240 (~24 levels darker, ~3x faster). Root cause was velt-comment-dialog-composer-internal.vc-composer at 354x0 with childElementCount 0 on every unselected card, carrying the plan's spread ring 0 0 0 1px #0c378824. Guarding on :empty brought decay within 1-3 levels/channel of Figma; the plan's verbatim shadow value was correct all along.",
+      "destination": "knowledge",
+      "category": "sdk-gotcha",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "When a host app gates a Velt surface behind React state, the Velt SDK API cannot open it — only a REAL trusted browser click on the host's own control can. An in-page element.click() also fails, because Velt's sidebarButtonClick only fires on trusted events.",
+      "context": "privado / Loop 1 - Add simple comment",
+      "evidence": "components/velt/useVeltEventHandlers.ts maps Velt's sidebarButtonClick -> toggleGlobalSidebar() -> setIsGlobalSidebarOpen. window.Velt.getCommentElement().toggleCommentSidebar(true) (which the structure planner auto-filled into all 7 drives) never renders the sidebar. Replacing it with a trusted Playwright click on velt-sidebar-button took dom-snapshot from 0 to 7 of 7 sidebar states.",
+      "destination": "knowledge",
+      "category": "sdk-gotcha",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "Every .vc-* class exists TWICE in the live DOM: the hidden 0x0 registry template comes first in document order, the real render second. A bare querySelector('.vc-x') returns the template and reports 0x0 — always filter by non-zero box.",
+      "context": "privado / Loop 1 - Add simple comment",
+      "evidence": "document.querySelector('.vc-panel') returned velt-comments-sidebar-panel-wireframe (0x0, inside velt-comments-sidebar-wireframe) while the live app-comment-sidebar-panel.vc-panel measured 696x798. This produced a long false diagnosis of 'the wireframe never adopted'.",
+      "destination": "knowledge",
+      "category": "sdk-gotcha",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "dom-snapshot's paint-truth guard tested SCROLL POSITION, not paint: it clamped its hit-test point to the viewport without scrolling the probe into view, so any list that auto-scrolls to its newest item reported every surface 'occluded'.",
+      "context": "privado / Loop 1 - Add simple comment",
+      "evidence": "Measured firstCardY = -8115 on a 40-card document. Adding probe.scrollIntoView({block:'center'}) plus a two-ended clamp before the hit-test took dom-snapshot from 3/7 to 5/7 captured, and re-rooting the flow surface at .vc-panel closed the rest.",
+      "destination": "script",
+      "category": "model-reliability",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "dom-snapshot captures the subtree ROOTED AT liveSelector, so a planned class that is an ANCESTOR of the surface root can never appear in any snapshot — skeleton-check then reports it 'never built' and the style planner cannot see it.",
+      "context": "privado / Loop 1 - Add simple comment",
+      "evidence": ".vc-panel (verified live at 696x798, and the element carrying the design's 380px panel width and fill) was absent from all 7 snapshots because the flow's root was .vc-sidebar, its child. Re-rooting the flow at .vc-panel captured it and dropped skeleton-check from 21 defects to 5.",
+      "destination": "script",
+      "category": "model-reliability",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "structural-invariants' composer-incomplete rule hard-requires hasAvatar, but a design may legitimately draw no composer avatar — treat it as advisory, or the only way to pass the gate is a fidelity regression.",
+      "context": "privado / Loop 1 - Add simple comment",
+      "evidence": "All three composer frames in this Loop draw pill + placeholder + send with no avatar. Builder and judge independently opened the frames and agreed. structural-invariants exits 2 and drags builder-self-audit to 2 with it, which under the standard contract would refuse an otherwise-green handoff.",
+      "destination": "script",
+      "category": "model-reliability",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "judge2-chrome-probes.mjs hardcodes the card selector .vc-body; a wireframe that names its card anything else (here .vc-card) makes all four mechanical chrome probes silently no-op while the judge still reports a result.",
+      "context": "privado / Loop 1 - Add simple comment",
+      "evidence": "0 matched nodes for .vc-body vs 14 for .vc-card. Re-running the same probe logic against .vc-card returned real results (inter-dialog gap 12px matching plan-style, no double border, no thread rail). A second bug in the same file compares noRing against bodies.length while noRing is counted over bodies.slice(0,6), so it can never fire with more than 6 cards.",
+      "destination": "script",
+      "category": "model-reliability",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "corrections",
+      "fact": "A Figma 1px stroke is an INSIDE stroke, so it costs children no width; translating it to a CSS `border` on a box-sizing:border-box element silently steals 2px from every child. Redraw it as `box-shadow: inset 0 0 0 1px <hex>` instead.",
+      "evidence": "Design frame is 12 + 356 + 12 = 380 exactly. With border:1px the panel content box was 378 and every card measured 354 vs the design's 356. After switching to an inset ring: .vc-panel clientWidth 378 -> 380 and all 14 .vc-card 354 -> 356, ring still painting rgb(237,240,248) 0 0 0 1px inset. Same fault one level down on the composer dock.",
+      "scope": "general",
+      "verified": true,
+      "category": "mapping-pattern"
+    },
+    {
+      "kind": "corrections",
+      "fact": "A hard 1px band under a card is often NOT the card's box-shadow: a zero-height :empty SDK host sitting on the card's bottom edge still paints its SPREAD ring as a visible 1px rule. Bisect with `* { box-shadow: none !important }` — if the band survives, the shadow is innocent.",
+      "evidence": "Judge measured live decay 191,199,217 -> 194,202,219 -> 230,234,241 vs Figma 215,220,229 -> 219,225,233 -> 227,232,240 (~24 levels darker, ~3x faster). Root cause was velt-comment-dialog-composer-internal.vc-composer at 354x0 with childElementCount 0 on every unselected card, carrying the plan's spread ring 0 0 0 1px #0c378824. Guarding on :empty brought decay within 1-3 levels/channel of Figma; the plan's verbatim shadow value was correct all along.",
+      "scope": "general",
+      "verified": true,
+      "category": "sdk-gotcha"
+    },
+    {
+      "kind": "corrections",
+      "fact": "When a host app gates a Velt surface behind React state, the Velt SDK API cannot open it — only a REAL trusted browser click on the host's own control can. An in-page element.click() also fails, because Velt's sidebarButtonClick only fires on trusted events.",
+      "evidence": "components/velt/useVeltEventHandlers.ts maps Velt's sidebarButtonClick -> toggleGlobalSidebar() -> setIsGlobalSidebarOpen. window.Velt.getCommentElement().toggleCommentSidebar(true) (which the structure planner auto-filled into all 7 drives) never renders the sidebar. Replacing it with a trusted Playwright click on velt-sidebar-button took dom-snapshot from 0 to 7 of 7 sidebar states.",
+      "scope": "general",
+      "verified": true,
+      "category": "sdk-gotcha"
+    },
+    {
+      "kind": "corrections",
+      "fact": "Every .vc-* class exists TWICE in the live DOM: the hidden 0x0 registry template comes first in document order, the real render second. A bare querySelector('.vc-x') returns the template and reports 0x0 — always filter by non-zero box.",
+      "evidence": "document.querySelector('.vc-panel') returned velt-comments-sidebar-panel-wireframe (0x0, inside velt-comments-sidebar-wireframe) while the live app-comment-sidebar-panel.vc-panel measured 696x798. This produced a long false diagnosis of 'the wireframe never adopted'.",
+      "scope": "general",
+      "verified": true,
+      "category": "sdk-gotcha"
+    },
+    {
+      "kind": "corrections",
+      "fact": "dom-snapshot's paint-truth guard tested SCROLL POSITION, not paint: it clamped its hit-test point to the viewport without scrolling the probe into view, so any list that auto-scrolls to its newest item reported every surface 'occluded'.",
+      "evidence": "Measured firstCardY = -8115 on a 40-card document. Adding probe.scrollIntoView({block:'center'}) plus a two-ended clamp before the hit-test took dom-snapshot from 3/7 to 5/7 captured, and re-rooting the flow surface at .vc-panel closed the rest.",
+      "scope": "general",
+      "verified": true,
+      "category": "model-reliability"
+    },
+    {
+      "kind": "corrections",
+      "fact": "dom-snapshot captures the subtree ROOTED AT liveSelector, so a planned class that is an ANCESTOR of the surface root can never appear in any snapshot — skeleton-check then reports it 'never built' and the style planner cannot see it.",
+      "evidence": ".vc-panel (verified live at 696x798, and the element carrying the design's 380px panel width and fill) was absent from all 7 snapshots because the flow's root was .vc-sidebar, its child. Re-rooting the flow at .vc-panel captured it and dropped skeleton-check from 21 defects to 5.",
+      "scope": "general",
+      "verified": true,
+      "category": "model-reliability"
+    },
+    {
+      "kind": "corrections",
+      "fact": "structural-invariants' composer-incomplete rule hard-requires hasAvatar, but a design may legitimately draw no composer avatar — treat it as advisory, or the only way to pass the gate is a fidelity regression.",
+      "evidence": "All three composer frames in this Loop draw pill + placeholder + send with no avatar. Builder and judge independently opened the frames and agreed. structural-invariants exits 2 and drags builder-self-audit to 2 with it, which under the standard contract would refuse an otherwise-green handoff.",
+      "scope": "general",
+      "verified": true,
+      "category": "model-reliability"
+    },
+    {
+      "kind": "corrections",
+      "fact": "judge2-chrome-probes.mjs hardcodes the card selector .vc-body; a wireframe that names its card anything else (here .vc-card) makes all four mechanical chrome probes silently no-op while the judge still reports a result.",
+      "evidence": "0 matched nodes for .vc-body vs 14 for .vc-card. Re-running the same probe logic against .vc-card returned real results (inter-dialog gap 12px matching plan-style, no double border, no thread rail). A second bug in the same file compares noRing against bodies.length while noRing is counted over bodies.slice(0,6), so it can never fire with more than 6 cards.",
+      "scope": "general",
+      "verified": true,
+      "category": "model-reliability"
+    },
+    {
+      "kind": "gaps",
+      "gap": "Thumbs-up quick-like reaction glyph cannot be rendered under strictly wireframe",
+      "evidence": "ThreadCard.ReactionPin is a DATA slot (empty host where no pinned reaction exists, 41x32 where one does); reactionId prop exists in @veltdev/react index.d.ts but the app's reaction set could not be enumerated (picker never opened programmatically, no [data-reaction-id] in the live DOM). R10 forbids guessing an id.",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "gaps",
+      "gap": "The design's open+EMPTY 80px composer state is unreachable on @veltdev/react 6.0.0-beta.10",
+      "evidence": "velt-composer-open flips on TYPED CONTENT, not on focus (verified: empty focus -> 0 matches, send #bfc8dc, 40px pill; one character -> 1 match, send #754cff, 80px). Clearing the text never reverts it without a reload. The only CSS hook would be :focus-within, which R27 forbids for layout.",
+      "scope": "general",
+      "verified": true
+    }
+  ]
+}

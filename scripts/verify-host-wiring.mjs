@@ -201,12 +201,14 @@ async function main() {
   for (const p of prefer) {
     try { await fs.access(p); files.push(p); } catch { /* */ }
   }
-  if (!files.length) {
-    const all = await walkTsx(path.join(cwd, "components")).catch(() => []);
-    for (const p of all) {
-      const t = await fs.readFile(p, "utf8");
-      if (/VeltComments|setUnstyledMode|VeltCustomization/.test(t)) files.push(p);
-    }
+  // The wireframe-mount component is a legitimate home for setUnstyledMode (colocated with the
+  // customization it enables), so the scan must UNION the walk with the prefer list — short-circuiting
+  // on the prefer list alone reported a present unstyled-base call as missing.
+  const all = await walkTsx(path.join(cwd, "components")).catch(() => []);
+  for (const p of all) {
+    if (files.includes(p)) continue;
+    const t = await fs.readFile(p, "utf8").catch(() => "");
+    if (/VeltComments|setUnstyledMode|VeltCustomization|VeltWireframe/.test(t)) files.push(p);
   }
   if (!files.length) {
     console.error(`✗ no host Velt files found under ${cwd}`);

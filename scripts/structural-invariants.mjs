@@ -25,11 +25,19 @@ const INVARIANT_PROBE = `(function(){
   var cards=q('.vc-card, velt-comment-dialog-thread-card-internal, velt-comment-dialog-thread-card-wireframe');
   var replies=q('.vc-reply, velt-comment-dialog-thread-card-reply-internal, velt-comment-dialog-thread-card-reply-wireframe');
   var composers=q('.vc-composer, .vc-reply-composer, velt-comments-sidebar-page-mode-composer-internal, velt-comment-dialog-composer-internal');
+  // The invariant is "the Reply affordance is ENCLOSED by the card, not floating outside it". The
+  // enclosing card is not always a per-COMMENT thread card: when a design draws ONE Reply per THREAD
+  // (harvey — verified in three frames: 2-comment threads show a single Reply row at the bottom of the
+  // bordered card), the correct declaration is the thread-level Body ToggleReply and its card ancestor
+  // is the dialog container that carries the card chrome. Keying only on thread-card tags reported
+  // reply-outside-card for every correctly-enclosed thread.
+  var CARD_ANCESTORS='.vc-card, velt-comment-dialog-thread-card-internal, velt-comment-dialog-thread-card-wireframe'
+    + ', div.velt-comment-dialog--sidebar-mode, velt-comment-dialog-internal, .vc-list-item';
   var problems=[];
   for(var i=0;i<replies.length;i++){
     var r=replies[i];
-    if(!r.closest('.vc-card, velt-comment-dialog-thread-card-internal, velt-comment-dialog-thread-card-wireframe')){
-      problems.push({kind:'reply-outside-card', detail:'Reply affordance not inside a thread card'});
+    if(!r.closest(CARD_ANCESTORS)){
+      problems.push({kind:'reply-outside-card', detail:'Reply affordance not inside a thread card or its dialog card container'});
     }
   }
   for(var c=0;c<composers.length;c++){
@@ -83,9 +91,13 @@ async function main() {
     console.error("usage: structural-invariants.mjs <phaseDir> --url <url> --connect <ws> [--family id]");
     process.exit(1);
   }
+  // Resolve Chromium through the SHARED loader (measure-block.loadChromium): it also honours
+  // $PLAYWRIGHT_CORE and the gstack-vendored build, so this gate runs wherever measure-block does.
+  // A bare require("playwright-core") failed on every machine without a local install even though the
+  // rest of the live pipeline worked — an un-runnable gate is indistinguishable from a skipped one.
   let chromium;
-  try { chromium = require("playwright-core").chromium; }
-  catch { console.error("✗ playwright-core required"); process.exit(1); }
+  try { ({ chromium } = await import(path.join(path.dirname(fileURLToPath(import.meta.url)), "measure-block.mjs")).then((m) => ({ chromium: m.loadChromium() }))); chromium = await chromium; }
+  catch { try { chromium = require("playwright-core").chromium; } catch { console.error("✗ playwright-core required"); process.exit(1); } }
   const browser = await chromium.connectOverCDP(ws);
   const context = browser.contexts()[0] || await browser.newContext();
   const page = context.pages().find((p) => p.url().includes(new URL(url).host)) || context.pages()[0] || await context.newPage();

@@ -20,7 +20,10 @@
 //           means empty text masks and false visual diffs downstream)
 //         · designSpec.json has nodes
 //         · if connect-map.json exists: firstShotCss() over it yields ≥1 rule and at least one
-//           entry carries cssDecls (0 rules = the run-2 failure — HALT, fix the map or the script)
+//           entry carries cssDecls (0 rules = the run-2 failure — HALT, fix the map or the script).
+//           TWO-PHASE EXCEPTION: when plan-structure.json exists the connect map is structure-only
+//           (plan-structure is forbidden to carry cssDecls), so the map is checked structurally and
+//           the stylesheet contract is enforced against plan-style.json instead.
 //
 // Exit codes: 0 = all contracts hold · 2 = violation(s), each printed with a plain-language fix ·
 //             1 = usage/internal error.
@@ -162,6 +165,10 @@ async function check(phaseDir) {
     else if ((brief.nodeCount ?? (brief.nodes || []).length) <= 2) problems.push(`block '${b.id}': THIN slice (${brief.nodeCount} nodes) — text masks will be empty and visual diffs false; fix the designSpec/frameId keying before building`);
   }
 
+  // two-phase runs split VALUES out of the connect map: plan-structure.json carries structure only
+  // (cssDecls are forbidden there), and plan-style.json is the stylesheet authority.
+  const twoPhase = await exists(path.join(phaseDir, "plan-structure.json"));
+
   // two-phase: plan-style.json → first-shot contract (0 rules = HALT, same as the connect map)
   const spP = path.join(phaseDir, "plan-style.json");
   if (await exists(spP)) {
@@ -182,12 +189,21 @@ async function check(phaseDir) {
     else {
       // normalizeEntries flattens BOTH shapes (entries[] and families{}) — count what the generator sees
       const entries = normalizeEntries(cm);
-      const withDecls = entries.filter((e) => Object.values(e._groups).some((d) => String(d).trim()));
-      if (entries.length && !withDecls.length) problems.push("connect-map.json: no entry carries usable cssDecls — first-shot will be empty and the builder will re-discover every value (the run-2 failure); fix the Planner's map");
-      const stats = {};
-      const rules = countRules(firstShotCss(cm, {}, stats));
-      if (!rules || (stats.entries > 0 && stats.entryRules === 0)) problems.push("first-shot-css over this connect-map.json yields 0 entry rules — schema drift or an empty map; HALT and fix before dispatching any builder");
-      else console.log(`✓ first-shot over connect-map.json: ${rules} rule(s) (${stats.entryRules} entry rule(s)) from ${entries.length} entries`);
+      if (twoPhase) {
+        // TWO-PHASE: plan-structure is FORBIDDEN to carry cssDecls (values are the style planner's,
+        // checked above against plan-style.json). Validate the map STRUCTURALLY here instead.
+        const withSlot = entries.filter((e) => String(e.slot || "").trim());
+        if (!entries.length) problems.push("connect-map.json has no entries — the structure plan mapped nothing; fix the Planner's map");
+        else if (!withSlot.length) problems.push("connect-map.json: no entry names a slot — a structure map without slots builds nothing; fix the Planner's map");
+        else console.log(`✓ connect-map.json (structure stage): ${entries.length} entries, ${withSlot.length} with a slot — CSS values deferred to plan-style.json`);
+      } else {
+        const withDecls = entries.filter((e) => Object.values(e._groups).some((d) => String(d).trim()));
+        if (entries.length && !withDecls.length) problems.push("connect-map.json: no entry carries usable cssDecls — first-shot will be empty and the builder will re-discover every value (the run-2 failure); fix the Planner's map");
+        const stats = {};
+        const rules = countRules(firstShotCss(cm, {}, stats));
+        if (!rules || (stats.entries > 0 && stats.entryRules === 0)) problems.push("first-shot-css over this connect-map.json yields 0 entry rules — schema drift or an empty map; HALT and fix before dispatching any builder");
+        else console.log(`✓ first-shot over connect-map.json: ${rules} rule(s) (${stats.entryRules} entry rule(s)) from ${entries.length} entries`);
+      }
     }
   }
   return problems;

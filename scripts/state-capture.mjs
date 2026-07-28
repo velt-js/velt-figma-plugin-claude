@@ -53,14 +53,27 @@ export function validateBindings(doc) {
   return problems;
 }
 
-async function firstMatching(page, selectorList) {
+async function firstMatching(page, selectorList, { preferLargest = false } = {}) {
+  // Selectors are priority-ordered. Without preferLargest → first visible hit.
+  // With preferLargest → largest visible hit within the first selector that matches anything.
   for (const sel of String(selectorList).split(",").map((s) => s.trim()).filter(Boolean)) {
+    let bestForSel = null;
     try {
-      const loc = page.locator(sel).first();
-      if (await loc.count()) {
-        if (await loc.isVisible().catch(() => false)) return { loc, sel };
+      const locAll = page.locator(sel);
+      const n = await locAll.count();
+      for (let i = 0; i < n; i++) {
+        const loc = locAll.nth(i);
+        try {
+          const box = await loc.boundingBox();
+          if (box && box.width > 8 && box.height > 8 && await loc.isVisible().catch(() => false)) {
+            const hit = { loc, sel, index: i, area: box.width * box.height, box };
+            if (!preferLargest) return hit;
+            if (!bestForSel || hit.area > bestForSel.area) bestForSel = hit;
+          }
+        } catch { /* next match */ }
       }
     } catch { /* invalid selector — next */ }
+    if (bestForSel) return bestForSel;
   }
   return null;
 }
@@ -68,7 +81,26 @@ async function firstMatching(page, selectorList) {
 async function runGuard(page, guard) {
   const { kind, selector } = guard;
   if (kind === "pseudo") {
-    const ok = await page.evaluate((sel) => { try { return !!document.querySelector(sel); } catch { return false; } }, selector);
+    // querySelector(':hover') alone is brittle across hosts — also accept any base
+    // candidate that currently matches(':hover') / :focus (pointer may be on a child).
+    const ok = await page.evaluate((sel) => {
+      try {
+        if (document.querySelector(sel)) return true;
+        for (const part of String(sel).split(",").map((s) => s.trim()).filter(Boolean)) {
+          const base = part.replace(/:(?:hover|focus|active|focus-within)\b/g, "").trim() || part;
+          let nodes;
+          try { nodes = document.querySelectorAll(base); } catch { continue; }
+          for (const el of nodes) {
+            try {
+              if (el.matches(part) || el.matches(":hover") || el.matches(":focus-within") || el.matches(":focus")) {
+                return true;
+              }
+            } catch { /* next */ }
+          }
+        }
+        return false;
+      } catch { return false; }
+    }, selector);
     return ok ? { ok: true } : { ok: false, reason: `pseudo guard '${selector}' matched nothing` };
   }
   if (kind === "class") {
@@ -92,9 +124,18 @@ async function driveSteps(page, steps) {
     const { action } = step;
     if (action === "press") { await page.keyboard.press(step.keys || "Escape"); await page.waitForTimeout(step.wait ?? 200); continue; }
     if (action === "wait") { await page.waitForTimeout(step.ms ?? 300); continue; }
-    const hit = await firstMatching(page, step.selector || "");
+    // Hover: prefer the largest painted match (real sidebar card/dialog), not a stub host.
+    const hit = await firstMatching(page, step.selector || "", { preferLargest: action === "hover" });
     if (!hit) return { ok: false, reason: `drive ${action}: no visible match for '${step.selector}'` };
-    if (action === "hover") await hit.loc.hover({ timeout: 3000 });
+    if (action === "hover") {
+      // Prefer real mouse move to element center so CSS :hover sticks for the guard+screenshot.
+      const box = hit.box || await hit.loc.boundingBox().catch(() => null);
+      if (box) {
+        await page.mouse.move(box.x + box.width / 2, box.y + Math.min(56, Math.max(12, box.height / 3)));
+      } else {
+        await hit.loc.hover({ timeout: 3000 });
+      }
+    }
     else if (action === "click") await hit.loc.click({ timeout: 3000 });
     else if (action === "focus") await hit.loc.focus({ timeout: 3000 }).catch(async () => hit.loc.click({ timeout: 3000 }));
     else if (action === "type") { await hit.loc.click({ timeout: 3000 }); await page.keyboard.type(step.text || "x", { delay: 30 }); }

@@ -39,7 +39,7 @@ Structure first, style only when the style plan exists — never all-at-once, ne
 5. **Return (style):** handoff gate + appearance-review check + self-audit exit 0. No structure edits.
 
 ## DEMO-POLISH — vision → live DOM → mechanism CSS (style + fix)
-**Authority:** when composed UI disagrees with the mock/Figma chrome, **screenshots + live probes win** over "the plan already covered it." Plan owns VALUES; you own MECHANISM. In fix mode, consume **`workOrderP0` first** (glance + composed-audit names) — do not grind P2 deltas while avatar/header/card vision misses remain.
+**Authority:** when composed UI disagrees with the mock/Figma chrome, **screenshots + live probes win** over "the plan already covered it." Plan owns VALUES; you own MECHANISM. In fix mode, consume **`workOrderP0` first** from **velt-judge-2** (`judge-defects.json` source=`velt-judge-2` — chromatic names + chrome probes) — do not grind residuals while demoBreaking / card-ring / rail / Show-N misses remain.
 
 **Load first:** `node scripts/knowledge.mjs mechanism-polish` — doctrine, `loop[]`, `checklist[]`, `traps[]`. Also re-read `knowledge.mjs gotchas --css` so you don't re-break baked fixes.
 
@@ -57,16 +57,7 @@ Structure first, style only when the style plan exists — never all-at-once, ne
 **Allowed without planner:** overflow/scrollport (`height:100%` / `min-height:0` / `overflow:auto` on the list), hover opacity on the correct host, sizing Options to the Trigger, hiding Reply on `--selected` only, body vs threads gap split, neutralizing clone-wrappers, killing CSS that clips the current structure. **Not allowed:** inventing new hex/px/radius, `display:none` to remove a designed feature (R7), structure edits, phantom buttons (R25).
 
 ### fix mode (stage 5d)
-You receive **`judge-defects.json` → `workOrderP0` / `builderPackets` first** (not a flat delta dump). Prefer **`builder-fix-prompt.md`** when present — it is the human crop prompt.
-
-**Compiled-assertion rows** (source `compiled-assertion`) carry the DESIGN's expected value with
-provenance (`evidence.designPath` + `specNodeId`) and the measured live value — fix to the
-expected value, then re-verify by re-running `run-compiled-assertions.mjs` (the row must flip
-to pass; a screenshot claim is not verification). A row measured under `state: hover|selected`
-must be fixed AND re-verified in that state — drive it the way `state-bindings.json` drives it
-(that is what the assertion will do). `regression-lost-coverage` rows (source `ledger-union`)
-mean a previously-open issue vanished without evidence — restore detector coverage or attach
-the passing assertion; do not treat them as new pixel bugs.
+You receive **`judge-defects.json` → `workOrderP0` / `builderPackets` first** from **velt-judge-2** (via `judge2-to-workorder.mjs`). Prefer **`builder-fix-prompt.md`** when present — it is the crop prompt. Chrome-probe ids (`card-side-borders-invisible`, `card-double-border`, `thread-rail-on-single-comment`, `thread-rail-show-n-mismatch`, `inter-dialog-gap-mismatch`) are always P0 — fix the mechanism, do not discard.
 
 **Substitution ledger obligations:** any workaround that substitutes SDK chrome (CSS-mask
 chevron, placeholder overlay, …) MUST be declared in `structural-contract.json
@@ -90,11 +81,11 @@ Read each row's `category` / `requiredMode` / `detector` / `affectedComponent` /
 2. Confirm category/requiredMode (above) — do not jump to CSS.
 3. Probe the live DOM / wireframe source / interaction as the mode requires (`selectorHint` if present).
 4. Apply the minimal fix in the **correct** mode.
-5. **Re-verify with the relevant checks** — not screenshot alone:
-   - style/layout → re-measure / composed-audit probes for that property
-   - structure/wireframe → DOM containment + `wireframe-source-validate.mjs` / mount-map
-   - behavior → `interaction-state-probe.mjs` / smoke hover-click-focus
-   - plus a crop re-screenshot for chrome confirmation
+5. **Re-verify with Judge-2** — not screenshot alone:
+   - after a fix batch: `judge2-chromatic.mjs` (chrome probes must clear for the named issue)
+   - structure/wireframe → DOM containment + mount-map as needed
+   - behavior → drive the interaction state the finding names
+   - crop pairs in `evidence.liveCrop` / `figmaCrop` for confirmation
 
 Merged root causes (`rootCauseGroup` / `symptoms[]`, e.g. `vertical-rhythm`) are ONE fix — do not patch each symptom separately.
 

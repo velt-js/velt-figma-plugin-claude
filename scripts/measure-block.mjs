@@ -420,12 +420,43 @@ async function measure(phaseDir, blockId, opts) {
     let fixtureCheck = null;
     const expectedTexts = probes.fixture?.expectedTexts || [];
     if (expectedTexts.length) {
-      const surfaceText = await page.evaluate((sel) => {
+      const { surfaceText, painted } = await page.evaluate((sel) => {
         const roots = [...document.querySelectorAll(sel)];
+        // innerText does NOT see pseudo-element content, but on the unstyled base the SDK strips its own
+        // painters and the knowledge base's sanctioned fix paints composer placeholders, avatar initials
+        // and drawn suffixes with `content: attr(...)` / a literal (gotchas placeholder-attr,
+        // avatar-initial-attr-painter-stripped). Reading only innerText reported those design strings
+        // ABSENT while they were plainly on screen — a false fixture blocker on a correct build. This
+        // walk interleaves resolved ::before/::after content with the text nodes, so a design string
+        // that is part markup and part pseudo still reads as one run.
+        const inline = (el, out) => {
+          const c = (p) => { const v = getComputedStyle(el, p).content; return !v || v === "none" || v === "normal" ? "" : v.replace(/^"|"$/g, ""); };
+          out.push(c("::before"));
+          for (const n of el.childNodes) {
+            if (n.nodeType === 3) out.push(n.nodeValue || "");
+            else if (n.nodeType === 1) inline(n, out);
+          }
+          out.push(c("::after"));
+          return out;
+        };
         const text = roots.map((r) => r.innerText || r.textContent || "").join("\n");
-        return text.trim() ? text : (document.body?.innerText || "");
-      }, liveSelector).catch(() => "");
-      const missing = expectedTexts.filter((t) => !surfaceText.includes(t));
+        const withPseudo = roots.map((r) => inline(r, []).join("")).join("\n");
+        return {
+          surfaceText: text.trim() ? text : (document.body?.innerText || ""),
+          painted: withPseudo,
+        };
+      }, liveSelector).catch(() => ({ surfaceText: "", painted: "" }));
+      // A fixture row asserts that the design's CHROME STRING is on screen — its exact spacing and its
+      // data values are measured by the box/style probes, not here. So the fallbacks compare (a) with
+      // digit runs loose (the brief's own note says user-variable strings should be pruned, and
+      // "Show 13 replies..." can never match a real thread's reply count) and (b) with whitespace
+      // removed (a string split across markup + a pseudo suffix keeps the words, not the gaps).
+      const looseRe = (t, s) => new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\d+/g, "\\d+")).test(s);
+      const nows = (s) => s.replace(/\s+/g, "");
+      const present = (t) => surfaceText.includes(t) || painted.includes(t)
+        || looseRe(t, surfaceText) || looseRe(t, painted)
+        || looseRe(nows(t), nows(painted));
+      const missing = expectedTexts.filter((t) => !present(t));
       fixtureCheck = { ok: !missing.length, expected: expectedTexts.length, missing };
       await fs.writeFile(path.join(resDir, "fixture.json"), JSON.stringify(fixtureCheck, null, 2));
       if (missing.length) console.error(`⚠ FIXTURE MISMATCH: ${missing.length}/${expectedTexts.length} design string(s) absent from the live surface (first: ${JSON.stringify(missing[0]).slice(0, 80)}). RESEED the fixture to match the design content — do NOT patch layout around wrong content (R0). Visual diffs below are unreliable until the fixture is right.`);

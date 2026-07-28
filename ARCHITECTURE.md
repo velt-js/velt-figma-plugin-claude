@@ -51,7 +51,7 @@ velt-customize-plugin/
 ├── guide/                         # the knowledge base — single source of truth (edited + read directly)
 │   └── …all guide files…
 ├── skills/                        # thin pointer skills (SKILL.md per skill)
-├── agents/                        # velt-orchestrator, velt-planner, velt-builder, velt-judge
+├── agents/                        # velt-orchestrator, planners, velt-builder, velt-judge-2 (loop), velt-judge (legacy)
 ├── commands/
 │   └── velt-customize.md          # /velt-customize entry command
 ├── scripts/
@@ -138,12 +138,11 @@ All four mirror the migration-orchestrator pattern: sequential, shared JSON cont
 - **Steps:** follow the per-layer procedure in the item's guide refs (`guide/approaches/<layer>.md`), place files under `ui-customization/`, use only verified identifiers (R10), obey all applicable rules (`guide/rules.md`); on a retry, address **each** unmet goal in the Judge's structured feedback; on any unmet need → run `guide/sdk-gaps-and-blockers.md`, and if it's a real gap write the gap entry (§7) + an R0 code comment, then finish the rest.
 - **Output:** code edits (file list + diffs), updated item status `built`, any new gap entries.
 
-### 6.4 `velt-judge` (model: opus) — the *checker* (adversarial, fresh context)
-- **Role:** independently verify one built component against its goals — prompted to **disprove** "met," not confirm it. The maker never grades itself.
-- **Fresh-context mandate (anti-rubber-stamp):** the Judge receives ONLY `{the surface's goals, the Figma reference, the produced code, the running app}` — **never the Builder's reasoning or self-justification**. A separate role in fresh context with no stake in the build passing.
-- **Evidence rule:** a goal flips to `met` **only** with observable evidence (a screenshot of the rendered state, or a performed behavior) — never on assertion. Colors must trace to a `--velt-*` token; states must be driven and captured.
-- **Steps:** the *bring-up mechanics* are §9.1 (start app, open Chrome, auth, seed); the *what-to-verify* follows `guide/verifying-a-customization.md` (drive states → qualitative compare vs Figma → behavior check → static rules scan against `guide/rules.md`) → verdict.
-- **Output:** verdict `PASS | FAIL | PARTIAL | BLOCKED` (per `guide/verifying-a-customization.md`) + **per-goal results, each `{met, evidence, why, hypothesis}`** (the actionable push-back the Builder must address) + screenshots + any gap entries the Judge newly identifies.
+### 6.4 `velt-judge-2` (model: opus) — the *checker* (owned-loop Judge)
+- **Role:** whole-design chromatic compare of Figma frames vs the live demo (resting + driven hover/selected/focus) plus **chrome probes** for defects pixel-diff buries (card ring, double border, thread rail, Show-N lines, inter-dialog gap). Names findings; writes Builder `workOrderP0` via `judge2-record-findings.mjs` / `judge2-to-workorder.mjs`.
+- **Fresh-context mandate:** never grades the Builder's own work from the same context that built it. Orchestrator Sequence **5c** invokes this agent — **not** legacy `velt-judge`.
+- **Evidence rule:** demo-breaking / chrome-probe rows are never discarded; clean only when chromatic regions are empty-or-noise **and** chrome probes pass **and** required interaction states were driven.
+- **Legacy:** `velt-judge` + `composed-audit` / `emit-judge-defects` remain for golden/calibration only — not the owned-loop path.
 
 ---
 

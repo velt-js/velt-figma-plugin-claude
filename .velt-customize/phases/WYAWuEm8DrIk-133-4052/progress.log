@@ -1,0 +1,10 @@
+[08:05:15] setup started — phase WYAWuEm8DrIk-133-4052 (preflight next; lines will stream here)
+[08:05:22Z] preflight: mode=strictly wireframe budget=balanced --auto (unattended, fail-fast)
+[08:05:22Z] preflight: plugin repo=velt-figma-plugin-claude sha=7046d13 branch=velt-customize/privado-133-4052-20260728; Judge-2 present (agents/velt-judge-2.md scripts/judge2-chromatic.mjs )
+[08:05:28Z] preflight ✓ machine hygiene clean (/etc/hosts no velt.dev pin; clock UTC); listening dev ports: 5901(Xtigervnc) only — NO app dev server running
+[08:05:39Z] preflight ✗ HALT-1 design intake: no FIGMA_TOKEN in env (figma-extract token status: 'no token — REST extraction (the only design-intake path) is unavailable'). Injected secrets = [DOCS_REPO_TOKEN] only. Figma MCP server also unavailable (serverStatus=error) — and per commands/run.md --auto there is no MCP fallback.
+[08:05:39Z] preflight ✗ HALT-2 target app: no app repo in this VM. /workspace contains ONLY the plugin repo (velt-figma-plugin-claude). velt-customization-cloud-demo / harvey demo not checked out and not reachable (gh api repos/velt-js/velt-customization-cloud-demo -> 404; not in gh repo list velt-js). No <app-url> can be pinned or verified.
+[08:06:11Z] preflight ✓ measurement browser resolved: real Chrome on CDP ws://127.0.0.1:9222 (browser-endpoint.mjs exit 0) — this item is NOT a blocker
+[08:06:11Z] preflight: plugin self-gates below (confirm the plugin at this SHA is sound, so the HALT is environmental not code)
+[08:07:23Z] preflight ✓ plugin self-gates all green: check-guide 0 · validate 0 (expected 'no version' warn) · golden 0 — HALT is environmental, not a plugin defect
+[08:07:23Z] HALTED (--auto fail-fast): 2 preflight blockers, neither fixable in-sandbox. Root cause: run launched with environment=null (no 'Customization Cloud' env) -> no Harvey demo checkout AND no FIGMA_TOKEN. write-handoff.mjs unavailable (needs blocks.json, which needs Figma intake); wrote preflight-HALT handoff to <phaseDir>/handoff.md instead. Nothing built, no gate run, 0 blocks disposed.

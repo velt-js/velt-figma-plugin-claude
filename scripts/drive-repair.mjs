@@ -117,6 +117,13 @@ async function main() {
   const snapDir = path.resolve(flag("--snapshots", path.join(phaseDir, "dom-snapshot")));
 
   const blocks = JSON.parse(await fs.readFile(path.join(phaseDir, "blocks.json"), "utf8")).blocks || [];
+  // the flow block's snapshot is `<flowBlockId>.json` (e.g. flow-global-comments.json), not a
+  // literal flow.json — resolve it from blocks.json so the shared-chrome corpus actually loads
+  // (drives traverse shared chrome like `velt-comments-sidebar` that only the flow tree contains).
+  const flowBlock = blocks.find((x) => x.role === "flow") || blocks.find((x) => /^flow(-|$)/.test(x.id));
+  const flowSnapShared = flowBlock
+    ? await fs.readFile(path.join(snapDir, `${flowBlock.id}.json`), "utf8").then(JSON.parse, () => null)
+    : await fs.readFile(path.join(snapDir, "flow.json"), "utf8").then(JSON.parse, () => null);
   let totalRepaired = 0, totalDead = 0, totalStubs = 0, skipped = 0;
   for (const b of blocks) {
     const snapP = path.join(snapDir, `${b.id}.json`);
@@ -127,8 +134,7 @@ async function main() {
     if (!snap || snap.stateUnreachable || !snap.tree) { skipped++; console.log(`· ${b.id}: no usable snapshot — drive left as-is (state unreachable)`); continue; }
     // verify against THIS block's snapshot plus the flow's (drives traverse shared chrome first)
     const corpus = [snap];
-    const flowSnap = await fs.readFile(path.join(snapDir, "flow.json"), "utf8").then(JSON.parse, () => null);
-    if (flowSnap?.tree && flowSnap !== snap) corpus.push(flowSnap);
+    if (flowSnapShared?.tree && (!flowBlock || b.id !== flowBlock.id)) corpus.push(flowSnapShared);
     const work = apply ? brief : JSON.parse(JSON.stringify(brief));
     const rep = repairDrive(work, corpus);
     totalRepaired += rep.repaired.length; totalDead += rep.unrepairable.length; totalStubs += rep.removedStubs.length;

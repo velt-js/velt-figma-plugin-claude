@@ -1,0 +1,276 @@
+{
+  "runId": "WYAWuEm8DrIk-177-10853-2026-07-29T00-39-56Z",
+  "phaseId": "WYAWuEm8DrIk-177-10853",
+  "app": "harvey",
+  "mode": "strictly wireframe",
+  "node": null,
+  "pluginSha": "7046d13",
+  "publishedAt": "2026-07-29T00:39:56.889Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "A plan rule guarded with :not(:has(A ~ B)) out-specifies its own unguarded state rules. :not()/:has() inherit their argument's specificity, so a guarded 'rest' rule lands at (0,3,3) while selected (0,2,2) and hover (0,2,1) lose the cascade — and !important on all three does NOT break the tie. A planner emitting a guarded base rule MUST emit its state rules at >= the guarded weight, or scope the base to the rest state.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey selected+hover card tint: computed rgb(255,255,255) where design/plan called for #f7f6f4. CSS.getMatchedStylesForNode showed the guarded rest rule winning. After mirroring the guard (selected (0,4,4), hover (0,4,3)): selected 319x142 -> rgb(247,246,244) with matches(':hover')===false asserted; hover card 319x112 -> rgb(247,246,244) with inner .vc-comment left rgba(0,0,0,0). Re-judged clean, no regression across all 8 cards.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "List.Item.DialogContainer declared directly under List does NOT adopt — the manifest's flat parent:'List' is misleading. The class binds only to the 0-size registry twin. It must be wrapped in the canonical List.Item.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey fam-sidebar-header: before/after adoption probe on the live app-comment-sidebar-list-item-dialog-container; wrapping in List.Item moved the class onto the visible element.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "MinimalFilterDropdown without an explicit Content child opens an EMPTY dropdown — the container drops undeclared children. Declaring Content + the item slots restores the menu.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey: declaring Content + SortDate/SortUnread/FilterResolved/FilterAssignedToMe/SelectedIcon restored 'Sort by date / Sort by unread / Resolved / Assigned to me'. Later confirmed live: a trusted click opens div.velt-status-dropdown--content at 119x90.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "MoreReply must be declared inside Threads, not at Body level (the manifest's flat parent:'Body' is misleading, the same class of error as List.Item.DialogContainer). Velt renders the functional more-reply host inside velt-comment-dialog-threads-internal, between first and last comment; a Body-level declaration yields a second permanently-empty 0x0 host while the real row keeps Velt's default markup.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey fam-comment-thread-components: moving the declaration into Threads made chevron + Count + Text all adopt on the live row.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "pageModeComposerVariant does NOT work by re-registering the same card template under the variant. In page mode Velt sets the dialog Body to display:none, so a Composer nested in Body inherits it and measures 0-height. The fix is a SEPARATE variant template with Composer at the dialog ROOT (manifest parent:null / requiredAncestor:null), no Body and no card chrome.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey: page-mode composer measured 353x0 with the shared template; 353x38 with a root-level variant template, bodyInPc:0, sidebar cards unaffected.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": ".velt-composer-open is NOT a safe layout hook: in page mode it stays 1 after cancel while the composer visually collapses; in reply mode it reverts. Anchor state-dependent layout on button.velt-composer--submit-button:disabled, which tracks empty-vs-filled exactly in both composer contexts.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey fam-composer-states: measured in both the reply and page-mode contexts across collapsed -> focused -> typing -> cancel.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "On the unstyled base the composer placeholder does not paint: the hostProp reaches the DOM as placeholder=\"...\" but ::before computes to none. plan-style must emit content: attr(placeholder) !important. The STRING still comes from the prop, so this is not CSS-faking content.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey: measured on .velt-composer-input--message:empty::before in both composer contexts.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "unstyled mode strips Velt's content: attr(data-modal-author-initial) on the avatar initial, so the avatar letter renders at 0x0. It must be re-emitted as a suppress-default re-paint rule.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey: measured on span.s-user-avatar-initial; re-emitting the content rule restored the glyph.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "The Composer send host is much larger than the real button: .vc-send host measured 353x12 while button.velt-composer--submit-button is 12x12. Size the BUTTON (e.g. 24x24), not just the host — a centre-click on the host posts nothing.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey: a centre-click on .vc-send did not post; clicking the inner button did (.vc-message count 4 -> 5).",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "CORRECTION to build-gotchas.md: on @veltdev/react 6.x-beta.11 Composer.ActionButton DOES adopt a child glyph and the native submit still works. The documented CSS-mask workaround is an undeclared substitution and should NOT be used.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey: child glyph adopted and native submit posted successfully; the mask workaround was removed and nothing regressed.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "guide",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "'.vc-comment + .vc-comment' (adjacent sibling) can NEVER match inside a Velt thread: Velt interleaves a velt-comment-dialog-more-reply-internal element between every pair of thread cards, so live children are comment, more-reply, comment, more-reply. Use the general sibling combinator '~'. Likewise the real list sibling level is '.vc-list > div.velt-sidebar-content > div + div', not '.vc-list-item + .vc-list-item'.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey: three drive selectors timed out for this reason; switching to '~' and the correct sibling level made all three states reachable.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "Velt surfaces require TRUSTED mouse events. An in-page element.click() (or evaluate-based dispatch) silently no-ops on Velt-owned controls; measure-block's runSteps dispatches trusted CDP input correctly. A hand-written evaluate drive that appears to succeed may have done nothing at all.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey + a concurrent sister run both hit this independently on the sidebar/filter controls.",
+      "seenOn": [
+        "harvey",
+        "privado"
+      ],
+      "destination": "knowledge",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "PIPELINE TRAP: dom-snapshot's paintTrue reports a BELOW-THE-FOLD element as 'occluded (content proof hit-test fails) — toggle drive likely closed an already-open surface'. elementFromPoint returns null for out-of-viewport coordinates, so the diagnostic names the wrong cause. Check viewport bounds and scrollIntoView before chasing z-order or re-driving the surface.",
+      "category": "model-reliability",
+      "evidence": "harvey: the more-reply row measured at y=1189 in a 900px viewport with ZERO overlapping elements found; a scrollIntoView step made the block capture immediately.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "PIPELINE TRAP: a COLLAPSED host rail still reports plausible element rects and healthy computed styles. Four briefs measured garbage because after measure-block's reload .hw-rail was width 0 while the surface still reported a believable 353x841 box. A DOM/computed-style guard cannot detect this — gate on the rail's own width (getBoundingClientRect().width > 0) and re-open with a trusted click.",
+      "category": "model-reliability",
+      "evidence": "harvey: elementFromPoint returned div.hv-doc-stage, drive clicks hit the document and typing was swallowed. After fixing the rail guard: header 3->1, collapsed 14->7, focused 17->11 diffs.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "PIPELINE TRAP: two concurrent velt-customize runs sharing one Chrome collide on the single window.name run tab and silently measure each other's app. findRunTab filters candidates by ORIGIN, so passing each run's own --url protects it — but multiple UNNAMED tabs on the same origin defeat the single-candidate self-heal. Give each run its own browser or a per-run tab name.",
+      "category": "model-reliability",
+      "evidence": "harvey: a concurrent run on :3001 hijacked the tab three times mid-measurement, producing a full judge pass of 31 findings against a pure-white panel. Consolidating to one correctly-named warm tab fixed it.",
+      "seenOn": [
+        "harvey",
+        "privado"
+      ],
+      "destination": "script",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "PIPELINE TRAP: measurement drives that POST a comment to reach their state progressively pollute the fixture document and eventually BURY the multi-reply fixtures later blocks depend on. Seed a dedicated fixture document up front (setDocuments with optimisticPermissions:true) and use non-submitting drives; the brief schema currently has no teardown hook to undo a write.",
+      "category": "model-reliability",
+      "evidence": "harvey: the pinned document went from 5 comments to 66+ across the fix passes; three reply blocks then found 7 visible cards, all single-comment, 0 MoreReply rows. Fixed by seeding harvey-fx-* documents and re-pointing those drives.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "PIPELINE TRAP: verdict-gate-blocks.mjs truncates its printed failure list at 24 rows (.slice(0,24)). A work list built from its stdout under-reports the real work — on this run 45 real rows appeared as 24 and three blocks were invisible entirely. Call verdictGateBlocks() programmatically for the true list.",
+      "category": "model-reliability",
+      "evidence": "harvey: the gate printed 24 rows while the programmatic call returned 45 backed by ~535 underlying diffs.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "PIPELINE TRAP: judge2's isolated-frame template matcher can report a confident match against the WRONG live element. Three multi-comment blocks each aligned onto a stretch of single-comment cards, turning pure alignment error into 8-9% 'design' diffs. The matcher needs a score floor plus a content sanity check.",
+      "category": "model-reliability",
+      "evidence": "harvey: hand re-comparison of the actual multi-comment cards (319x152 and 319x224) matched on every axis including the two-segment Show-N rail.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "PIPELINE TRAP: judge2's chrome probes key off '.vc-body', which does not exist when cards render as velt-comment-dialog-body-internal.vc-card. Every probe class then returns inconclusive with bodies:0 while APPEARING to have run, so real chrome regressions could pass unnoticed. Probes should key off the block's actual surface selector.",
+      "category": "model-reliability",
+      "evidence": "harvey: all five probe classes returned inconclusive; re-run by hand against .vc-card all five were clean, proving the probes were blind rather than passing.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "corrections",
+      "statement": "Under strictly-wireframe, a raw <button> for a Velt-adjacent action is the PHANTOM_INTERACTIVE that R25 forbids. Use VeltButtonWireframe with an id and handle it via useVeltEventCallback('veltButtonClick') matching clickedButtonId — only a Velt-owned button emits that event.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey Cancel control: implemented as VeltButtonWireframe id='vc-cancel'; the host handler fires and Cancel clears both composer contexts.",
+      "seenOn": [
+        "harvey"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "corrections",
+      "statement": "A Velt host prop is reported MISSING by verify-host-wiring.mjs if a // comment sits inside the JSX opening tag. Keep comments outside the element.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey: verify-host-wiring flipped to 12/12 once the comment was moved out of the opening tag.",
+      "seenOn": [
+        "harvey"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "gaps",
+      "statement": "Composer return-to-collapsed after open is unreachable under strictly-wireframe: velt-composer-open is a one-way SDK state with no revert prop. Workaround: anchor collapsed layout on a stable selector (button.velt-composer--submit-button:disabled) rather than trying to toggle the state back off.",
+      "category": "sdk-gotcha",
+      "evidence": "harvey + privado: confirmed across both composer contexts.",
+      "seenOn": [
+        "harvey",
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "runId": "WYAWuEm8DrIk-133-5000-2026-07-29T12-23-23Z",
+  "phaseId": "WYAWuEm8DrIk-133-5000",
+  "app": "privado",
+  "mode": "strictly wireframe",
+  "node": "133:5000",
+  "pluginSha": "9747bfa",
+  "publishedAt": "2026-07-29T12:23:23.038Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "corrections",
+      "fact": "This host's comments sidebar opens ONLY from a TRUSTED click on <velt-sidebar-button>. A JS .click() and a synthetic composed pointer sequence both fail.",
+      "why": "The host toggles React state from Velt's own `sidebarButtonClick` event (components/velt/useVeltEventHandlers.ts:63-69). Velt's custom element ignores untrusted events. A fresh page has 0 live [velt-wireframe-id] elements, so any probe run before opening measures nothing and false-concludes.",
+      "evidence": "Proven live 2026-07-29: JS .click() on velt-sidebar-button => panel=0; synthetic pointerover/down/up+click (composed:true, aimed via elementFromPoint) => panel=0; Playwright page.mouse.click / locator.click({force:true}) => panel=1, cards=6.",
+      "scope": "general",
+      "destination": "script",
+      "statement": "This host's comments sidebar opens ONLY from a TRUSTED click on <velt-sidebar-button>. A JS .click() and a synthetic composed pointer sequence both fail.",
+      "context": "The host toggles React state from Velt's own `sidebarButtonClick` event (components/velt/useVeltEventHandlers.ts:63-69). Velt's custom element ignores untrusted events. A fresh page has 0 live [velt-wireframe-id] elements, so any probe run before opening measures nothing and false-concludes.",
+      "verified": true
+    },
+    {
+      "kind": "corrections",
+      "fact": "The sidebar toggle is a TOGGLE, so a bare click drive is not idempotent across blocks sharing one run tab. Prefix the drive with a reload to make it deterministic.",
+      "why": "dom-snapshot/measure-block reuse ONE run tab and only resetState() between blocks, which does not close the sidebar. Block 1 opens it; block 2's click closes it. A page reload resets the host's `isGlobalSidebarOpen` React state to false.",
+      "evidence": "Drive [eval setTimeout(()=>location.reload(),0)] + sleep 7000 + waitFor velt-sidebar-button + click + waitFor .vc-list-item proved idempotent over 3 consecutive runs from both open and closed preconditions. dom-snapshot went 0/8 -> 7/8 captured.",
+      "scope": "general",
+      "destination": "script",
+      "statement": "The sidebar toggle is a TOGGLE, so a bare click drive is not idempotent across blocks sharing one run tab. Prefix the drive with a reload to make it deterministic.",
+      "context": "dom-snapshot/measure-block reuse ONE run tab and only resetState() between blocks, which does not close the sidebar. Block 1 opens it; block 2's click closes it. A page reload resets the host's `isGlobalSidebarOpen` React state to false.",
+      "verified": true
+    },
+    {
+      "kind": "corrections",
+      "fact": "A wireframe TAG (e.g. velt-comment-dialog-wireframe) is never a valid liveSelector — no element with that tag ever paints. dom-snapshot then reports the misleading error 'surface is occluded'.",
+      "why": "dom-snapshot's paintTrue() does `if (!surf) return false`, and the caller renders any false as an occlusion/toggle problem. The real fault is a selector that matches zero painted elements, which sends agents hunting for a non-existent overlay.",
+      "evidence": "Diagnosed live: surfFound=false for velt-comment-dialog-wireframe while the content probe hit .vc-head with contained=true (paint was fine). Correcting all 8 liveSelectors to real painted classes (.vc-panel/.vc-focused/.vc-card/...) took dom-snapshot from 0/8 to 7/8.",
+      "scope": "general",
+      "destination": "script",
+      "statement": "A wireframe TAG (e.g. velt-comment-dialog-wireframe) is never a valid liveSelector — no element with that tag ever paints. dom-snapshot then reports the misleading error 'surface is occluded'.",
+      "context": "dom-snapshot's paintTrue() does `if (!surf) return false`, and the caller renders any false as an occlusion/toggle problem. The real fault is a selector that matches zero painted elements, which sends agents hunting for a non-existent overlay.",
+      "verified": true
+    },
+    {
+      "kind": "corrections",
+      "fact": "deltaCompare scores Figma SVG path STROKES as if they were CSS borders, producing false 'border colour' diffs like `1px solid #465169` vs `0px solid rgb(226,232,240)` on every icon.",
+      "why": "This is the single largest source of residual delta rows and it is what currently makes a mechanical PASS unreachable on an otherwise-correct build. Acting on the rows would add CSS borders to icons and visibly break them.",
+      "evidence": "Recurs on every block of this loop; 5 of the 9 residual rows on state-sidebar-components-sidebar-comment-double-clicked-header are this artifact. The glyphs render correctly at every one of those rows.",
+      "scope": "general",
+      "destination": "script",
+      "statement": "deltaCompare scores Figma SVG path STROKES as if they were CSS borders, producing false 'border colour' diffs like `1px solid #465169` vs `0px solid rgb(226,232,240)` on every icon.",
+      "context": "This is the single largest source of residual delta rows and it is what currently makes a mechanical PASS unreachable on an otherwise-correct build. Acting on the rows would add CSS borders to icons and visibly break them.",
+      "verified": true
+    },
+    {
+      "kind": "corrections",
+      "fact": "Connecting Playwright to a CDP browser whose DEFAULT CONTEXT was destroyed fails with `Protocol error (Browser.setDownloadBehavior): Browser context management is not supported`, even though /json/version still answers normally.",
+      "why": "The process staying alive makes the endpoint look healthy, so agents retry against a permanently broken browser. This is the observable signature of an earlier agent violating the page.close()-only rule. Recovery is to launch a fresh Chrome on a NEW port and re-pin browser-ws.txt — never to reuse the wedged one.",
+      "evidence": "Port 9333 answered /json/version with the same WS id as pinned, but every connectOverCDP threw the above. A fresh Chrome on 9334 (own --user-data-dir) connected immediately and ran the whole rest of the phase.",
+      "scope": "general",
+      "destination": "guide",
+      "statement": "Connecting Playwright to a CDP browser whose DEFAULT CONTEXT was destroyed fails with `Protocol error (Browser.setDownloadBehavior): Browser context management is not supported`, even though /json/version still answers normally.",
+      "context": "The process staying alive makes the endpoint look healthy, so agents retry against a permanently broken browser. This is the observable signature of an earlier agent violating the page.close()-only rule. Recovery is to launch a fresh Chrome on a NEW port and re-pin browser-ws.txt — never to reuse the wedged one.",
+      "verified": true
+    },
+    {
+      "kind": "corrections",
+      "fact": "`focusedThreadMode={true}` must accompany `openAnnotationInFocusMode={true}` on <VeltCommentsSidebar> — the latter alone is inert and no thread view ever opens.",
+      "why": "This one missing prop gated the entire Loop 2 feature; the app already had the other half, which makes the omission easy to miss on a live read.",
+      "evidence": "Added to components/document/document-canvas.tsx; typechecks (so it is a real SDK prop, not an R10 guess) and the focused view then rendered with .vc-focused/.vc-back/.vc-thread-title all live and .vc-panel replaced.",
+      "scope": "general",
+      "destination": "guide",
+      "statement": "`focusedThreadMode={true}` must accompany `openAnnotationInFocusMode={true}` on <VeltCommentsSidebar> — the latter alone is inert and no thread view ever opens.",
+      "context": "This one missing prop gated the entire Loop 2 feature; the app already had the other half, which makes the omission easy to miss on a live read.",
+      "verified": true
+    },
+    {
+      "kind": "corrections",
+      "fact": "Card chrome belongs on the per-comment ThreadCard, not on the shared Body wrapper, or a multi-comment thread renders as one continuous shell.",
+      "why": "Putting radius/shadow/background on velt-comment-dialog-body-internal looks correct in a sidebar LIST (only one ThreadCard visible per Body) and silently breaks the moment a focused/thread view renders several ThreadCards inside one Body. This was the only demo-breaking defect of the loop.",
+      "evidence": "Measured 0px radius / no shadow on all 5 focused cards; after moving the chrome to velt-comment-dialog-thread-card-internal (scoped to .vc-focused-dialog) all 5 measured 12px radius, spec two-layer shadow, white background, 12px gaps, with the list view unregressed.",
+      "scope": "general",
+      "destination": "guide",
+      "statement": "Card chrome belongs on the per-comment ThreadCard, not on the shared Body wrapper, or a multi-comment thread renders as one continuous shell.",
+      "context": "Putting radius/shadow/background on velt-comment-dialog-body-internal looks correct in a sidebar LIST (only one ThreadCard visible per Body) and silently breaks the moment a focused/thread view renders several ThreadCards inside one Body. This was the only demo-breaking defect of the loop.",
+      "verified": true
+    },
+    {
+      "kind": "corrections",
+      "fact": "velt-judge-2's work order counts its own `PASS:`-prefixed confirmation rows as P0 defects, flipping blocks the judge verdicted PASS into FAIL in block-report.json.",
+      "why": "Second phase running in which dispositions had to be re-recorded by hand with --force. The pipeline never discards `named:true` chrome-probe-family rows.",
+      "evidence": "flow-sidebar-with-comment-not-in-a-thread-view was judged PASS with exact numeric matches yet landed as FAIL with p0Count 3, all three being PASS-labelled rows.",
+      "scope": "general",
+      "destination": "script",
+      "statement": "velt-judge-2's work order counts its own `PASS:`-prefixed confirmation rows as P0 defects, flipping blocks the judge verdicted PASS into FAIL in block-report.json.",
+      "context": "Second phase running in which dispositions had to be re-recorded by hand with --force. The pipeline never discards `named:true` chrome-probe-family rows.",
+      "verified": true
+    },
+    {
+      "kind": "corrections",
+      "fact": "memory.mjs load HIDES tentative entries by default, so cross-phase memory reads as EMPTY even when memory.json is fully populated. Always run `memory.mjs load --include-tentative`.",
+      "why": "The auto-promote-at-every-stop flow writes tier=tentative (confirmed only happens on the user saying \"phase N complete\"). load() defaults includeTentative:false, so every agent told to \"load memory first\" gets an empty advisory prior and concludes no prior knowledge exists. This defeats the entire point of the auto-promote change, and it is easily misdiagnosed as promote silently dropping entries.",
+      "evidence": "Verified 2026-07-29: bare `memory.mjs load` returned corrections:0 gaps:0 naming:0 mappings:0 while .velt-customize/memory.json on disk held 21 corrections, 4 gaps, 3 naming, 2 mappings. `memory.mjs load --include-tentative` returned all of them. memory.mjs:106-109.",
+      "scope": "general",
+      "destination": "script",
+      "statement": "memory.mjs load HIDES tentative entries by default, so cross-phase memory reads as EMPTY even when memory.json is fully populated. Always run `memory.mjs load --include-tentative`.",
+      "context": "The auto-promote-at-every-stop flow writes tier=tentative (confirmed only happens on the user saying \"phase N complete\"). load() defaults includeTentative:false, so every agent told to \"load memory first\" gets an empty advisory prior and concludes no prior knowledge exists. This defeats the entire point of the auto-promote change, and it is easily misdiagnosed as promote silently dropping entries.",
+      "verified": true
+    },
+    {
+      "kind": "gaps",
+      "gap": "Resting tall composer (bs-3) — velt-composer-open flips on typed CONTENT, not focus",
+      "why": "The design draws the tall attach/@/send composer at rest; the only CSS hook would be :focus-within, which R27 forbids for layout.",
+      "evidence": "Reproduced live this loop independently of Loop 1: composer measures 378x40 resting and 378x80 once content is typed. Genuine SDK gap on @veltdev/react 6.0.0-beta.10.",
+      "scope": "general",
+      "statement": "Resting tall composer (bs-3) — velt-composer-open flips on typed CONTENT, not focus",
+      "context": "The design draws the tall attach/@/send composer at rest; the only CSS hook would be :focus-within, which R27 forbids for layout.",
+      "verified": true
+    },
+    {
+      "kind": "gaps",
+      "gap": "ReplyAvatars.List.Item is an inert nested accessor — its className never lands on a live element",
+      "why": "Same class as Loop 1's ThreadCard.Options.Trigger/.Content. An unbound class silently poisons the style plan.",
+      "evidence": "Both dom-snapshot and a fresh live probe show the rendered node velt-comment-dialog-reply-avatars-list-item-internal carrying only ng-star-inserted, never .vc-reply-avatar-item. Style rule retargeted to the real tag.",
+      "scope": "general",
+      "statement": "ReplyAvatars.List.Item is an inert nested accessor — its className never lands on a live element",
+      "context": "Same class as Loop 1's ThreadCard.Options.Trigger/.Content. An unbound class silently poisons the style plan.",
+      "verified": true
+    }
+  ]
+}

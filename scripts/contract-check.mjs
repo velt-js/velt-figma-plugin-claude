@@ -162,7 +162,13 @@ async function check(phaseDir) {
     if (!(await exists(path.join(phaseDir, "frames", `${b.id}.png`)))) problems.push(`block '${b.id}': frames/${b.id}.png missing — the visual-diff reference doesn't exist; re-run enumerate-blocks.mjs rest`);
     const brief = await loadJson(path.join(phaseDir, "briefs", `${b.id}.spec.json`), null);
     if (!brief) problems.push(`block '${b.id}': briefs/${b.id}.spec.json missing — run spec-slice.mjs before the loop`);
-    else if ((brief.nodeCount ?? (brief.nodes || []).length) <= 2) problems.push(`block '${b.id}': THIN slice (${brief.nodeCount} nodes) — text masks will be empty and visual diffs false; fix the designSpec/frameId keying before building`);
+    else if ((brief.nodeCount ?? (brief.nodes || []).length) <= 2 &&
+             !(brief.nodes || []).some((n) => n.type === "TEXT" && n.text?.content))
+      // ≤2 nodes AND no real text = the 1-node-slice keying bug (masks empty, diffs false).
+      // A genuinely minimal design frame (e.g. a frame + one text chip) is NOT thin: its text
+      // mask is real — verified on a 2-node "Document Id" state frame whose designSpec subtree
+      // truly contains only those 2 nodes.
+      problems.push(`block '${b.id}': THIN slice (${brief.nodeCount} nodes, no text content) — text masks will be empty and visual diffs false; fix the designSpec/frameId keying before building`);
   }
 
   // two-phase runs split VALUES out of the connect map: plan-structure.json carries structure only

@@ -129,8 +129,12 @@ function clusterRegions(mask, w, h, cell) {
 
 // Crop an image to a device-px box (for scoping the full-sidebar frame to one block's element region).
 export function cropImage(img, x, y, w, h) {
-  x = Math.max(0, Math.round(x)); y = Math.max(0, Math.round(y));
-  w = Math.min(img.width - x, Math.round(w)); h = Math.min(img.height - y, Math.round(h));
+  // Clamp to image bounds — regions live on the padded diff canvas (max of both images) and can
+  // exceed the smaller image; unclamped that produced a negative Buffer.alloc crash (judge2 run 2026-07-29).
+  x = Math.max(0, Math.min(img.width - 1, Math.round(x)));
+  y = Math.max(0, Math.min(img.height - 1, Math.round(y)));
+  w = Math.max(1, Math.min(img.width - x, Math.round(w)));
+  h = Math.max(1, Math.min(img.height - y, Math.round(h)));
   const out = Buffer.alloc(w * h * 4);
   for (let yy = 0; yy < h; yy++) img.data.copy(out, yy * w * 4, ((y + yy) * img.width + x) * 4, ((y + yy) * img.width + x + w) * 4);
   return { width: w, height: h, data: out };

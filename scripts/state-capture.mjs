@@ -208,8 +208,7 @@ async function main() {
     if (guard.ok) {
       const pel = await panelHandle();
       try {
-        if (pel) await pel.screenshot({ path: outPath, timeout: 8000 });
-        else await page.screenshot({ path: outPath, fullPage: false });
+        await deviceShot(page, pel, outPath);
         row.capture = outPath;
         console.log(`✓ state '${b.state}' driven+confirmed → ${path.basename(outPath)}`);
       } catch (e) {
@@ -237,4 +236,22 @@ async function main() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((e) => { console.error("✗ " + e.message); process.exit(1); });
+}
+
+// judge2 tooling repair (2026-07-29, this run): the sandbox CDP browser renders at dpr=1 and
+// Playwright el.screenshot() normalizes to its known dsf, so live captures came out 1x while
+// Figma frames are 2x — every chromatic diff was cross-scale garbage. Capture via raw CDP
+// clip screenshot under a temporary deviceScaleFactor=2 emulation instead (layout unchanged).
+async function deviceShot(page, el, outPath) {
+  const box = el ? await el.boundingBox() : null;
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    await cdp.send("Emulation.setDeviceMetricsOverride", { width: 0, height: 0, deviceScaleFactor: 2, mobile: false });
+    await new Promise((r) => setTimeout(r, 250));
+    const clip = box ? { x: box.x, y: box.y, width: box.width, height: box.height, scale: 1 } : undefined;
+    const shot = await cdp.send("Page.captureScreenshot", { format: "png", ...(clip ? { clip, captureBeyondViewport: true } : {}) });
+    await fs.writeFile(outPath, Buffer.from(shot.data, "base64"));
+  } finally {
+    await cdp.detach().catch(() => {});
+  }
 }

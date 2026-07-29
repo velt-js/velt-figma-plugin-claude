@@ -209,7 +209,14 @@ function grayDown(img, factor) {
           const sx = x * factor + dx, sy = y * factor + dy;
           if (sx >= img.width || sy >= img.height) continue;
           const i = (sy * img.width + sx) * 4;
-          s += 0.299 * img.data[i] + 0.587 * img.data[i + 1] + 0.114 * img.data[i + 2];
+          // Alpha-blend onto white first — Figma frame exports are TRANSPARENT outside drawn
+          // content; alpha-naive gray read transparent as BLACK and pushed every match score
+          // to ~220+ (repair 2026-07-29). visualDiff's colorDelta already blends; match parity.
+          const al = img.data[i + 3] / 255;
+          const rr = 255 + (img.data[i] - 255) * al;
+          const gg = 255 + (img.data[i + 1] - 255) * al;
+          const bb = 255 + (img.data[i + 2] - 255) * al;
+          s += 0.299 * rr + 0.587 * gg + 0.114 * bb;
           n++;
         }
       }
@@ -228,12 +235,19 @@ export function findBestTemplateMatch(refImg, liveImg, { factor = 4, maxScore = 
   const hr = refImg.height / liveImg.height;
   // Full-panel (or near) — no alignment needed
   if (wr > 0.85 && hr > 0.85) return { x: 0, y: 0, w: liveImg.width, h: liveImg.height, score: 0, mode: "full-panel" };
-  if (refImg.width > liveImg.width + 4 || refImg.height > liveImg.height + 4) {
+  if (refImg.width > liveImg.width + 8 || refImg.height > liveImg.height + 4) {
     return { x: 0, y: 0, w: liveImg.width, h: liveImg.height, score: 0, mode: "full-panel" };
   }
-  const R = grayDown(refImg, factor);
+  // Full-width isolated frames (card/header/footer strips) are legitimately the SAME width as
+  // the live panel — and can be up to 8px wider from panel-border/clip rounding. Trim the ref's
+  // right edge to the live width and allow WIDTH EQUALITY so the y-slide can still run
+  // (repair 2026-07-29: strict R.w<L.w sent every full-width frame to unaligned-pad garbage).
+  const refM = refImg.width > liveImg.width
+    ? cropImage(refImg, 0, 0, liveImg.width, refImg.height)
+    : refImg;
+  const R = grayDown(refM, factor);
   const L = grayDown(liveImg, factor);
-  if (R.w >= L.w || R.h >= L.h) {
+  if (R.w > L.w || R.h > L.h) {
     return { x: 0, y: 0, w: liveImg.width, h: liveImg.height, score: 0, mode: "full-panel" };
   }
   let best = { score: Infinity, x: 0, y: 0 };
@@ -253,7 +267,7 @@ export function findBestTemplateMatch(refImg, liveImg, { factor = 4, maxScore = 
   return {
     x: best.x,
     y: best.y,
-    w: refImg.width,
+    w: Math.min(refImg.width, liveImg.width),
     h: refImg.height,
     score: +best.score.toFixed(2),
     mode: "template-match",
@@ -384,10 +398,29 @@ async function captureResting(phaseDir, { url, ws }) {
       "refusing full-page screenshot (that produced bogus ~97% chromatic diffs)"
     );
   }
-  try { await el.screenshot({ path: out, timeout: 8000 }); }
-  catch { await page.screenshot({ path: out, fullPage: false }); }
+  try { await deviceShot(page, el, out); }
+  catch { try { await el.screenshot({ path: out, timeout: 8000 }); } catch { await page.screenshot({ path: out, fullPage: false }); } }
   return out;
 }
+
+// judge2 tooling repair (2026-07-29, this run): the sandbox CDP browser renders at dpr=1 and
+// Playwright el.screenshot() normalizes to its known dsf, so live captures came out 1x while
+// Figma frames are 2x — every chromatic diff was cross-scale garbage. Capture via raw CDP
+// clip screenshot under a temporary deviceScaleFactor=2 emulation instead (layout unchanged).
+async function deviceShot(page, el, outPath) {
+  const box = el ? await el.boundingBox() : null;
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    await cdp.send("Emulation.setDeviceMetricsOverride", { width: 0, height: 0, deviceScaleFactor: 2, mobile: false });
+    await new Promise((r) => setTimeout(r, 250));
+    const clip = box ? { x: box.x, y: box.y, width: box.width, height: box.height, scale: 1 } : undefined;
+    const shot = await cdp.send("Page.captureScreenshot", { format: "png", ...(clip ? { clip, captureBeyondViewport: true } : {}) });
+    await fs.writeFile(outPath, Buffer.from(shot.data, "base64"));
+  } finally {
+    await cdp.detach().catch(() => {});
+  }
+}
+
 
 const REQUIRED_INTERACTION_STATES = new Set(["hover", "selected", "focus", "focus-typing"]);
 

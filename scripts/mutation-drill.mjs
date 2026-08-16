@@ -24,27 +24,16 @@ import { pathToFileURL, fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { evaluateStructuralContract, OBSERVE } from "./structural-contract-validate.mjs";
 import { EXEC } from "./run-compiled-assertions.mjs";
+import { loadChromium as _loadChromium } from "./_browser-env.mjs";
 
 const require = createRequire(import.meta.url);
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 async function loadJson(p) { try { return JSON.parse(await fs.readFile(p, "utf8")); } catch { return null; } }
 
-async function loadPlaywright() {
-  const candidates = [
-    process.env.PLAYWRIGHT_CORE,
-    "playwright-core",
-    path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js"),
-  ].filter(Boolean);
-  for (const c of candidates) {
-    try {
-      const mod = c.startsWith("/") || c.startsWith(".") ? require(c) : await import(c);
-      const pw = mod.default || mod;
-      if (pw.chromium) return pw.chromium;
-    } catch { /* next */ }
-  }
-  throw new Error("playwright-core not found");
-}
+// Chromium resolution + the sandbox egress shim both live in _browser-env.mjs — see the header
+// there for why a proxied environment needs the browser's requests performed from Node.
+async function loadPlaywright() { return _loadChromium(); }
 
 /** Deterministic PRNG (seeded) — drills must be reproducible per seed yet non-memorizable across seeds. */
 function mulberry32(seed) {

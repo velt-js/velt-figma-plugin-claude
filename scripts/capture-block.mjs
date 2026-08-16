@@ -22,15 +22,11 @@
 
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { loadChromium as _loadChromium } from "./_browser-env.mjs";
 
-async function loadChromium() {
-  const candidates = [process.env.PLAYWRIGHT_CORE, "playwright-core",
-    path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js")].filter(Boolean);
-  for (const c of candidates) {
-    try { const m = await import(c); return (m.default || m).chromium; } catch { /* try next */ }
-  }
-  throw new Error("playwright-core not found — `npm i -D playwright-core` (or set $PLAYWRIGHT_CORE), or feed visual-diff a device-res PNG from your own capture (CDP element screenshot at DPR 2).");
-}
+// Chromium resolution + the sandbox egress shim both live in _browser-env.mjs — see the header
+// there for why a proxied environment needs the browser's requests performed from Node.
+async function loadChromium() { return _loadChromium(); }
 
 // Acquire a browser: launch a fresh headless one, or REUSE an existing browser via --connect. A real
 // Chrome (what the Judge drives) exposes a CDP endpoint (http://host:port or ws …/devtools/browser/…);

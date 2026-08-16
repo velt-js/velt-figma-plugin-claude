@@ -12,7 +12,7 @@
 // Usage: node scripts/preflight-env.mjs [--json]
 // Exit codes: 0 = clean · 2 = hazards found (each printed with its fix) · 1 = error.
 
-import { promises as fs } from "node:fs";
+import { promises as fs, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 
@@ -36,19 +36,45 @@ async function scanHosts() {
   return { hazards };
 }
 
+// /proc/net/tcp{,6} fallback. lsof needs to walk /proc/<pid>/fd to attribute a socket, so in a
+// container where it cannot read another process's fds it silently omits that listener — measured
+// in a managed sandbox where `next dev` was serving 200s on :3000 while lsof listed only :8000.
+// An under-reported port list reads as "nothing is running there", which is worse than no list.
+// The kernel table always has the socket, just without a command name.
+function listeningPortsProc() {
+  const out = [];
+  for (const f of ["/proc/net/tcp", "/proc/net/tcp6"]) {
+    let txt = "";
+    try { txt = readFileSync(f, "utf8"); } catch { continue; }
+    for (const line of txt.split("\n").slice(1)) {
+      const c = line.trim().split(/\s+/);
+      if (c.length < 4 || c[3] !== "0A") continue;          // 0A = TCP_LISTEN
+      const port = parseInt((c[1] || "").split(":")[1], 16);
+      if (Number.isFinite(port)) out.push({ command: "?", pid: "?", port });
+    }
+  }
+  return out;
+}
+
 function listeningPorts() {
   // dev-server-ish listeners on localhost; used to PIN appUrl against reality, never a guess.
+  let rows = [];
   try {
     const out = execFileSync("lsof", ["-iTCP", "-sTCP:LISTEN", "-P", "-n"], { stdio: ["ignore", "pipe", "ignore"] }).toString();
-    const rows = out.split("\n").slice(1).filter(Boolean).map((l) => {
+    rows = out.split("\n").slice(1).filter(Boolean).map((l) => {
       const c = l.split(/\s+/);
       const m = (c[8] || "").match(/:(\d+)$/);
       return m ? { command: c[0], pid: c[1], port: +m[1] } : null;
     }).filter(Boolean);
-    const seen = new Set(); const uniq = [];
-    for (const r of rows) { const k = r.port + r.command; if (!seen.has(k)) { seen.add(k); uniq.push(r); } }
-    return uniq.filter((r) => r.port >= 3000 && r.port <= 9999).sort((a, b) => a.port - b.port);
-  } catch { return []; }
+  } catch { /* lsof absent — the /proc scan below still answers on Linux */ }
+
+  // Union, not fallback: lsof carries the command name, /proc carries the sockets lsof cannot see.
+  const byPort = new Map();
+  for (const r of [...rows, ...listeningPortsProc()]) {
+    const cur = byPort.get(r.port);
+    if (!cur || (cur.command === "?" && r.command !== "?")) byPort.set(r.port, r);
+  }
+  return [...byPort.values()].filter((r) => r.port >= 3000 && r.port <= 9999).sort((a, b) => a.port - b.port);
 }
 
 async function main() {

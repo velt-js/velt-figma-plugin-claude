@@ -16,6 +16,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { loadChromium } from "./_browser-env.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -91,13 +92,14 @@ async function main() {
     console.error("usage: structural-invariants.mjs <phaseDir> --url <url> --connect <ws> [--family id]");
     process.exit(1);
   }
-  // Resolve Chromium through the SHARED loader (measure-block.loadChromium): it also honours
-  // $PLAYWRIGHT_CORE and the gstack-vendored build, so this gate runs wherever measure-block does.
-  // A bare require("playwright-core") failed on every machine without a local install even though the
-  // rest of the live pipeline worked — an un-runnable gate is indistinguishable from a skipped one.
+  // Resolve Chromium through the SHARED loader (_browser-env.loadChromium): it honours
+  // $PLAYWRIGHT_CORE, the gstack-vendored build and global installs, so this gate runs wherever
+  // measure-block does. A bare require("playwright-core") failed on every machine without a local
+  // install even though the rest of the live pipeline worked — an un-runnable gate is
+  // indistinguishable from a skipped one.
   let chromium;
-  try { ({ chromium } = await import(path.join(path.dirname(fileURLToPath(import.meta.url)), "measure-block.mjs")).then((m) => ({ chromium: m.loadChromium() }))); chromium = await chromium; }
-  catch { try { chromium = require("playwright-core").chromium; } catch { console.error("✗ playwright-core required"); process.exit(1); } }
+  try { chromium = await loadChromium(); }
+  catch (e) { console.error("✗ " + e.message); process.exit(1); }
   const browser = await chromium.connectOverCDP(ws);
   const context = browser.contexts()[0] || await browser.newContext();
   const page = context.pages().find((p) => p.url().includes(new URL(url).host)) || context.pages()[0] || await context.newPage();

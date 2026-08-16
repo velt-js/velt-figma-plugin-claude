@@ -26,6 +26,7 @@
 // Programmatic: `import { resolveEndpoint } from "./browser-endpoint.mjs"` → returns the ws or null.
 
 import { pathToFileURL } from "node:url";
+import { loadChromium } from "./_browser-env.mjs";
 
 async function fromHttp(base) {
   const url = String(base).replace(/\/+$/, "") + "/json/version";
@@ -69,11 +70,9 @@ export function instructions(port = 9222) {
 // answered), and killable without touching the user's browser. Runs until killed — start it as a
 // background task and pin the printed ws. NOT for apps needing the user's real logged-in session.
 async function launchServer({ headed = false, port = 9223 } = {}) {
-  const candidates = [process.env.PLAYWRIGHT_CORE, "playwright-core",
-    (process.env.HOME || "") + "/.claude/skills/gstack/node_modules/playwright-core/index.js"].filter(Boolean);
   let chromium = null;
-  for (const c of candidates) { try { const m = await import(c); chromium = (m.default || m).chromium; break; } catch { /* next */ } }
-  if (!chromium) { console.error("✗ playwright-core not found — `npm i -D playwright-core` or set $PLAYWRIGHT_CORE"); process.exit(3); }
+  try { chromium = await loadChromium(); }
+  catch (e) { console.error("✗ " + e.message); process.exit(3); }
   // CDP-port launch (NOT launchServer): over CDP every connection shares the browser's DEFAULT
   // context, so the one-tab-per-run reuse works across separate script invocations — a
   // launchServer browser gives each connection its own ephemeral context and the tab/auth die

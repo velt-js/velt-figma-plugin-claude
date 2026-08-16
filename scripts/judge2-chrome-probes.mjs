@@ -17,24 +17,13 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 import { decodePNG } from "./visual-diff.mjs";
+import { loadChromium as _loadChromium } from "./_browser-env.mjs";
 
 const require = createRequire(import.meta.url);
 
-async function loadPlaywright() {
-  const candidates = [
-    process.env.PLAYWRIGHT_CORE,
-    "playwright-core",
-    path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js"),
-  ].filter(Boolean);
-  for (const c of candidates) {
-    try {
-      const mod = c.startsWith("/") ? require(c) : await import(c);
-      const pw = mod.default || mod;
-      if (pw.chromium) return pw.chromium;
-    } catch { /* next */ }
-  }
-  throw new Error("playwright-core not found");
-}
+// Chromium resolution + the sandbox egress shim both live in _browser-env.mjs — see the header
+// there for why a proxied environment needs the browser's requests performed from Node.
+async function loadPlaywright() { return _loadChromium(); }
 
 function lum(data, w, x, y) {
   const i = (y * w + x) * 4;

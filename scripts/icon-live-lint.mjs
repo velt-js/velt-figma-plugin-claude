@@ -11,6 +11,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
+import { loadChromium } from "./_browser-env.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -54,8 +55,8 @@ async function main() {
   }
   const designPaths = await collectAssetPaths(assets);
   let chromium;
-  try { chromium = require("playwright-core").chromium; }
-  catch { console.error("✗ playwright-core required"); process.exit(1); }
+  try { chromium = await loadChromium(); }
+  catch (e) { console.error("✗ " + e.message); process.exit(1); }
   const browser = await chromium.connectOverCDP(ws);
   const context = browser.contexts()[0] || await browser.newContext();
   const page = context.pages()[0] || await context.newPage();

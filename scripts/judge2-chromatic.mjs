@@ -21,6 +21,7 @@ import {
   decodePNG, encodePNG, visualDiff, cropImage, textMasksFromSpec, textBoxesFromSpec,
 } from "./visual-diff.mjs";
 import { runJudge2ChromeProbes } from "./judge2-chrome-probes.mjs";
+import { loadChromium } from "./_browser-env.mjs";
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -317,20 +318,7 @@ async function captureStates(phaseDir, { url, ws }) {
 async function captureResting(phaseDir, { url, ws }) {
   // Reuse composed-audit-style capture via a tiny inline CDP shot through state-capture's browser:
   // simplest: run playwright here once for resting only.
-  const chromiumCandidates = [
-    process.env.PLAYWRIGHT_CORE,
-    "playwright-core",
-    path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js"),
-  ].filter(Boolean);
-  let chromium = null;
-  for (const c of chromiumCandidates) {
-    try {
-      const mod = c.startsWith("/") ? require(c) : await import(c);
-      const pw = mod.default || mod;
-      if (pw.chromium) { chromium = pw.chromium; break; }
-    } catch { /* next */ }
-  }
-  if (!chromium) throw new Error("playwright-core not found");
+  const chromium = await loadChromium();
   const browser = await chromium.connectOverCDP(ws.startsWith("http") ? ws : ws);
   const context = browser.contexts()[0] || await browser.newContext();
   let page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];

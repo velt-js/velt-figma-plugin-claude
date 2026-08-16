@@ -33,6 +33,7 @@ import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 import { decodePNG, encodePNG, cropImage } from "./visual-diff.mjs";
 import { isTemplatedMiss, evidenceCssBox } from "./emit-judge-defects.mjs";
+import { loadChromium } from "./_browser-env.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -169,19 +170,7 @@ async function resolveLandmarks(ws, requests) {
   const timeoutMs = 10000;
   const work = (async () => {
     let chromium;
-    const candidates = [
-      process.env.PLAYWRIGHT_CORE,
-      "playwright-core",
-      path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js"),
-    ].filter(Boolean);
-    for (const c of candidates) {
-      try {
-        const mod = c.startsWith("/") ? require(c) : await import(c);
-        const pw = mod.default || mod;
-        if (pw.chromium) { chromium = pw.chromium; break; }
-      } catch { /* next */ }
-    }
-    if (!chromium) return null;
+    try { chromium = await loadChromium(); } catch { return null; }
     const conn = await connectWithRetry(chromium, ws, { retries: 2 });
     if (!conn.browser) return null;
     const browser = conn.browser;
@@ -325,21 +314,7 @@ async function liveDomBoxes(url, ws) {
   const timeoutMs = 8000;
   const work = (async () => {
     let chromium;
-    try {
-      const candidates = [
-        process.env.PLAYWRIGHT_CORE,
-        "playwright-core",
-        path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js"),
-      ].filter(Boolean);
-      for (const c of candidates) {
-        try {
-          const mod = c.startsWith("/") ? require(c) : await import(c);
-          const pw = mod.default || mod;
-          if (pw.chromium) { chromium = pw.chromium; break; }
-        } catch { /* next */ }
-      }
-    } catch { return {}; }
-    if (!chromium) return {};
+    try { chromium = await loadChromium(); } catch { return {}; }
     const browser = await chromium.connectOverCDP(ws);
     const context = browser.contexts()[0];
     const page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];

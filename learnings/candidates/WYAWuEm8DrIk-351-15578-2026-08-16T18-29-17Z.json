@@ -1,0 +1,231 @@
+{
+  "runId": "WYAWuEm8DrIk-351-15578-2026-08-16T18-29-17Z",
+  "phaseId": "WYAWuEm8DrIk-351-15578",
+  "app": "harvey",
+  "mode": "strictly primitives",
+  "node": "351-15578",
+  "pluginSha": "a507ae0",
+  "publishedAt": "2026-08-16T18:29:17.287Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "On Velt V2 sidebar primitives, defaultCondition={false} is the universal escape hatch: a hand-composed primitive whose self-owned visibility condition is unsatisfied renders as empty comment nodes AND DELETES ITS R1 CHILDREN. velt-comment-sidebar-close-button-v2 computes shouldShow = defaultCondition ? !embedMode : true, so in an embedded sidebar the built-in is hidden by design and takes hand-placed children with it.",
+      "category": "sdk-gotcha",
+      "evidence": "child span vanished as <!----><!---->; adding defaultCondition={false} restored it and stopped the SDK warning. Same shape ('if (!this.defaultCondition()) return true;') in velt-comment-sidebar-list-v2 (needs filteredAnnotations.length>0 && !noCommentsFound) and velt-comment-sidebar-page-mode-composer-v2 (needs pageMode && pageCommentAnnotation && user).",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "knowledge",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "Velt's '<tag> does not support children ... or use a wireframe for this element' console warning is MISLEADING and points at the wrong layer: the tag DOES support R1 children, it simply had no mounted template to move them into because its visibility condition was unsatisfied. Taken at face value it pushes a `strictly primitives` build into a forbidden layer switch.",
+      "category": "sdk-gotcha",
+      "evidence": "warning emitted while the condition was unsatisfied; after defaultCondition={false} the child replaced the SDK glyph and the warning stopped.",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "knowledge",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "VeltCommentSidebarV2Header / ...CloseButton (and siblings) DROP className and ref: their interfaces extend React.DetailedHTMLProps so className type-checks, but the implementations destructure only defaultCondition and children and forward no ...rest. A stylesheet keyed to a vcClass placed on these tags silently never matches.",
+      "category": "sdk-gotcha",
+      "evidence": "classAttr null on both tags in live DOM after passing className; style stage must key off tag names instead.",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "knowledge",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "manifest/velt-primitives.json records parentOwnedConditions:null for velt-comment-sidebar-close-button-v2, which provably HAS a self-owned visibility condition — so lint-primitives' P6 net has a hole and stayed silent on a real dead-control risk.",
+      "category": "pipeline-trap",
+      "evidence": "lint exit 0 while the composed control's children were being deleted at runtime.",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "lint",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "React onClick is silently DEAD on R1 children inside a Velt dropdown. The dropdown container calls stopPropagation on 'click'; React 17+ delegates at the root container, so no synthetic event is produced at all even though the node still holds its __reactProps$…onClick. pointerdown/mousedown are NOT stopped — use onPointerDown.",
+      "category": "sdk-gotcha",
+      "evidence": "instrumented every ancestor: click fires on span -> div.velt-sidebar-filter-trigger-container -> span.velt-sidebar-filter-dropdown-container -> dies; docClick:0 while docPointerDown:1. A synthetic .click() fails identically, so it is stopPropagation, not real-vs-synthetic.",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "knowledge",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "A hand-composed Velt dropdown has NO open/close behaviour at all — the behaviour lives in the template that R1 children replace, not on the trigger or content elements. The builder must own visibility (defaultCondition={false} + own {open && ...}). Left unowned the content renders PERMANENTLY EXPANDED.",
+      "category": "sdk-gotcha",
+      "evidence": "filter content rendered 150x287 in a header whose design is a 97x32 closed select; a real pointer click on the MultiThread actions trigger left aria-expanded=\"false\" (toggleMinimalActionsDropdown inert outside its host).",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "knowledge",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "lint-primitives P3 FALSE POSITIVE: an inline {open ? (<VeltFoo>...</VeltFoo>) : null} child of a primitive trips P3 because consumeText only strips BALANCED {...} runs, and the fragment between tags is the unbalanced '{filterOpen ? (' so it reads as plain text. Workaround: hoist the JSX to a const and interpolate one balanced {expr} — same React output, lint clean.",
+      "category": "pipeline-trap",
+      "evidence": null,
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "lint",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "judge2-chromatic.mjs CRASHES with 'The value of \"size\" is out of range' / Buffer.alloc(negative) whenever the Figma frame export scale differs from the live capture scale. Figma State frames are 2x exports of a 552 CSS px surface (1104px wide) while the live rail captures at devicePixelRatio 1 and 354 CSS px; findBestTemplateMatch falls back to full-panel, visualDiff's canvas becomes 1104 wide, and a region box at x>354 reaches cropImage where w = img.width - x goes NEGATIVE.",
+      "category": "pipeline-trap",
+      "evidence": "Received -72312; zero per-block diff numbers produced for the whole phase; judge had to fall back to direct DOM-vs-designSpec measurement",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "judge2-chrome-probes silently NO-OPS in `strictly primitives` mode: its selectors (.vc-body, .vc-card, .velt-comment-dialog--sidebar-mode) match 0 elements because Velt primitives drop className, so card-side-borders-invisible, card-double-border, thread-rail-on-single-comment, thread-rail-show-n-mismatch and inter-dialog-gap-mismatch all report nothing. The single emitted row 'chrome-probe-empty-sidebar' is a PROBE-SELECTOR MISS, not an empty sidebar — 3 real cards render as div.vc-comment-card.",
+      "category": "pipeline-trap",
+      "evidence": ".vc-body=0/.vc-card=0/.velt-comment-dialog--sidebar-mode=0 while 3 div.vc-comment-card render live",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "velt-comment-dialog-thread-card and velt-comment-dialog-toggle-reply are listed as children-accepting containers in manifest/velt-codeconnect.json and pass lint P2, but REJECT CHILDREN at runtime on sdk@6.0.8-beta.1 ('does not support children ... This primitive renders its own child primitives instead'). Consequence beyond layout: the container never mounts, so the CLICK OWNER never exists — every composed card and reply-toggle renders pixel-correct and is completely DEAD. defaultCondition={false} does NOT help (different failure class from the visibility-condition case).",
+      "category": "sdk-gotcha",
+      "evidence": "querySelectorAll('velt-comment-dialog-thread-card')=0; real pointer clicks at freshly-measured coords on card/head/message/avatar and on reply count/text all landed on target and produced ZERO delta (docEls 401->401, cards 3->3, innerText 237->237 chars, cdk-overlay 0x0 display:none document-wide, 0 console messages)",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "knowledge",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "The V2 sidebar close button is DEAD under embedMode when hand-composed: velt-comment-sidebar-close-button-v2's (click) reaches actionService.closeSidebar() -> commentService.setSidebarVisibility(false,false,true), but V2's closeSidebar() has no .emit() (unlike V1), so no sidebarClose event is delivered on commentElement.on('sidebarClose') and the host never learns to collapse its rail.",
+      "category": "component-difficulty",
+      "evidence": "click at (1175,101) with elementFromPoint returning the button's own <path>; rail box unchanged [1158,63,354,837], .velt-sidebar-container.visible still present, docEls/railEls/innerText identical. Predicted from source by builder 1 and independently reproduced by the judge.",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "knowledge",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "'<VeltCommentsSidebar\\b' can never match '<VeltCommentsSidebarV2' (no word boundary between 'r' and 'V'), so a V2 host mount was invisible to the gate and every sidebar hostProp reported MISSING forever — FIXED: HOST_TAG_FALLBACKS=[V2,V1,VeltComments] used in BOTH evaluateHostSource and the --apply target lookup",
+      "category": "pipeline-trap",
+      "evidence": "fixture test: V1 regex still returns null on V2 src (no regression); V2 tag resolves; V2-only host evaluates 0 missing. contract-check selftest exit 0.",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "checkPropInSource with plan value:true accepted only {true} or a bare prop, so a prop the SDK TYPES as string (IVeltCommentSidebarV2Props.embedMode?: string, host must write embedMode=\"true\") could never satisfy the gate — it demanded a spelling the host could not type-check its way into — FIXED: accept prop=\"true\" and prop={\"true\"} as satisfying value:true; explicitly REJECT the \"false\" spellings in both forms",
+      "category": "pipeline-trap",
+      "evidence": "9/9 fixture assertions pass incl. 4 regression guards; real gate went 6/8 -> 7/8 present with only the inferred pageModeComposerVariant row remaining",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "Preflight item 6 (auth) can PASS on 'velt booted + tags present' while getUser() is null and NO data stream exists. Booted != authed != has-data. The auth preflight must assert a non-null getUser() AND a data-bearing subscription, or 5/11 blocks reach the style stage measuring an empty surface.",
+      "category": "pipeline-trap",
+      "evidence": "getUser() now returns {type:signedIn,userId:user1,organizationId:owner-org-1}; .vc-document-id='harvey-doc-7'; .vc-unread-count='0 unread' — both previously empty",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "guide",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "mock-gate is structurally inapplicable to `strictly primitives` runs — it requires mocks/ that only the wireframe-path structure builder produces. The primitives path needs an equivalent gate or an explicit mode skip, otherwise every primitives run hits a spurious exit 2 before build-style.",
+      "category": "pipeline-trap",
+      "evidence": "mock-gate compares live free-draw MOCKS against the frame PNGs. Free-draw mocks are a WIREFRAME-path artifact produced by velt-builder in mode=structure; velt-builder-primitives composes a primitive tree and never produces mocks/. The gate's precondition cannot exist in `strictly primitives`.",
+      "seenOn": [
+        "harvey-351-15578"
+      ],
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "corrections",
+      "fact": "filter/actions dropdown menus render INLINE inside the host rail, NOT in a document.body CDK overlay",
+      "was": "plan globalNotes.hostConstraints[1] said CDK overlay -> global selectors",
+      "now": "inOverlay:false, zero overlay containers -> RAIL-SCOPED selectors",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "corrections",
+      "fact": "Velt primitives drop className and ref (no ...rest forwarding) so style must key off tag names",
+      "was": "plan placed vcClasses on Velt primitive tags",
+      "now": "25/25 measured class===null",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "corrections",
+      "fact": "velt-comment-dialog-thread-card and -toggle-reply reject children at runtime despite being registry containers that pass lint P2",
+      "was": "treated as containers by the plan",
+      "now": "container never mounts so the CLICK OWNER never exists — composed cards render perfectly and are DEAD",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "corrections",
+      "fact": "embedMode is typed string on IVeltCommentSidebarV2Props but boolean on V1",
+      "was": "plan asked for embedMode:true",
+      "now": "embedMode=\"true\" reproduces V1 embed-mode=true attribute",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "gaps",
+      "gap": "V2 closeSidebar() has no .emit() so the collapse control is dead under embedMode",
+      "impact": "host must own rail collapse state",
+      "scope": "general",
+      "verified": true
+    }
+  ]
+}

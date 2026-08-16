@@ -12,9 +12,13 @@ const KDIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "know
 async function loadJson(name) {
   try { return JSON.parse(await fs.readFile(path.join(KDIR, name), "utf8")); } catch { return null; }
 }
-// "6.x" matches a target like "6.0.0-beta.3"; "n/a"/absent matches anything.
+// "6.x" matches a target like "6.0.0-beta.3"; absent / any "n/a…" value matches anything.
+// The n/a test is a PREFIX test on purpose: entries are written as "n/a (Figma export)" as well as
+// bare "n/a", and an exact-equality test silently DROPPED those the moment a real version was passed.
+// No behaviour change today (no caller passes a version, so targetVer is null and this returns true
+// on the first clause either way) — this closes the trap before version plumbing is wired up.
 function versionMatches(entryVer, targetVer) {
-  if (!entryVer || entryVer === "n/a" || !targetVer) return true;
+  if (!entryVer || String(entryVer).startsWith("n/a") || !targetVer) return true;
   return String(targetVer).startsWith(String(entryVer).split(".")[0]);
 }
 export async function gotchas({ cssOnly = false, version = null } = {}) {

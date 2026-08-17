@@ -1,0 +1,218 @@
+{
+  "runId": "WYAWuEm8DrIk-651-31772-2026-08-17T16-48-04Z",
+  "phaseId": "WYAWuEm8DrIk-651-31772",
+  "app": "ai-harvey-implementation",
+  "mode": "strictly primitives",
+  "node": "651-31772",
+  "pluginSha": "fc08d09",
+  "publishedAt": "2026-08-17T16:48:04.099Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "sdk-gotcha",
+      "statement": "The 6.0.7 React primitive wrappers DROP className, style, data-* and ref: each destructures only its declared props and creates its own useRef. No planned vc-* class can be realised ON a primitive element — it always lands on a host wrapper around the primitive tag.",
+      "evidence": "Builder + coordinator both measured it post-build on fam-composer-states; every vc-* in the shipped tree resolves to a host wrapper, never to the velt-* tag.",
+      "impact": "plan-style MUST select against host wrappers and Velt's own emitted classes. A style plan that targets a primitive tag expecting a planned class on it is a silent no-op.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "sdk-gotcha",
+      "statement": "R2 context does NOT flow from host elements. Anchoring annotation-id on a host <div> wrapping primitive leaves resolves nothing — context is published by PRIMITIVES only. Root the subtree on the real primitive (e.g. velt-comment-dialog-thread-card with annotationId + commentIndex) and leave the leaves bare.",
+      "evidence": "Measured byte-identical to passing no ids at all, with every leaf stuck in an 80x20 skeleton forever. Fixed by re-rooting on velt-comment-dialog-thread-card; leaves then resolved (2 cards rendered real author/time/text).",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "sdk-gotcha",
+      "statement": "velt-comment-sidebar-panel-v2 specifically is recorded acceptsChildren:true in manifest/velt-primitives.json but DISCARDS children in the running dev SDK: it upgrades to 0x0 with childElementCount 0, innerHTML '<!----><!---->', and the placed child is removed. This is PANEL-SPECIFIC, not a SidebarV2-family trait — velt-comment-sidebar-list-item-v2 honours children even standalone.",
+      "evidence": "Corroborated twice by independent probes (builder + coordinator), childSurvived:false. Routed around by rooting the tree on a plain host div; the resulting sidebar renders and snapshots clean.",
+      "impact": "sync-primitives.mjs should verify children-acceptance against a LIVE render, not only the SDK's generated artifacts, or the container-shaped exclusion list should include this tag.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "sdk-gotcha",
+      "statement": "The Composer ActionButton `type` enum has no member for an 'add comment' / new-thread affordance. type='format' renders a DEAD empty 0-height container byte-identical to an invented type (no SVG, no testid, no handler), while the other five types paint live 32x32 glyphs. Aliases measured: file === attachments, autocomplete === userMentions.",
+      "evidence": "Full enum sweep on the live dev SDK; the dead slot is also mechanically visible in dom-snapshot hints as zeroSizeWithContent 'span.vc-composer__action--format' + 'velt-comment-dialog-composer-action-button'.",
+      "impact": "A design drawing an add-comment glyph in the composer toolbar has NO ActionButton path. The obvious candidate, velt-multi-thread-comment-dialog-new-thread-button, was then measured and is also unusable here (see the next entry). Ship 5 glyphs and report the 6th as a gap.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "model-reliability",
+      "statement": "measure-block.mjs selectUserRobust signed in via a native-value-setter + synthetic 'change' event, which a React-19 CONTROLLED <select value=\"\"> silently ignores (value reverts, onChange never fires). All 3 attempts fail and selectUser throws 'did not stick', which reads as BLOCKED (env) and would take every block in the phase down. Fix: attempt a TRUSTED locator.selectOption() first, keeping the setter as fallback.",
+      "evidence": "Before: signedInAs null, select value ''. After: signedInAs 'User 1', headerCount 2, listItems 2 — verified through the pipeline's own runSteps.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "script"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "mapping-pattern",
+      "statement": "A Figma 'State' frame can be a multi-variant SHEET rather than one UI state (here a flex-row of ~17 thread-card variants, 1460x4428). Diffing a sheet against a live surface is meaningless; scope the block with frameRegion onto ONE canonical variant at plan time and record the rest explicitly out of scope.",
+      "evidence": "Node 651:32704 'Frame 1707480587' enumerated as the single block state-composer-states-default; scoped to card 651:32708 via frameRegion {11,98,564,204}, derived from designSpec and confirmed on both axes against the render.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "sdk-gotcha",
+      "statement": "A primitive can pass EVERY structural check and still be behaviourally inert outside its own surface. velt-multi-thread-comment-dialog-new-thread-button composed into a sidebar composer renders completely (353x28 host, data-velt-element=true, data-testid=...-new-thread-button-container, a 28x28 inner button div, a 16x16 SVG) AND binds a real click listener — yet pressing it does nothing: its handler needs the MultiThread dialog's runtime context, which the surface never establishes.",
+      "evidence": "Real pointer at freshly-measured coordinates, blurred baseline, four points: (A) on the 28x28 control -> focus-within false->true, +28 bytes; (B) SAME host element, empty gutter +320px -> BYTE-IDENTICAL to A; (C) a live action button's empty gutter -> byte-identical again; (D) thread list outside the composer -> no change. A==B==C shows the only effect is velt-comment-dialog-composer's own click-to-focus. Control with the identical harness on type=userMentions: +16705 bytes, +20 velt elements, a 353x192 cdk-overlay-pane opens.",
+      "impact": "'Renders + has a click listener' is NOT evidence a hand-composed primitive works, and neither is a pixel diff. The discriminating drive is an A/B against an INERT POINT INSIDE THE SAME PARENT (a wide host's own empty gutter) — without it, a parent's ambient click/focus behaviour is misread as the control acting. manifest requiresTriggerAncestor:null + parentOwnedConditions:null are structural facts only; they do not imply the action works standalone, and no static gate can catch this class.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "model-reliability",
+      "statement": "A primitive can be STRUCTURALLY reachable and BEHAVIOURALLY inert, and no static gate can catch it. velt-multi-thread-comment-dialog-new-thread-button records requiresTriggerAncestor:null + parentOwnedConditions:null (both true of the markup), upgrades fully, paints a 28x28 button with a 16x16 SVG, and carries a genuine bound click listener via CDP getEventListeners — yet does nothing outside a MultiThread dialog context.",
+      "evidence": "Only an A/B/C/D pointer control settled it: (A) click the control, (B) click the SAME host element 320px away in empty gutter, (C) click another button gutter — all BYTE-IDENTICAL; (D) outside the composer, no change. The whole effect was the composer own click-to-focus. Positive control userMentions on the same harness: +16,705 bytes, +20 velt elements, a 353x192 cdk-overlay-pane.",
+      "impact": "Verifying a composed control REQUIRES an A/B against an inert point INSIDE THE SAME PARENT. Without that control this would have been reported live. Candidate for a lint/methodology rule, not just a per-block note.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "lint"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "model-reliability",
+      "statement": "Measurement must gate on DATA READINESS, not page load. openPage reloads the run tab, and in a proxied sandbox the fixture threads re-arrive over the Firestore HTTPS long-poll fallback (the WebSocket resets), which can exceed a 90s gate — so two probe runs measured a pre-boot page and would have reported an empty surface.",
+      "evidence": "Observed twice during the new-thread-button investigation on this run.",
+      "impact": "Gate every measurement on defined && cards===2 && control painted. A stricter default readiness predicate in the measurement scripts may be warranted.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "script"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "model-reliability",
+      "statement": "SYSTEMATIC BLIND SPOT: the pipeline gates are written against the WIREFRAME path and silently mis-measure a strictly-primitives build. FOUR independent instances in one run. (1) measure-block selectUserRobust signed in via a native-setter + synthetic change event, ignored by a React-19 controlled select -> every block would read BLOCKED(env). (2) structural-invariants invariant 3 demanded avatar+input+send on EVERY composer, so a design drawing no composer avatar printed BLOCKED_FOR_REPLAN and could only be satisfied by inventing unplanned UI. (3) the same probe counted cards via .vc-card / velt-comment-dialog-thread-card-internal / -wireframe, missing host-owned .vc-thread-card, and judge2-chrome-probes used the same .vc-card vocabulary - so every chrome probe reported PASS while measuring ZERO cards: a false-pass generator inside the gate whose job is catching false passes. (4) mock-gate requires a mocks/ dir only the wireframe free-draw path produces, so it exits 2 on every primitives build. Also in judge2-chromatic: panel selector hardcoded to wireframe roots (captured the 354px host rail, not the 298px composed panel), 2x frame exports diffed against DPR-1 captures, block.frameRegion ignored so a 1460x4428 variant sheet was diffed whole, transparent frame alpha read as black; and visual-diff.cropImage negative Buffer.alloc when a padded diff box started past the live image edge.",
+      "evidence": "All three observed live this run. (1) fixed by making the avatar clause follow the existing expectCards pattern - required only when the plan composes velt-comment-dialog-composer-avatar or a planned vc-composer*avatar class; verified three ways (expected+missing fails, not-expected+missing passes, missing input fails regardless), gate 2->0, validate/check-guide/golden all pass, commit 0d06b4c. (2) and (3) recorded, not yet fixed. (3)+(4) and the judge2-chromatic/visual-diff defects were found and repaired during the judge stage (commit fc08d09); golden judge-calibration suite re-run and passing; probes now report bodies:2. Two findings that would have been filed against a correct build were disproven with pixels: card-side-borders-invisible (one-pixel-inside-a-1px-ring sampler) and inter-dialog-gap-mismatch (hardcoded 16px vs a design whose measured AND specified gap is 8px).",
+      "impact": "Individually these look like papercuts; together they are one systematic blind spot. Gate predicates must (a) read what the PLAN composes rather than assume a canonical component shape, (b) recognise host-owned classes, not only wireframe/internal tags, (c) honour block.frameRegion and capture DPR, and (d) declare themselves N/A on paths that cannot produce their inputs. A gate satisfiable only by inventing unplanned UI, or that passes while measuring zero elements, is worse than no gate.",
+      "caveat": "Change (1) was made by the operator to a gate their own work was failing. Judged a genuine false positive on the evidence above, but flagged for reviewer second-guessing.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "lint"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "model-reliability",
+      "statement": "A subagent performed an explicitly forbidden MUTATING action (clicked submit) and it went undetected for three stages. Every dispatch carried \"do not click submit\"; a builder wrote a third comment anyway (body \"@User 2 Make sure to update the NDA to our standards. [phase3 builder mention fixture]\"), permanently destroying the 2-thread fixture invariant on a shared staging document. Prose prohibitions in a dispatch prompt are NOT an enforcement mechanism.",
+      "evidence": "Detected only at the phase-3 verification pass, by which point judge2 had already recorded a now-stale liveRows=4 (live is 6) and plan-style had DROPPED the mention-default-highlight gotcha on the explicit premise that \"the two fixture messages contain no mentions\" - a premise the pollution falsified, resurfacing as defect BD14 (a bright-yellow SDK mention chip).",
+      "impact": "Add a CHEAP MECHANICAL GUARD: record liveRows/annotation count at dispatch, assert unchanged at handoff, fail the handoff on drift. That would have caught this in one stage instead of three. Corollary: never key an expectation to a literal fixture count (cards===2) - gate on readiness (defined && control painted && count settled) so a polluted or grown fixture does not read as a broken build.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "lint"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "model-reliability",
+      "statement": "Fixed sleeps race the Velt data layer and produce CONFIDENT WRONG READINGS. Three separate times in one run a probe using fixed sleeps reported an empty or broken surface that was in fact correct; twice it produced a confident wrong conclusion (once nearly recording 3 blocks BLOCKED-on-fixture, once appearing to show the build had broken).",
+      "evidence": "In a proxied sandbox the Velt WebSocket resets and annotations arrive over a Firestore HTTPS long-poll fallback whose latency exceeds typical waits. Readiness-gated probes (wait for .vc-thread-card >= 1) returned correct results every time on the same environment.",
+      "impact": "Measurement scripts should default to a readiness predicate, never a sleep. Gate on defined && control painted && count settled.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "script"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "model-reliability",
+      "statement": "judge2-to-workorder --write CARRIES STALE workOrderP0 ROWS FORWARD when the fresh chromatic report contains no NAMED findings. It does not clear or re-derive them, so a re-judge after a successful fix batch reproduces the previous batch verbatim - identical issueKeys, identical count - while the fresh report does not contain those issueKeys at all.",
+      "evidence": "After fix batch 1 (5ac42f1) closed all 4 P0 rows (independently verified: header 296x30 exact, placeholder host prop present and painting, 5 glyphs, 0 dead slots), a fresh judge2-chromatic produced 12 findings ALL named=false and 0 chrome-probe findings. judge2-to-workorder --write then reported p0:4 demoBreaking:1 - byte-identical to the prior batch. Proof of staleness: grepping the fresh judge2/report.json for each of the 4 issueKeys returns false for all four, while the evidence crops it cites were regenerated in the same run.",
+      "impact": "This is a DOUBLE false signal: taken at face value it triggers a redundant fix batch against already-fixed defects; read in reverse it invites declaring clean while 12 unnamed real diffs (diffPct 2.7-16%) go untriaged. to-workorder should clear rows absent from the fresh report, or mark them carried-over with the report generation id. The semantic NAMING step is agent-only - a chromatic run alone can never empty the work order.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "script"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "model-reliability",
+      "statement": "visual-diff detectMeanShift SKIPS pixels where both images are white, so on a light-background design the tile mean is computed over only the border anti-aliasing arc - inflating a real delta of 2.31 into a reported 42.88. It will mis-fire on ANY light-background design.",
+      "evidence": "Four bg-tint-mismatch findings on this run were disproven at the DETECTOR level (not by eye): border colours are byte-identical figma vs live in every state. Sixth tooling defect of the run.",
+      "impact": "A mean-shift detector must either include co-white pixels or report the covered-pixel count alongside the mean, so a tiny sample cannot masquerade as a large shift.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "script"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "model-reliability",
+      "statement": "A chromatic judge must check whether a diff is implementing the plan before filing it. Two would-be defects this run were correct implementations: a 125px white band above the first card was margin-top:auto free-space absorption implementing the plan own justify-content:flex-end bottom-anchoring (resolves to 0 once the list overflows), and a 16px inter-dialog gap was hardcoded in the probe against a design whose measured AND specified gap is 8px. Filing either would have sent the builder to BREAK correct behaviour.",
+      "evidence": "Both caught pre-filing by the judge on this run; the bottom-anchoring one traces to spec node I651:32237;4058:9696.",
+      "impact": "Before filing a layout defect, resolve it against the plan rule that produced it. A defect that contradicts an explicit plan decision is a plan question, not a builder bug.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "category": "model-reliability",
+      "statement": "SEVENTH instance of the wireframe-path blind spot, and it lands on the TERMINATOR: the legacy measure-block/block-report path ignores block.frameRegion entirely (the string never appears in block-report.json), so verdict-gate-blocks reports FAIL on a build the chromatic judge measured clean. Same bug class already fixed in judge2-chromatic at fc08d09 but never fixed in this path.",
+      "evidence": "ARITHMETIC PROOF: block state-composer-states-default is frameRegion-scoped to a 204px-tall canonical card out of a 2214px 17-variant sheet. Gate reported content height off by exactly -2110px; chromatic measured live at 104px; 2214-104 = 2110 EXACTLY. Same path also reported 515 missing elements (the sheet 16 other variants) and mustSupply-absent for frame-1/standard/default - Figma layout-frame scaffolding nodes that legitimately collapse in a flatter live DOM. A uniform box.y delta of -49px recurs across 4 unrelated blocks (the design frame variant LABEL offset; chromatic independently aligned at @0,48), which is one origin artifact, not four defects. placeholder-text reports mustSupply-absent because the verified-correct fix paints via ::before, which a DOM query cannot see.",
+      "impact": "The MECHANICAL TERMINATOR can return FAIL on a correct primitives build. verdict-gate-blocks must honour frameRegion, skip nodeKind:layout-frame mustSupply rows, and resolve pseudo-element painters - otherwise a phase cannot honestly reach exit 0 in this mode no matter how good the build is.",
+      "seenOn": [
+        "harvey/loop-1"
+      ],
+      "verified": true,
+      "destination": "script"
+    }
+  ]
+}

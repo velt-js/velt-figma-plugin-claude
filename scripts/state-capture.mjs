@@ -167,15 +167,24 @@ async function main() {
 
   const auditDir = path.join(phaseDir, "composed-audit");
   await fs.mkdir(auditDir, { recursive: true });
-  const panelHandle = async () => (await page.evaluateHandle(() => {
-    for (const s of ["app-comment-sidebar-panel", ".vc-panel", ".hw-rail-inner", ".hw-rail"]) {
+  // The panel is whatever THIS phase says it is: blocks.json's flow block already declares the
+  // live root (`liveSelector`). The hardcoded list below only knows built-in / wireframe roots —
+  // a `strictly primitives` build names its own, and falling through to `.hw-rail` captured the
+  // HOST rail (extra gutter, wrong width) instead of the composed panel.
+  const blocksDocForPanel = await loadJson(path.join(phaseDir, "blocks.json"));
+  const phasePanelSel = ((blocksDocForPanel && blocksDocForPanel.blocks) || [])
+    .filter((b) => b.role === "flow" && b.liveSelector)
+    .map((b) => b.liveSelector);
+  const panelSelectors = [...phasePanelSel, "app-comment-sidebar-panel", ".vc-panel", ".hw-rail-inner", ".hw-rail"];
+  const panelHandle = async () => (await page.evaluateHandle((sels) => {
+    for (const s of sels) {
       for (const el of document.querySelectorAll(s)) {
         const r = el.getBoundingClientRect();
         if (r.width > 40 && r.height > 40 && getComputedStyle(el).visibility !== "hidden") return el;
       }
     }
     return null;
-  })).asElement();
+  }, panelSelectors)).asElement();
 
   const captures = [];
   let anyGuardFail = false;

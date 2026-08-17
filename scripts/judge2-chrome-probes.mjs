@@ -25,6 +25,8 @@ const require = createRequire(import.meta.url);
 // there for why a proxied environment needs the browser's requests performed from Node.
 async function loadPlaywright() { return _loadChromium(); }
 
+async function loadJson(p) { try { return JSON.parse(await fs.readFile(p, "utf8")); } catch { return null; } }
+
 function lum(data, w, x, y) {
   const i = (y * w + x) * 4;
   return 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
@@ -52,18 +54,25 @@ function railDensity(data, w, x, y0, y1) {
 }
 
 function edgeRingDensity(data, w, h, side /* "left"|"right" */) {
-  // Sample a 2px column just inside the card edge for #e4e1dd-ish ring
-  const x = side === "left" ? 1 : Math.max(0, w - 2);
-  let hits = 0, n = 0;
+  // Sample the EDGE COLUMNS, not one fixed offset. A 1px CSS ring in a DPR-1 element capture lives
+  // at x=0 / x=w-1; the old fixed x=1 / x=w-2 sampled the interior and reported 0% density for a
+  // ring that is plainly there (false "card-side-borders-invisible"). Take the best of the first
+  // three columns so both DPR 1 and DPR 2 captures are covered.
   const y0 = Math.floor(h * 0.15);
   const y1 = Math.floor(h * 0.85);
-  for (let y = y0; y <= y1; y++) {
-    n++;
-    const L = lum(data, w, x, y);
-    // ring ~#e4e1dd (L≈225) on white (L≈255) — count mid-light gray
-    if (L > 180 && L < 240) hits++;
+  let best = 0;
+  for (let k = 0; k < 3; k++) {
+    const x = side === "left" ? k : Math.max(0, w - 1 - k);
+    let hits = 0, n = 0;
+    for (let y = y0; y <= y1; y++) {
+      n++;
+      const L = lum(data, w, x, y);
+      // ring ~#e4e1dd (L≈225) on white (L≈255) — count mid-light gray
+      if (L > 180 && L < 240) hits++;
+    }
+    if (n && hits / n > best) best = hits / n;
   }
-  return n ? hits / n : 0;
+  return best;
 }
 
 function chromeFinding(partial) {
@@ -107,17 +116,34 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
   });
   await page.waitForTimeout(1200);
 
+  let gapVerdict = null;
   const outDir = path.join(phaseDir, "judge2");
   const cropDir = path.join(outDir, "chrome-probe-crops");
   if (write) await fs.mkdir(cropDir, { recursive: true });
 
   const result = await page.evaluate(() => {
     const findings = [];
-    const list = document.querySelector("app-comment-sidebar-list, .vc-list");
+    // CARD VOCABULARY. `.vc-body` alone is the WIREFRAME name; a `strictly primitives` build
+    // composes its own card root (`.vc-thread-card`, or the SDK's own thread-card element), and
+    // with zero matches every probe below silently produced nothing — which reads as "clean" but
+    // means "unmeasured". Match the outermost card of any of these shapes.
+    const CARD_SEL = ".vc-body, .vc-card, .vc-thread-card, velt-comment-dialog-thread-card, .velt-thread-card--container";
+    const allCards = [...document.querySelectorAll(CARD_SEL)]
+      .filter((el) => el.getBoundingClientRect().width > 40 && el.getBoundingClientRect().height > 20);
+    const bodies = allCards.filter((el) => !allCards.some((o) => o !== el && o.contains(el)));
+    // The clipping host is whatever actually scrolls the cards, not a fixed class name.
+    let list = document.querySelector("app-comment-sidebar-list, .vc-list");
+    if (!list && bodies[0]) {
+      let n = bodies[0].parentElement;
+      while (n && n !== document.body) {
+        const ov = getComputedStyle(n).overflowY;
+        if (ov === "auto" || ov === "scroll" || ov === "hidden") { list = n; break; }
+        n = n.parentElement;
+      }
+    }
     const listR = list?.getBoundingClientRect();
     const listOverflow = list ? getComputedStyle(list).overflow + "/" + getComputedStyle(list).overflowX : "";
-
-    const bodies = [...document.querySelectorAll(".vc-body")].filter((el) => el.getBoundingClientRect().width > 40);
+    const cardSelectorUsed = CARD_SEL;
     let clippedSides = 0;
     let noRing = 0;
     const samples = [];
@@ -191,7 +217,7 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
     let railOnSingle = 0;
     const railSingleSamples = [];
     for (const el of bodies.slice(0, 8)) {
-      const avatars = [...el.querySelectorAll(".vc-avatar, velt-comment-dialog-thread-card-avatar-internal")]
+      const avatars = [...el.querySelectorAll('.vc-avatar, velt-comment-dialog-thread-card-avatar-internal, velt-comment-dialog-thread-card-avatar, [class*="avatar" i]')]
         .filter((a) => {
           const r = a.getBoundingClientRect();
           return r.width >= 16 && r.height >= 16;
@@ -250,18 +276,8 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
       const g = uniqBodies[i + 1].y - uniqBodies[i].bottom;
       if (g > 0.5) gaps.push(+g.toFixed(1));
     }
-    if (gaps.length) {
-      const mean = gaps.reduce((a, b) => a + b, 0) / gaps.length;
-      if (mean < 12 || mean > 20) {
-        findings.push({
-          id: "inter-dialog-gap-mismatch",
-          issue: `Inter-dialog list gap mean ${mean.toFixed(1)}px — plan-style 369:29437 expects 16px (band 12–20)`,
-          blockId: "state-comment-thread-components-multiple-comments",
-          evidence: { gaps, mean: +mean.toFixed(1), expected: 16 },
-          _domOnly: true,
-        });
-      }
-    }
+    // NOTE: the gap VERDICT is made in Node against this phase's own plan-style value — the
+    // expectation is design data, never a constant baked into the probe.
 
     // DOM pre-check for Show-N rail (pixel pass below confirms visually)
     const moreRows = [...document.querySelectorAll("velt-comment-dialog-more-reply-internal")]
@@ -317,8 +333,31 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
       };
     });
 
+    // The gap belongs to whichever element actually lays the cards out — find it, don't guess it
+    // from a class-name pattern (`.vc-sidebar__scroll` and `.vc-sidebar__rows` both "look like" a
+    // list, and they carry DIFFERENT gaps).
+    let gapOwner = null;
+    if (bodies.length >= 2) {
+      const anc = (el) => { const out = []; for (let n = el; n; n = n.parentElement) out.push(n); return out; };
+      const a1 = anc(bodies[0]), a2 = new Set(anc(bodies[1]));
+      const lca = a1.find((n) => a2.has(n));
+      if (lca) {
+        const cs = getComputedStyle(lca);
+        gapOwner = {
+          tag: lca.tagName.toLowerCase(),
+          className: typeof lca.className === "string" ? lca.className : String(lca.className || ""),
+          rowGap: cs.rowGap,
+          flexDirection: cs.flexDirection,
+          justifyContent: cs.justifyContent,
+        };
+      }
+    }
+
     return {
       findings,
+      gapOwner,
+      cardSelectorUsed,
+      listFound: !!list,
       bodies: bodies.length,
       moreRows: moreRows.length,
       gaps,
@@ -335,6 +374,43 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
     const { _domOnly, ...rest } = f;
     return chromeFinding(rest);
   });
+
+  // --- Inter-card list gap, judged against THIS phase's measured design value ---
+  // The expectation is read from plan-style (the column container's `gap`, traced to a spec node).
+  // With no such rule the probe reports UNMEASURABLE instead of inventing a number.
+  if ((result.gaps || []).length) {
+    const planStyle = await loadJson(path.join(phaseDir, "plan-style.json"));
+    // Match the plan-style rule to the element that ACTUALLY owns the gap (measured above).
+    const ownerClasses = (result.gapOwner?.className || "").split(/\s+/).filter(Boolean);
+    const rowRule = (planStyle?.rules || []).find((r) => {
+      const g = r.decls && (r.decls.gap || r.decls["row-gap"]);
+      if (!g) return false;
+      return String(r.selector || "").split(",").some((sel) =>
+        ownerClasses.some((c) => sel.trim() === `.${c}` || sel.trim().endsWith(`.${c}`)));
+    });
+    const expected = rowRule ? parseFloat(rowRule.decls.gap || rowRule.decls["row-gap"]) : null;
+    const mean = result.gaps.reduce((a, b) => a + b, 0) / result.gaps.length;
+    gapVerdict = {
+      mean: +mean.toFixed(1),
+      gaps: result.gaps,
+      gapOwner: result.gapOwner,
+      expected,
+      source: rowRule ? `plan-style ${rowRule.selector} (spec ${rowRule.specNodeId || "?"})` : null,
+    };
+    if (expected == null) {
+      gapVerdict.status = "unmeasurable";
+    } else if (Math.abs(mean - expected) > 2) {
+      gapVerdict.status = "fail";
+      findings.push(chromeFinding({
+        id: "inter-dialog-gap-mismatch",
+        issue: `Inter-card list gap mean ${mean.toFixed(1)}px — ${gapVerdict.source} specifies ${expected}px`,
+        blockId: "flow",
+        evidence: gapVerdict,
+      }));
+    } else {
+      gapVerdict.status = "pass";
+    }
+  }
 
   // --- Pixel pass: card L/R ring visibility ---
   if (result.borderTarget && write) {
@@ -505,8 +581,11 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
     url: page.url(),
     findings,
     bodies: result.bodies,
+    cardSelectorUsed: result.cardSelectorUsed,
+    listFound: result.listFound,
     moreRows: result.moreRows,
     gaps: result.gaps,
+    gapVerdict,
     summary: {
       findingCount: findings.length,
       pass: findings.length === 0,

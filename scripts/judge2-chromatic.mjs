@@ -22,6 +22,7 @@ import {
 } from "./visual-diff.mjs";
 import { runJudge2ChromeProbes } from "./judge2-chrome-probes.mjs";
 import { loadChromium } from "./_browser-env.mjs";
+import { runSteps, resetState, findRunTab, vis } from "./measure-block.mjs";
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -137,6 +138,49 @@ function suggestLabel(region, panelH, { state = null } = {}) {
   if (area > 20000 && band === "thread-list") return { id: "card-chrome-mismatch", issue: "thread card chrome/layout differs from Figma in this region" };
   if (region.h < 28 && region.w > 80) return { id: "row-control-mismatch", issue: `row control (Reply / Show-N / actions) differs from Figma in ${band}` };
   return { id: `visual-${band}-${Math.round(region.x)}-${Math.round(region.y)}`, issue: `chrome mismatch vs Figma in ${band} @ ${region.cssBox || `${region.x},${region.y}`}` };
+}
+
+/**
+ * Composite a frame export onto WHITE. Figma frames arrive with a TRANSPARENT background (only the
+ * artwork is opaque). visualDiff blends alpha internally, but the template matcher and the
+ * downscaler read raw RGB, where transparent reads as BLACK — which drags the match off by a pixel
+ * or two and poisons any luminance statistic taken from the frame.
+ */
+function flattenOnWhite(img) {
+  const d = Buffer.from(img.data);
+  for (let i = 0; i < d.length; i += 4) {
+    const a = d[i + 3] / 255;
+    if (a === 1) continue;
+    d[i] = Math.round(d[i] * a + 255 * (1 - a));
+    d[i + 1] = Math.round(d[i + 1] * a + 255 * (1 - a));
+    d[i + 2] = Math.round(d[i + 2] * a + 255 * (1 - a));
+    d[i + 3] = 255;
+  }
+  return { width: img.width, height: img.height, data: d };
+}
+
+/** Box-filter downscale by an integer factor — a 2x Figma export back to CSS px. */
+function downscaleImg(img, f) {
+  if (!f || f < 2) return img;
+  const w = Math.floor(img.width / f), h = Math.floor(img.height / f);
+  const data = Buffer.alloc(w * h * 4, 255);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let r = 0, g = 0, b = 0, a = 0, n = 0;
+      for (let dy = 0; dy < f; dy++) {
+        for (let dx = 0; dx < f; dx++) {
+          const sx = x * f + dx, sy = y * f + dy;
+          if (sx >= img.width || sy >= img.height) continue;
+          const i = (sy * img.width + sx) * 4;
+          r += img.data[i]; g += img.data[i + 1]; b += img.data[i + 2]; a += img.data[i + 3]; n++;
+        }
+      }
+      const o = (y * w + x) * 4;
+      data[o] = Math.round(r / n); data[o + 1] = Math.round(g / n);
+      data[o + 2] = Math.round(b / n); data[o + 3] = Math.round(a / n);
+    }
+  }
+  return { width: w, height: h, data };
 }
 
 function padImg(img, w, h) {
@@ -261,6 +305,41 @@ export function findBestTemplateMatch(refImg, liveImg, { factor = 4, maxScore = 
   };
 }
 
+/**
+ * Locate the live ELEMENT inside its own frame and crop the frame to it.
+ *
+ * A State frame is a design-sheet cell: the artwork sits under a caption ("Default", "Hover", …)
+ * and inside sheet padding, so frame(0,0) is NOT element(0,0). Top-left padding therefore compares
+ * the live control against the caption. The element capture is the template; the frame is the
+ * search space. Returns the cropped frame + the offset, or null when the match is too poor to
+ * trust (caller then keeps the raw frame and flags the alignment).
+ */
+export function alignLiveInsideFrame(refImg, liveImg, { factor = 2, maxScore = 90 } = {}) {
+  if (refImg.width + 2 < liveImg.width || refImg.height + 2 < liveImg.height) return null;
+  if (refImg.width - liveImg.width < 3 && refImg.height - liveImg.height < 3) return null; // already same size
+  const T = grayDown(liveImg, factor);   // template = the live element
+  const S = grayDown(refImg, factor);    // search space = the frame
+  if (T.w > S.w || T.h > S.h) return null;
+  let best = { score: Infinity, x: 0, y: 0 };
+  for (let y = 0; y <= S.h - T.h; y++) {
+    for (let x = 0; x <= S.w - T.w; x++) {
+      let sad = 0;
+      for (let j = 0; j < T.h; j++) {
+        const ti = j * T.w;
+        const si = (y + j) * S.w + x;
+        for (let i = 0; i < T.w; i++) sad += Math.abs(T.g[ti + i] - S.g[si + i]);
+      }
+      const score = sad / (T.w * T.h);
+      if (score < best.score) best = { score, x: x * factor, y: y * factor };
+    }
+  }
+  if (best.score > maxScore) return { ...best, score: +best.score.toFixed(2), ok: false };
+  return {
+    x: best.x, y: best.y, w: liveImg.width, h: liveImg.height,
+    score: +best.score.toFixed(2), ok: true, mode: "element-in-frame",
+  };
+}
+
 /** Crop live to the isolated frame's matched region (same geometry for visualDiff). */
 function alignIsolatedLive(refImg, liveImg) {
   const match = findBestTemplateMatch(refImg, liveImg);
@@ -355,8 +434,16 @@ async function captureResting(phaseDir, { url, ws }) {
   await page.waitForTimeout(300);
   const out = path.join(phaseDir, "judge2", "live-panel.png");
   await fs.mkdir(path.dirname(out), { recursive: true });
-  const handle = await page.evaluateHandle(() => {
-    for (const s of ["app-comment-sidebar-panel", ".vc-panel", ".hw-rail-inner", ".hw-rail"]) {
+  // The panel is whatever THIS phase declares: blocks.json's flow block carries the live root.
+  // The hardcoded list only knows built-in / wireframe roots, so a primitives build fell through
+  // to the HOST rail (extra gutter, wrong width) instead of the composed panel.
+  const blocksForPanel = await loadJson(path.join(phaseDir, "blocks.json"));
+  const panelSelectors = [
+    ...(((blocksForPanel && blocksForPanel.blocks) || []).filter((b) => b.role === "flow" && b.liveSelector).map((b) => b.liveSelector)),
+    "app-comment-sidebar-panel", ".vc-panel", ".hw-rail-inner", ".hw-rail",
+  ];
+  const handle = await page.evaluateHandle((sels) => {
+    for (const s of sels) {
       for (const el of document.querySelectorAll(s)) {
         const r = el.getBoundingClientRect();
         if (r.width > 40 && r.height > 40 && getComputedStyle(el).visibility !== "hidden"
@@ -364,7 +451,7 @@ async function captureResting(phaseDir, { url, ws }) {
       }
     }
     return null;
-  });
+  }, panelSelectors);
   const el = handle.asElement();
   if (!el) {
     throw new Error(
@@ -375,6 +462,86 @@ async function captureResting(phaseDir, { url, ws }) {
   try { await el.screenshot({ path: out, timeout: 8000 }); }
   catch { await page.screenshot({ path: out, fullPage: false }); }
   return out;
+}
+
+/**
+ * PER-BLOCK ELEMENT CAPTURE — the same-geometry counterpart of an isolated Figma frame.
+ *
+ * Every block in blocks.json declares `liveSelector`: the live element the frame draws, written as
+ * its own STATE PREDICATE (`.vc-composer:hover:not(:focus-within)`). Screenshotting that element in
+ * its driven state gives the diff a real 1:1 baseline/test pair. Template-matching an isolated
+ * frame into a full-panel shot stays as the fallback for blocks with no liveSelector.
+ *
+ * Readiness is gated on the phase's OWN contract (the flow block's drive steps + assert), never on
+ * page load — fixture threads arrive over a long-poll that outlives `domcontentloaded`.
+ */
+async function captureBlockElements(phaseDir, blocks, bindings, { url, ws }) {
+  const outRoot = path.join(phaseDir, "judge2");
+  await fs.mkdir(outRoot, { recursive: true });
+  const chromium = await loadChromium();
+  const browser = await chromium.connectOverCDP(ws);
+  const context = browser.contexts()[0] || await browser.newContext();
+  let page = await findRunTab(context, { originHint: url });
+  if (!page) page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
+  if (!page) throw new Error("captureBlockElements: no page in the connected browser");
+
+  const flow = blocks.find((b) => b.role === "flow") || blocks[0];
+  const readiness = { ok: false, reason: null, steps: (flow?.drive?.steps || []).length };
+  try {
+    await runSteps(page, flow?.drive?.steps || [], { timeout: 30000 });
+    if (flow?.drive?.assert) {
+      await page.locator(flow.drive.assert).filter({ visible: true }).first()
+        .waitFor({ state: "visible", timeout: 20000 });
+    }
+    readiness.ok = true;
+  } catch (e) {
+    readiness.reason = e.message;
+  }
+  // Data readiness, not page load: the declared assert plus a settled row count.
+  const rows = await page.evaluate((sel) => {
+    try { return document.querySelectorAll(sel).length; } catch { return -1; }
+  }, ".vc-thread-card, .vc-body, .vc-card, velt-comment-dialog-thread-card").catch(() => -1);
+  readiness.liveRows = rows;
+
+  const byBlock = {};
+  for (const b of bindings?.bindings || []) for (const id of b.blockIds || []) byBlock[id] = b;
+
+  const captures = {};
+  for (const b of blocks) {
+    const row = { blockId: b.id, liveSelector: b.liveSelector || null, ok: false };
+    if (!b.liveSelector) { row.reason = "block declares no liveSelector"; captures[b.id] = row; continue; }
+    const binding = byBlock[b.id] || null;
+    row.state = binding?.state || b.state || "resting";
+    row.driven = !binding;
+    try {
+      await resetState(page);
+      await page.mouse.move(4, 4).catch(() => {});
+      await page.waitForTimeout(250);
+      if (binding) {
+        await runSteps(page, binding.drive || [], { timeout: 15000 });
+        row.driven = true;
+      }
+      // The liveSelector IS the guard: it encodes the state predicate.
+      const loc = page.locator(b.liveSelector).filter({ visible: true }).first();
+      await loc.waitFor({ state: "visible", timeout: binding ? 6000 : 12000 });
+      const box = await loc.boundingBox();
+      const out = path.join(outRoot, `live-block-${b.id}.png`);
+      await loc.screenshot({ path: out, timeout: 8000, animations: "disabled" });
+      row.ok = true;
+      row.capture = out;
+      row.cssBox = box ? { x: +box.x.toFixed(1), y: +box.y.toFixed(1), w: +box.width.toFixed(1), h: +box.height.toFixed(1) } : null;
+      console.log(`· element capture ${b.id} [${row.state}] → ${path.basename(out)} ${row.cssBox ? `${Math.round(row.cssBox.w)}x${Math.round(row.cssBox.h)}` : ""}`);
+    } catch (e) {
+      row.reason = `liveSelector '${b.liveSelector}' not visible in state '${row.state}': ${e.message.split("\n")[0]}`;
+      console.error(`✗ element capture ${b.id} [${row.state}] FAILED — ${row.reason}`);
+    }
+    captures[b.id] = row;
+  }
+  await resetState(page).catch(() => {});
+  await page.mouse.move(4, 4).catch(() => {});
+  const manifest = { at: new Date().toISOString(), readiness, captures };
+  await fs.writeFile(path.join(outRoot, "block-captures.json"), JSON.stringify(manifest, null, 2) + "\n");
+  return manifest;
 }
 
 const REQUIRED_INTERACTION_STATES = new Set(["hover", "selected", "focus", "focus-typing"]);
@@ -429,7 +596,7 @@ function resolveLiveForBlock(block, { restingPath, bindings, byCaptureId }) {
   return { livePath: restingPath, state: "resting", captureId: "resting", driven: true, blocked: false };
 }
 
-async function diffBlock(b, { phaseDir, outRoot, designSpec, livePath, state, threshold, minFill, minChanged }) {
+async function diffBlock(b, { phaseDir, outRoot, designSpec, livePath, state, threshold, minFill, minChanged, elementCapture = false }) {
   const framePath = path.join(phaseDir, "frames", `${b.id}.png`);
   if (!(await exists(framePath))) {
     return { blockId: b.id, status: "skip", reason: "no figma frame", findings: [] };
@@ -437,30 +604,70 @@ async function diffBlock(b, { phaseDir, outRoot, designSpec, livePath, state, th
   if (!(await exists(livePath))) {
     return { blockId: b.id, status: "skip", reason: `missing live capture ${livePath}`, findings: [] };
   }
-  const refRaw = decodePNG(await fs.readFile(framePath));
+  const frameFull = flattenOnWhite(decodePNG(await fs.readFile(framePath)));
+  // frameRegion = the defining element's box INSIDE the frame, device px (enumerate-blocks.mjs).
+  // Ignoring it diffs a whole multi-variant state sheet against one live element.
+  const refRaw = b.frameRegion
+    ? cropImage(frameFull, b.frameRegion.x, b.frameRegion.y, b.frameRegion.w, b.frameRegion.h)
+    : frameFull;
   const liveRaw = decodePNG(await fs.readFile(livePath));
-  // CORE: isolated State frames (single card) must NOT be top-left-padded into a full
-  // panel — that invents bogus regions and buries real hover/selected chrome misses.
-  const aligned = alignIsolatedLive(refRaw, liveRaw);
-  const refImg = aligned.refImg;
-  const liveImg = aligned.liveImg;
-  let alignment = aligned.alignment;
-  if (alignment.mode === "template-match") {
-    console.log(`· ${b.id}: aligned isolated frame → live@${alignment.x},${alignment.y} score=${alignment.score}`);
-  } else if (refRaw.width < liveRaw.width * 0.85 || refRaw.height < liveRaw.height * 0.75) {
-    console.log(`· ${b.id}: WARN isolated frame but template-match failed — falling back to full-panel pad`);
-    alignment = { ...alignment, mode: "unaligned-pad", warning: "isolated frame could not be matched inside live panel" };
+  let refImg, liveImg, alignment;
+  // Frames export at N x CSS px; an element screenshot is DPR 1. Normalise the FRAME down to CSS px
+  // so both sides share one coordinate space -- no template search, no white pad.
+  const exportScale = b.frameBox && b.frameBox.h ? frameFull.height / b.frameBox.h : 1;
+  if (elementCapture) {
+    const f = Math.round(exportScale);
+    refImg = f >= 2 ? downscaleImg(refRaw, f) : refRaw;
+    liveImg = liveRaw;
+    let inFrame = null;
+    if (refImg.width >= liveImg.width && refImg.height >= liveImg.height) {
+      inFrame = alignLiveInsideFrame(refImg, liveImg);
+      if (inFrame && inFrame.ok) {
+        refImg = cropImage(refImg, inFrame.x, inFrame.y, inFrame.w, inFrame.h);
+        console.log(`· ${b.id}: element-in-frame @${inFrame.x},${inFrame.y} score=${inFrame.score}`);
+      } else if (inFrame) {
+        console.log(`· ${b.id}: WARN element-in-frame match rejected (score=${inFrame.score}) — frame kept unaligned`);
+      }
+    }
+    alignment = {
+      mode: inFrame && inFrame.ok ? "element-in-frame" : "element",
+      inFrame,
+      liveSelector: b.liveSelector || null,
+      exportScale: +exportScale.toFixed(3),
+      frameRegion: b.frameRegion || null,
+      refCss: { w: refImg.width, h: refImg.height },
+      liveCss: { w: liveImg.width, h: liveImg.height },
+      sizeDelta: { w: liveImg.width - refImg.width, h: liveImg.height - refImg.height },
+    };
+    console.log(`· ${b.id}: element-aligned ref ${refImg.width}x${refImg.height} vs live ${liveImg.width}x${liveImg.height} (export ${exportScale.toFixed(2)}x)`);
+  } else {
+    // CORE: isolated State frames (single card) must NOT be top-left-padded into a full
+    // panel -- that invents bogus regions and buries real hover/selected chrome misses.
+    const aligned = alignIsolatedLive(refRaw, liveRaw);
+    refImg = aligned.refImg;
+    liveImg = aligned.liveImg;
+    alignment = aligned.alignment;
+    if (alignment.mode === "template-match") {
+      console.log(`· ${b.id}: aligned isolated frame -> live@${alignment.x},${alignment.y} score=${alignment.score}`);
+    } else if (refRaw.width < liveRaw.width * 0.85 || refRaw.height < liveRaw.height * 0.75) {
+      console.log(`· ${b.id}: WARN isolated frame but template-match failed -- falling back to full-panel pad`);
+      alignment = { ...alignment, mode: "unaligned-pad", warning: "isolated frame could not be matched inside live panel" };
+    }
   }
   const scale = liveImg.width > 500 || refImg.width > 500 ? 2 : 1;
-  // Tight text masks (pad=1) — pad≥3 was swallowing avatar→name / name→timestamp micro-gaps.
-  // Exact bboxes kept separately for gap detection alongside the chromatic pass.
+  // Tight text masks (pad=1). Masks are only valid when they come from THIS block's own frame:
+  // resolveMaskFrameId otherwise falls back to "the frame with the most text nodes", whose
+  // coordinates belong to a different frame -- on a region-cropped/downscaled ref that would mask
+  // arbitrary geometry and silently hide chrome.
   const maskFrameId = resolveMaskFrameId(b, designSpec);
-  const masks = designSpec
+  const maskUsable = !!maskFrameId && (!elementCapture || maskFrameId === b.figmaNodeId);
+  const masks = designSpec && maskUsable
     ? textMasksFromSpec(designSpec, { scale, pad: 1, frameId: maskFrameId })
     : [];
-  const textBoxes = designSpec
+  const textBoxes = designSpec && maskUsable
     ? textBoxesFromSpec(designSpec, { scale, frameId: maskFrameId })
     : [];
+  alignment = { ...alignment, masks: masks.length, maskFrameId: maskUsable ? maskFrameId : null };
   const diff = visualDiff(refImg, liveImg, {
     masks, threshold, cell: 28, scale, minChanged, minFill,
     meanShift: true, minLumDelta: 5,
@@ -495,8 +702,10 @@ async function diffBlock(b, { phaseDir, outRoot, designSpec, livePath, state, th
     const slug = `r${i}-${box.x}-${box.y}`;
     const liveCropP = path.join(blockDir, `${slug}-live.png`);
     const figCropP = path.join(blockDir, `${slug}-figma.png`);
-    await fs.writeFile(liveCropP, encodePNG(liveCrop.width, liveCrop.height, liveCrop.data));
-    await fs.writeFile(figCropP, encodePNG(figCrop.width, figCrop.height, figCrop.data));
+    const liveCropOk = liveCrop.width > 0 && liveCrop.height > 0;
+    const figCropOk = figCrop.width > 0 && figCrop.height > 0;
+    if (liveCropOk) await fs.writeFile(liveCropP, encodePNG(liveCrop.width, liveCrop.height, liveCrop.data));
+    if (figCropOk) await fs.writeFile(figCropP, encodePNG(figCrop.width, figCrop.height, figCrop.data));
     const sug = suggestLabel(r, diff._h, { state });
     regionFindings.push({
       id: `${b.id}.${sug.id}`,
@@ -508,8 +717,8 @@ async function diffBlock(b, { phaseDir, outRoot, designSpec, livePath, state, th
       meanLumDelta: r.meanLumDelta,
       region: { x: r.x, y: r.y, w: r.w, h: r.h, fill: r.fill, changed: r.changed, cssBox: r.cssBox },
       evidence: {
-        liveCrop: liveCropP,
-        figmaCrop: figCropP,
+        liveCrop: liveCropOk ? liveCropP : null,
+        figmaCrop: figCropOk ? figCropP : null,
         diffPng,
         liveUsed: liveAlignedP,
         livePanel: livePath,
@@ -663,12 +872,37 @@ export async function runJudge2Chromatic(phaseDir, { url, ws, write = true, thre
   console.log("· driving hover / selected / focus states…");
   const { manifest: stateManifest, byCaptureId, exitCode: stateExit } = await captureStates(phaseDir, { url, ws });
 
+  console.log("· per-block ELEMENT captures (liveSelector in its driven state)…");
+  let blockCaptures = { readiness: null, captures: {} };
+  try {
+    blockCaptures = await captureBlockElements(phaseDir, blocks, bindings, { url, ws });
+  } catch (e) {
+    console.error("· element captures failed: " + e.message);
+    blockCaptures = { readiness: { ok: false, reason: e.message }, captures: {} };
+  }
+
   const findings = [];
   const blockResults = [];
   const blockedStates = [];
 
   for (const b of blocks) {
-    const resolved = resolveLiveForBlock(b, { restingPath, bindings, byCaptureId });
+    const el = blockCaptures.captures ? blockCaptures.captures[b.id] : null;
+    let resolved;
+    if (el && el.ok) {
+      resolved = {
+        livePath: el.capture, state: el.state || "resting", captureId: el.state || "resting",
+        driven: true, blocked: false, elementCapture: true,
+      };
+    } else if (el && el.liveSelector) {
+      // The block declares its live element and the element could not be produced in its state:
+      // that is a blocked state, never a silent fallback to the resting panel.
+      resolved = {
+        livePath: null, state: el.state || "resting", captureId: el.state || "resting",
+        driven: false, blocked: true, reason: el.reason || "element capture failed",
+      };
+    } else {
+      resolved = resolveLiveForBlock(b, { restingPath, bindings, byCaptureId });
+    }
     if (resolved.blocked) {
       const finding = {
         id: `${b.id}.state-not-driven`,
@@ -704,6 +938,7 @@ export async function runJudge2Chromatic(phaseDir, { url, ws, write = true, thre
       livePath: resolved.livePath,
       state: resolved.state,
       threshold, minFill, minChanged,
+      elementCapture: !!resolved.elementCapture,
     });
     blockResults.push(result);
     for (const f of result.findings || []) findings.push(f);
@@ -747,6 +982,7 @@ export async function runJudge2Chromatic(phaseDir, { url, ws, write = true, thre
     phaseDir,
     url,
     livePanel: restingPath,
+    blockCaptures,
     stateCaptures: stateManifest,
     stateExit,
     chromeProbes,

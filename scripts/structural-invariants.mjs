@@ -68,10 +68,23 @@ const INVARIANT_PROBE = `(function(){
   return {ok:!problems.length, cards:cards.length, replies:replies.length, composers:composers.length, problems};
 })()`;
 
-export function evaluateInvariantResult(result, { expectCards = false } = {}) {
-  const problems = [...(result?.problems || [])];
+export function evaluateInvariantResult(result, { expectCards = false, expectComposerAvatar = true } = {}) {
+  let problems = [...(result?.problems || [])];
   if (expectCards && (result?.cards || 0) < 1) {
     problems.push({ kind: "missing-thread-card", detail: "expected ≥1 thread card on this surface" });
+  }
+  // A composer avatar is DESIGN-DEPENDENT, not structural. The probe requires
+  // avatar+input+send unconditionally, which fails every design whose composer simply
+  // doesn't draw one — measured on harvey, whose Focus/Typing frames are input + glyphs +
+  // send pill and nothing else. That reads as BLOCKED_FOR_REPLAN and stops the judge
+  // handoff, and the only way to "fix" it is to invent a feature the design never had.
+  // So the avatar clause now asserts what the DESIGN draws (same shape as expectCards):
+  // required when the plan composes a composer avatar, ignored when it does not. A
+  // composer missing its input or send is still hard-failed — that IS structural breakage.
+  if (!expectComposerAvatar) {
+    problems = problems.filter(
+      (p) => !(p.kind === "composer-incomplete" && p.hasAvatar === false && p.hasInput && p.hasSend),
+    );
   }
   return { ok: !problems.length, problems, cards: result?.cards || 0, replies: result?.replies || 0, composers: result?.composers || 0 };
 }
@@ -108,7 +121,20 @@ async function main() {
   const blocks = JSON.parse(await fs.readFile(path.join(phaseDir, "blocks.json"), "utf8").catch(() => '{"blocks":[]}'));
   const famId = flag("--family");
   const expectCards = (blocks.blocks || []).some((b) => (!famId || b.familyId === famId) && /thread|comment-dialog|dialog/i.test(String(b.familyId || "") + String(b.component || "") + String(b.id || "")));
-  const result = evaluateInvariantResult(raw, { expectCards });
+  // Does THIS design draw an avatar in its composer? Read it off the plans rather than
+  // assuming — `velt-comment-dialog-composer-avatar` is the real primitive, and a planned
+  // `vc-composer*avatar` class is the wireframe/host equivalent. Absent from both ⇒ the
+  // design has no composer avatar and its absence is not a defect.
+  const planText = (
+    await Promise.all(
+      ["plan-primitives.json", "plan-structure.json", "plan-style.json"].map((f) =>
+        fs.readFile(path.join(phaseDir, f), "utf8").catch(() => ""),
+      ),
+    )
+  ).join("\n");
+  const expectComposerAvatar =
+    /composer-avatar/i.test(planText) || /vc-composer[\w-]*avatar/i.test(planText);
+  const result = evaluateInvariantResult(raw, { expectCards, expectComposerAvatar });
   const out = path.join(phaseDir, "structural-invariants.json");
   await fs.writeFile(out, JSON.stringify({ ...result, raw, at: new Date().toISOString() }, null, 2));
   console.log(result.ok ? `✓ structural invariants ok (cards=${result.cards}, replies=${result.replies}, composers=${result.composers})` : `✗ structural invariants FAILED: ${result.problems.map((p) => p.kind).join(", ")}`);

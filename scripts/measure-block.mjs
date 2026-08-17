@@ -115,7 +115,20 @@ async function selectUserRobust(page, user, timeout = 20000) {
     if (!sel) return;   // genuinely signed in (no select after settle)
   }
   for (let attempt = 1; attempt <= 3; attempt++) {
-    await page.evaluate((u) => {
+    // TRUSTED INTERACTION FIRST (BUG-6, measured live on the harvey app, React 19 + Next 16):
+    // the native-setter + synthetic `change` below is SILENTLY IGNORED by a React-CONTROLLED
+    // <select value=""> — the assigned value reverts to "" on the next render, onChange never
+    // fires, and all 3 attempts fail. selectUser then throws "did not stick", which reads as
+    // BLOCKED (env) and would take every block in the phase down with it. A real
+    // locator.selectOption() goes through the browser's own event path and does stick
+    // (verified: native setter => userName null / value ""; selectOption => userName "User 1").
+    // The setter is KEPT as the fallback for hosts where no <option> carries the user id.
+    let trusted = false;
+    try {
+      const sel = page.locator("select").filter({ visible: true }).first();
+      if (await sel.count()) { await sel.selectOption(user, { timeout: 4000 }); trusted = true; }
+    } catch { /* option value absent or select vanished mid-flight — fall back to the setter */ }
+    if (!trusted) await page.evaluate((u) => {
       const sel = document.querySelector("select");
       if (!sel) return;   // already consumed by a successful sign-in (see below)
       Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, "value").set.call(sel, u);

@@ -14,6 +14,15 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
+// Host tags a required prop may legitimately live on. V2 variants are listed explicitly because
+// `<VeltCommentsSidebar\b` cannot match `<VeltCommentsSidebarV2` — see evaluateHostSource().
+// Order matters: most-specific mounts first so --apply targets the tag the host actually renders.
+const HOST_TAG_FALLBACKS = [
+  "VeltCommentsSidebarV2",
+  "VeltCommentsSidebar",
+  "VeltComments",
+];
+
 async function loadJson(p) {
   return JSON.parse(await fs.readFile(p, "utf8"));
 }
@@ -50,8 +59,19 @@ export function checkPropInSource(src, tag, prop, value) {
     if (!new RegExp(`\\b${prop}\\b`).test(attrs)) continue;
     if (value === undefined) return true;
     if (value === true) {
+      // Explicit false in either spelling never satisfies a required-true prop.
       if (new RegExp(`\\b${prop}\\s*=\\s*\\{\\s*false\\s*\\}`).test(attrs)) continue;
+      if (new RegExp(`\\b${prop}\\s*=\\s*(["'\`])false\\1`).test(attrs)) continue;
+      if (new RegExp(`\\b${prop}\\s*=\\s*\\{\\s*(["'\`])false\\1\\s*\\}`).test(attrs)) continue;
       if (new RegExp(`\\b${prop}\\s*=\\s*\\{\\s*true\\s*\\}`).test(attrs)) return true;
+      // Some V2 prop interfaces TYPE a boolean-intent flag as `string` (the V2 React
+      // wrapper forwards the attribute raw instead of stringifying a boolean — e.g.
+      // IVeltCommentSidebarV2Props.embedMode?: string, where the host must write
+      // embedMode="true" to emit the same embed-mode="true" attribute V1 emitted).
+      // A plan hostProp of `true` is SATISFIED by that string spelling; without this
+      // the gate demanded a prop the host could not type-check its way into.
+      if (new RegExp(`\\b${prop}\\s*=\\s*(["'\`])true\\1`).test(attrs)) return true;
+      if (new RegExp(`\\b${prop}\\s*=\\s*\\{\\s*(["'\`])true\\1\\s*\\}`).test(attrs)) return true;
       if (new RegExp(`\\b${prop}(\\s|/|$)`).test(attrs) && !new RegExp(`\\b${prop}\\s*=`).test(attrs)) return true;
       continue;
     }
@@ -161,7 +181,11 @@ export function evaluateHostSource(sources, required) {
       continue;
     }
     let found = false;
-    for (const tag of [r.tag, "VeltComments", "VeltCommentsSidebar"]) {
+    // NOTE: `<VeltCommentsSidebar\b` does NOT match `<VeltCommentsSidebarV2` (no word boundary
+    // between "r" and "V"), so a V2 host mount was invisible to this gate and every sidebar
+    // hostProp reported MISSING forever. A `strictly primitives` build is REQUIRED to mount V2
+    // (V1 comment surfaces are in the primitives-unreachable set), so V2 tags must be tried too.
+    for (const tag of [r.tag, ...HOST_TAG_FALLBACKS]) {
       for (const s of sources) {
         if (checkPropInSource(s.text, tag, r.prop, r.value) === true) { found = true; break; }
       }
@@ -229,7 +253,7 @@ async function main() {
         let target = [...byFile.keys()].find((f) => /useVeltClient|VeltComments/.test(byFile.get(f))) || [...byFile.keys()][0];
         let text = byFile.get(target);
         if (m.id === "shadow-dom-false") {
-          for (const tag of ["VeltComments", "VeltCommentsSidebar"]) {
+          for (const tag of HOST_TAG_FALLBACKS) {
             if (!new RegExp(`<${tag}\\b`).test(text)) continue;
             const { src, changed } = insertProp(text, tag, "shadowDom", false);
             if (changed) { text = src; applied.push({ ...m, file: target, tag }); }
@@ -289,13 +313,21 @@ async function main() {
         m.applyNote = "unknown alwaysOn id — skipped";
         continue;
       }
-      let target = [...byFile.keys()].find((f) => new RegExp(`<${m.tag}\\b`).test(byFile.get(f)));
+      // Try the planned tag first, then the known host mounts (incl. the V2 sidebar, which the
+      // planned tag "VeltCommentsSidebar" can never regex-match). Without this, a V2-only host
+      // fell through to byFile[0] and insertProp always returned "no <VeltCommentsSidebar> opening".
+      let target = null;
+      let useTag = m.tag;
+      for (const tag of [m.tag, ...HOST_TAG_FALLBACKS]) {
+        const hit = [...byFile.keys()].find((f) => new RegExp(`<${tag}\\b`).test(byFile.get(f)));
+        if (hit) { target = hit; useTag = tag; break; }
+      }
       if (!target) target = [...byFile.keys()][0];
       const before = byFile.get(target);
-      const { src, changed, reason } = insertProp(before, m.tag, m.prop, m.value);
+      const { src, changed, reason } = insertProp(before, useTag, m.prop, m.value);
       if (changed) {
         byFile.set(target, src);
-        applied.push({ ...m, file: target });
+        applied.push({ ...m, tag: useTag, file: target });
       } else {
         m.applyNote = reason;
       }

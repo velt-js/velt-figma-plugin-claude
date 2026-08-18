@@ -90,8 +90,41 @@ function chromeFinding(partial) {
   };
 }
 
-export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } = {}) {
+// Default selectors describe the WIREFRAME-rendered DOM. Under `strictly primitives` the Velt
+// primitives drop className entirely (measured: 25/25 tags with class===null), so `.vc-body`/`.vc-card`
+// NEVER match and every probe silently reports "empty sidebar / inconclusive" — a false pass.
+// Selectors are therefore resolved, in priority order, from:
+//   1. the explicit `selectors` argument
+//   2. $VELT_PROBE_SELECTORS (JSON)
+//   3. <phaseDir>/probe-selectors.json   <- written from the mechanical dom-snapshot
+//   4. these wireframe defaults
+const DEFAULT_PROBE_SELECTORS = {
+  list: "app-comment-sidebar-list, .vc-list",
+  card: ".vc-body",
+  avatar: ".vc-avatar, velt-comment-dialog-thread-card-avatar-internal",
+  threads: "velt-comment-dialog-threads-internal, .vc-threads",
+  connector: ".vc-connector",
+  moreReply: "velt-comment-dialog-more-reply-internal",
+  dialog: "velt-comment-dialog, .velt-comment-dialog",
+};
+
+async function resolveProbeSelectors(phaseDir, explicit) {
+  let fromFile = null;
+  try {
+    fromFile = JSON.parse(await fs.readFile(path.join(phaseDir, "probe-selectors.json"), "utf8"));
+  } catch { /* optional */ }
+  let fromEnv = null;
+  if (process.env.VELT_PROBE_SELECTORS) {
+    try { fromEnv = JSON.parse(process.env.VELT_PROBE_SELECTORS); } catch { /* ignore malformed */ }
+  }
+  const merged = { ...DEFAULT_PROBE_SELECTORS, ...(fromFile || {}), ...(fromEnv || {}), ...(explicit || {}) };
+  const source = explicit ? "argument" : fromEnv ? "env" : fromFile ? "probe-selectors.json" : "wireframe-defaults";
+  return { selectors: merged, source };
+}
+
+export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true, selectors } = {}) {
   if (!url || !ws) throw new Error("--url and --connect required");
+  const { selectors: SEL, source: selectorSource } = await resolveProbeSelectors(phaseDir, selectors);
   const chromium = await loadPlaywright();
   const browser = await chromium.connectOverCDP(ws.startsWith("http") ? ws : ws);
   const context = browser.contexts()[0] || await browser.newContext();
@@ -122,13 +155,13 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
   const cropDir = path.join(outDir, "chrome-probe-crops");
   if (write) await fs.mkdir(cropDir, { recursive: true });
 
-  const result = await page.evaluate(() => {
+  const result = await page.evaluate((SEL) => {
     const findings = [];
-    const list = document.querySelector("app-comment-sidebar-list, .vc-list");
+    const list = document.querySelector(SEL.list);
     const listR = list?.getBoundingClientRect();
     const listOverflow = list ? getComputedStyle(list).overflow + "/" + getComputedStyle(list).overflowX : "";
 
-    const bodies = [...document.querySelectorAll(".vc-body")].filter((el) => el.getBoundingClientRect().width > 40);
+    const bodies = [...document.querySelectorAll(SEL.card)].filter((el) => el.getBoundingClientRect().width > 40);
     let clippedSides = 0;
     let noRing = 0;
     const samples = [];
@@ -171,7 +204,7 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
       const s = getComputedStyle(el);
       const hasBorder = (parseFloat(s.borderLeftWidth) || 0) >= 1 && s.borderLeftStyle !== "none";
       const hasShadowRing = /0px\s+0px\s+0px\s+1px/i.test(s.boxShadow || "");
-      const dialog = el.closest("velt-comment-dialog, .velt-comment-dialog") || el.parentElement;
+      const dialog = el.closest(SEL.dialog) || el.parentElement;
       const ds = dialog ? getComputedStyle(dialog) : null;
       const dialogShadowRing = ds && /0px\s+0px\s+0px\s+1px/i.test(ds.boxShadow || "");
       const dialogBorder = ds && (parseFloat(ds.borderLeftWidth) || 0) >= 1;
@@ -202,7 +235,7 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
     let railOnSingle = 0;
     const railSingleSamples = [];
     for (const el of bodies.slice(0, 8)) {
-      const avatars = [...el.querySelectorAll(".vc-avatar, velt-comment-dialog-thread-card-avatar-internal")]
+      const avatars = [...el.querySelectorAll(SEL.avatar)]
         .filter((a) => {
           const r = a.getBoundingClientRect();
           return r.width >= 16 && r.height >= 16;
@@ -215,10 +248,10 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
         if (uniqAv.some((u) => Math.hypot(u.cx - cx, u.cy - cy) < 4)) continue;
         uniqAv.push({ cx, cy });
       }
-      const morePop = [...el.querySelectorAll("velt-comment-dialog-more-reply-internal")]
+      const morePop = [...el.querySelectorAll(SEL.moreReply)]
         .some((m) => m.getBoundingClientRect().height > 10 && m.querySelector('[role="button"]'));
-      const threads = el.querySelector("velt-comment-dialog-threads-internal, .vc-threads");
-      const connectors = [...(el.querySelectorAll(".vc-connector") || [])].filter((c) => {
+      const threads = el.querySelector(SEL.threads);
+      const connectors = [...(el.querySelectorAll(SEL.connector) || [])].filter((c) => {
         const r = c.getBoundingClientRect();
         const cs = getComputedStyle(c);
         return r.height > 8 && (parseFloat(cs.opacity) || 0) > 0.05;
@@ -275,15 +308,15 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
     }
 
     // DOM pre-check for Show-N rail (pixel pass below confirms visually)
-    const moreRows = [...document.querySelectorAll("velt-comment-dialog-more-reply-internal")]
+    const moreRows = [...document.querySelectorAll(SEL.moreReply)]
       .filter((el) => el.getBoundingClientRect().height > 10 && el.querySelector('[role="button"]'));
     const moreTargets = moreRows.slice(0, 3).map((more, idx) => {
       const r = more.getBoundingClientRect();
-      const threads = more.closest("velt-comment-dialog-threads-internal, .vc-threads");
-      const body = more.closest(".vc-body");
-      const av = body?.querySelector(".vc-avatar")?.getBoundingClientRect();
+      const threads = more.closest(SEL.threads);
+      const body = more.closest(SEL.card);
+      const av = body?.querySelector(SEL.avatar)?.getBoundingClientRect();
       const connectors = threads
-        ? [...(threads.querySelectorAll(".vc-connector") || [])].map((c) => {
+        ? [...(threads.querySelectorAll(SEL.connector) || [])].map((c) => {
             const cr = c.getBoundingClientRect();
             const cs = getComputedStyle(c);
             return { h: cr.height, opacity: parseFloat(cs.opacity) || 0 };
@@ -340,7 +373,7 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
         return { x: r.x, y: r.y, w: r.width, h: r.height };
       })() : null,
     };
-  });
+  }, SEL);
 
   const findings = (result.findings || []).map((f) => {
     const { _domOnly, ...rest } = f;
@@ -496,12 +529,17 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
     }
   }
 
-  if ((result.bodies || 0) < 1) {
+  // Zero matched cards means the probes measured NOTHING. That is an INVALID run, not a clean one and
+  // not an ordinary finding: every downstream probe (ring, double-border, rail, gap) iterates `bodies`,
+  // so an unmatched card selector makes them all vacuously pass. Mark the doc invalid so the judge and
+  // the gate cannot read it as evidence.
+  const probesValid = (result.bodies || 0) >= 1;
+  if (!probesValid) {
     findings.push(chromeFinding({
-      id: "chrome-probe-empty-sidebar",
-      issue: "Chrome probes found no sized .vc-body cards — sidebar empty or not ready; results are inconclusive",
+      id: "chrome-probe-selectors-unmatched",
+      issue: `Chrome probes matched 0 sized cards with selector "${SEL.card}" (resolved from ${selectorSource}) — every card probe was vacuous. Results are INVALID, not passing. Under 'strictly primitives' the primitives drop className, so class-based defaults never match: write <phaseDir>/probe-selectors.json from the dom-snapshot with the REAL tags.`,
       blockId: "flow",
-      evidence: { bodies: result.bodies, moreRows: result.moreRows },
+      evidence: { bodies: result.bodies, moreRows: result.moreRows, selectors: SEL, selectorSource },
     }));
   }
 
@@ -518,9 +556,14 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true } 
     bodies: result.bodies,
     moreRows: result.moreRows,
     gaps: result.gaps,
+    selectors: SEL,
+    selectorSource,
+    valid: probesValid,
     summary: {
       findingCount: findings.length,
-      pass: findings.length === 0,
+      // `pass` is only meaningful when the probes actually measured something.
+      pass: probesValid ? findings.length === 0 : null,
+      valid: probesValid,
       demoBreaking: findings.filter((f) => f.demoBreaking).length,
     },
   };
@@ -539,18 +582,30 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const i = args.indexOf(name);
     return i >= 0 ? args[i + 1] : undefined;
   };
-  const phaseDir = args.find((a, i) => !a.startsWith("--") && (i === 0 || !["--url", "--connect"].includes(args[i - 1])));
+  const SELECTOR_FLAGS = ["--url", "--connect", "--card", "--list", "--avatar", "--threads", "--connector", "--more-reply", "--dialog"];
+  const phaseDir = args.find((a, i) => !a.startsWith("--") && (i === 0 || !SELECTOR_FLAGS.includes(args[i - 1])));
   const url = flag("--url");
   const ws = flag("--connect");
+  const explicit = {};
+  for (const [f, k] of [["--card", "card"], ["--list", "list"], ["--avatar", "avatar"], ["--threads", "threads"], ["--connector", "connector"], ["--more-reply", "moreReply"], ["--dialog", "dialog"]]) {
+    const v = flag(f);
+    if (v) explicit[k] = v;
+  }
   if (!phaseDir || !url || !ws) {
-    console.error("usage: judge2-chrome-probes.mjs <phaseDir> --url <url> --connect <ws>");
+    console.error("usage: judge2-chrome-probes.mjs <phaseDir> --url <url> --connect <ws> [--card <sel>] [--list <sel>] [--avatar <sel>] [--threads <sel>] [--connector <sel>] [--more-reply <sel>] [--dialog <sel>]");
     process.exit(1);
   }
-  runJudge2ChromeProbes(phaseDir, { url, ws, write: true }).then((r) => {
+  runJudge2ChromeProbes(phaseDir, { url, ws, write: true, selectors: Object.keys(explicit).length ? explicit : undefined }).then((r) => {
     const n = r.summary?.findingCount || 0;
-    if (n === 0) console.log("✓ chrome probes clean\n" + JSON.stringify({ findingCount: 0, pass: true }, null, 2));
+    if (!r.valid) {
+      // Exit 3 = INVALID (measured nothing) — distinct from 2 = real defects found, 0 = clean.
+      console.error(`✗ chrome probes INVALID — card selector "${r.selectors?.card}" (from ${r.selectorSource}) matched 0 cards; NOT a pass`);
+      for (const f of r.findings || []) console.error(`  ${f.id}: ${f.issue}`);
+      process.exit(3);
+    }
+    if (n === 0) console.log("✓ chrome probes clean\n" + JSON.stringify({ findingCount: 0, pass: true, valid: true, cards: r.bodies }, null, 2));
     else {
-      console.log(JSON.stringify({ findingCount: n, pass: false, demoBreaking: r.summary.demoBreaking }, null, 2));
+      console.log(JSON.stringify({ findingCount: n, pass: false, valid: true, cards: r.bodies, demoBreaking: r.summary.demoBreaking }, null, 2));
       for (const f of r.findings || []) console.log(`✗ ${f.id}: ${f.issue}`);
     }
     process.exit(n ? 2 : 0);

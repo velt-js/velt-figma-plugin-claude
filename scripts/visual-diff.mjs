@@ -129,10 +129,46 @@ function clusterRegions(mask, w, h, cell) {
 
 // Crop an image to a device-px box (for scoping the full-sidebar frame to one block's element region).
 export function cropImage(img, x, y, w, h) {
-  x = Math.max(0, Math.round(x)); y = Math.max(0, Math.round(y));
-  w = Math.min(img.width - x, Math.round(w)); h = Math.min(img.height - y, Math.round(h));
+  // Clamp the ORIGIN inside the image first. A region box derived from the diff canvas can sit
+  // entirely outside a smaller source image (e.g. 2x Figma frame vs 1x live rail): without this,
+  // `img.width - x` goes negative and Buffer.alloc(negative) throws, killing the whole judge run.
+  x = Math.min(Math.max(0, Math.round(x)), img.width);
+  y = Math.min(Math.max(0, Math.round(y)), img.height);
+  w = Math.max(0, Math.min(img.width - x, Math.round(w)));
+  h = Math.max(0, Math.min(img.height - y, Math.round(h)));
+  if (w === 0 || h === 0) {
+    // Fully out-of-bounds crop — return a 1x1 transparent tile so encodePNG stays valid and the
+    // caller records an (empty) evidence file instead of crashing.
+    return { width: 1, height: 1, data: Buffer.alloc(4, 0), empty: true };
+  }
   const out = Buffer.alloc(w * h * 4);
   for (let yy = 0; yy < h; yy++) img.data.copy(out, yy * w * 4, ((y + yy) * img.width + x) * 4, ((y + yy) * img.width + x + w) * 4);
+  return { width: w, height: h, data: out };
+}
+
+// Box-resample an RGBA image to exact dims. Used to normalize a 2x-exported Figma frame onto the
+// 1x live capture (or vice versa) so the chromatic diff compares like with like instead of padding
+// half the canvas with white and reporting it as a defect.
+export function resampleImage(img, w, h) {
+  w = Math.max(1, Math.round(w)); h = Math.max(1, Math.round(h));
+  if (img.width === w && img.height === h) return img;
+  const out = Buffer.alloc(w * h * 4);
+  const sx = img.width / w, sy = img.height / h;
+  for (let y = 0; y < h; y++) {
+    const y0 = Math.floor(y * sy), y1 = Math.min(img.height, Math.max(y0 + 1, Math.ceil((y + 1) * sy)));
+    for (let x = 0; x < w; x++) {
+      const x0 = Math.floor(x * sx), x1 = Math.min(img.width, Math.max(x0 + 1, Math.ceil((x + 1) * sx)));
+      let r = 0, g = 0, b = 0, a = 0, n = 0;
+      for (let yy = y0; yy < y1; yy++) {
+        for (let xx = x0; xx < x1; xx++) {
+          const i = (yy * img.width + xx) * 4;
+          r += img.data[i]; g += img.data[i + 1]; b += img.data[i + 2]; a += img.data[i + 3]; n++;
+        }
+      }
+      const o = (y * w + x) * 4;
+      out[o] = r / n; out[o + 1] = g / n; out[o + 2] = b / n; out[o + 3] = a / n;
+    }
+  }
   return { width: w, height: h, data: out };
 }
 

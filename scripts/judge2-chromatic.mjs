@@ -18,7 +18,7 @@ import { pathToFileURL, fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { spawnSync } from "node:child_process";
 import {
-  decodePNG, encodePNG, visualDiff, cropImage, textMasksFromSpec, textBoxesFromSpec,
+  decodePNG, encodePNG, visualDiff, cropImage, resampleImage, textMasksFromSpec, textBoxesFromSpec,
 } from "./visual-diff.mjs";
 import { runJudge2ChromeProbes } from "./judge2-chrome-probes.mjs";
 
@@ -136,6 +136,39 @@ function suggestLabel(region, panelH, { state = null } = {}) {
   if (area > 20000 && band === "thread-list") return { id: "card-chrome-mismatch", issue: "thread card chrome/layout differs from Figma in this region" };
   if (region.h < 28 && region.w > 80) return { id: "row-control-mismatch", issue: `row control (Reply / Show-N / actions) differs from Figma in ${band}` };
   return { id: `visual-${band}-${Math.round(region.x)}-${Math.round(region.y)}`, issue: `chrome mismatch vs Figma in ${band} @ ${region.cssBox || `${region.x},${region.y}`}` };
+}
+
+/**
+ * Normalize an EXPORT-SCALE mismatch between the Figma frame and the live capture.
+ * A Figma frame exported at 2x against a 1x live rail (708px vs 354px) is the same composition at a
+ * different resolution — not an isolated sub-frame. Padding it (the old full-panel path) filled half
+ * the canvas with white, produced bogus regions, and drove region boxes off the live image entirely
+ * (the Buffer.alloc(negative) crash). Detect a UNIFORM scale ratio (aspect preserved) and resample the
+ * larger image down to the smaller one so the diff compares like with like.
+ * Isolated State frames have a genuinely different aspect ratio, so they still take the template-match
+ * path untouched.
+ */
+function normalizeExportScale(refImg, liveImg) {
+  const wr = refImg.width / liveImg.width;
+  const hr = refImg.height / liveImg.height;
+  if (!isFinite(wr) || !isFinite(hr) || wr <= 0 || hr <= 0) return { refImg, liveImg, scaleNorm: null };
+  // Aspect must be preserved within 3% for this to be a pure export-scale difference.
+  const aspectSkew = Math.abs(wr - hr) / Math.max(wr, hr);
+  if (aspectSkew > 0.03) return { refImg, liveImg, scaleNorm: null };
+  // Ratios near 1 need no normalization.
+  if (wr > 0.87 && wr < 1.15) return { refImg, liveImg, scaleNorm: null };
+  if (wr > 1) {
+    return {
+      refImg: resampleImage(refImg, liveImg.width, liveImg.height),
+      liveImg,
+      scaleNorm: { downscaled: "figma", ratio: +wr.toFixed(3), from: `${refImg.width}x${refImg.height}`, to: `${liveImg.width}x${liveImg.height}` },
+    };
+  }
+  return {
+    refImg,
+    liveImg: resampleImage(liveImg, refImg.width, refImg.height),
+    scaleNorm: { downscaled: "live", ratio: +wr.toFixed(3), from: `${liveImg.width}x${liveImg.height}`, to: `${refImg.width}x${refImg.height}` },
+  };
 }
 
 function padImg(img, w, h) {
@@ -449,14 +482,24 @@ async function diffBlock(b, { phaseDir, outRoot, designSpec, livePath, state, th
   if (!(await exists(livePath))) {
     return { blockId: b.id, status: "skip", reason: `missing live capture ${livePath}`, findings: [] };
   }
-  const refRaw = decodePNG(await fs.readFile(framePath));
-  const liveRaw = decodePNG(await fs.readFile(livePath));
+  let refRaw = decodePNG(await fs.readFile(framePath));
+  let liveRaw = decodePNG(await fs.readFile(livePath));
+  // CORE: a pure EXPORT-SCALE difference (2x Figma frame vs 1x live rail) is resampled to a common
+  // resolution BEFORE alignment — otherwise it is misread as an isolated frame, padded with white,
+  // and every region lands off the live image (the Buffer.alloc(negative) crash + zero real numbers).
+  const scaled = normalizeExportScale(refRaw, liveRaw);
+  refRaw = scaled.refImg;
+  liveRaw = scaled.liveImg;
+  if (scaled.scaleNorm) {
+    console.log(`· ${b.id}: export-scale normalized — downscaled ${scaled.scaleNorm.downscaled} ${scaled.scaleNorm.from} → ${scaled.scaleNorm.to} (ratio ${scaled.scaleNorm.ratio})`);
+  }
   // CORE: isolated State frames (single card) must NOT be top-left-padded into a full
   // panel — that invents bogus regions and buries real hover/selected chrome misses.
   const aligned = alignIsolatedLive(refRaw, liveRaw);
   const refImg = aligned.refImg;
   const liveImg = aligned.liveImg;
   let alignment = aligned.alignment;
+  if (scaled.scaleNorm) alignment = { ...alignment, scaleNorm: scaled.scaleNorm };
   if (alignment.mode === "template-match") {
     console.log(`· ${b.id}: aligned isolated frame → live@${alignment.x},${alignment.y} score=${alignment.score}`);
   } else if (refRaw.width < liveRaw.width * 0.85 || refRaw.height < liveRaw.height * 0.75) {
@@ -502,7 +545,9 @@ async function diffBlock(b, { phaseDir, outRoot, designSpec, livePath, state, th
       w: Math.min(diff._w - Math.max(0, r.x - pad), r.w + pad * 2),
       h: Math.min(diff._h - Math.max(0, r.y - pad), r.h + pad * 2),
     };
-    const liveCrop = cropImage(liveImg, box.x, box.y, box.w, box.h);
+    // Both crops are taken from images padded to the DIFF canvas so a region box is always in-bounds
+    // for both sides (region coords are diff-canvas coords, not per-image coords).
+    const liveCrop = cropImage(padImg(liveImg, diff._w, diff._h), box.x, box.y, box.w, box.h);
     const figCrop = cropImage(padImg(refImg, diff._w, diff._h), box.x, box.y, box.w, box.h);
     const slug = `r${i}-${box.x}-${box.y}`;
     const liveCropP = path.join(blockDir, `${slug}-live.png`);
@@ -597,8 +642,8 @@ async function diffHoverLiveDelta({ outRoot, restingPath, hoverPath }) {
       w: Math.min(diff._w - Math.max(0, r.x - pad), r.w + pad * 2),
       h: Math.min(diff._h - Math.max(0, r.y - pad), r.h + pad * 2),
     };
-    const liveCrop = cropImage(liveImg, box.x, box.y, box.w, box.h);
-    const figCrop = cropImage(refImg, box.x, box.y, box.w, box.h); // resting as "baseline"
+    const liveCrop = cropImage(padImg(liveImg, diff._w, diff._h), box.x, box.y, box.w, box.h);
+    const figCrop = cropImage(padImg(refImg, diff._w, diff._h), box.x, box.y, box.w, box.h); // resting as "baseline"
     const slug = `r${i}-${box.x}-${box.y}`;
     const liveCropP = path.join(blockDir, `${slug}-hover.png`);
     const restCropP = path.join(blockDir, `${slug}-resting.png`);

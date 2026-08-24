@@ -10,6 +10,11 @@
 //   node scripts/figma-extract.mjs token status|remove
 //   node scripts/figma-extract.mjs token set            (reads token from STDIN, not argv)
 //   node scripts/figma-extract.mjs rest <fileKey> <nodeId> [--out <dir>] [--svg]
+//   node scripts/figma-extract.mjs from-nodes <nodes.json> <nodeId> [--out <dir>]
+//     ^ offline: same extraction from an already-fetched
+//       GET /v1/files/<key>/nodes?ids=<id>&geometry=paths  payload. Mirrors enumerate-blocks'
+//       from-nodes mode. SVG export and broken-override recovery need the network and are
+//       RECORDED as skipped in spec.offlineSkipped rather than silently omitted.
 //
 // Layout mapping follows bernaferrari/FigmaToCode: auto-layout -> flex, with the two
 // non-obvious rules — gap is suppressed on SPACE_BETWEEN, and "fill" is axis-dependent
@@ -499,8 +504,46 @@ async function extractRest(fileKey, nodeId, outDir, doSvg) {
   if (!token) throw new Error("no Figma token (env FIGMA_TOKEN or keychain) — set one: `export FIGMA_TOKEN=figd_…` or run `figma-extract token set`");
   const id = nodeId.replace(/-/g, ":");
   const data = await figmaFetch(`https://api.figma.com/v1/files/${fileKey}/nodes?ids=${encodeURIComponent(id)}&geometry=paths`, token);
+  return buildSpec({ data, fileKey, id, outDir, doSvg, token, offline: false, sourceLabel: "rest" });
+}
+
+/**
+ * Same extraction, from a nodes payload ALREADY on disk.
+ *
+ * WHY. `enumerate-blocks.mjs` has had a `from-nodes` mode since it was written; this script never
+ * did, so a single missing network path made the whole intake unrunnable — an environment that
+ * cannot reach api.figma.com (a sandbox, a locked-down CI runner, an egress allowlist) could not
+ * extract at all, even with the payload in hand. It also made the extractor untestable offline,
+ * which is why no golden fixture covers it.
+ *
+ * The payload is exactly what the REST path fetches:
+ *   GET /v1/files/<fileKey>/nodes?ids=<nodeId>&geometry=paths
+ * `geometry=paths` matters — without it vector path data is absent and icon extraction silently
+ * produces nothing. Saved responses lacking it are reported, not quietly accepted.
+ *
+ * Two things genuinely cannot be done without the network, and this mode RECORDS both rather than
+ * degrading in silence: SVG asset export (a second /v1/images call) and broken-override recovery
+ * (which resolves a component master through /v1/components). A spec that skipped them says so in
+ * `offlineSkipped`, so a downstream stage can never mistake "not fetched" for "not present".
+ */
+async function extractFromNodes(nodesPath, nodeId, outDir, doSvg) {
+  const raw = await fs.readFile(nodesPath, "utf8").catch(() => null);
+  if (raw == null) throw new Error(`cannot read nodes payload: ${nodesPath}`);
+  let data;
+  try { data = JSON.parse(raw); } catch (e) { throw new Error(`nodes payload is not JSON: ${nodesPath} (${e.message})`); }
+  const id = nodeId.replace(/-/g, ":");
+  if (!data.nodes?.[id]?.document) {
+    const have = Object.keys(data.nodes || {});
+    throw new Error(`node ${id} not in payload${have.length ? ` — it contains: ${have.join(", ")}` : " (no .nodes key — is this a /v1/files/:key/nodes response?)"}`);
+  }
+  const fileKey = data.__fileKey || path.basename(nodesPath).replace(/\.json$/, "");
+  return buildSpec({ data, fileKey, id, outDir, doSvg, token: null, offline: true, sourceLabel: `nodes:${path.basename(nodesPath)}` });
+}
+
+async function buildSpec({ data, fileKey, id, outDir, doSvg, token, offline, sourceLabel }) {
   const root = data.nodes?.[id]?.document;
   if (!root) throw new Error(`node ${id} not found in file ${fileKey}`);
+  const offlineSkipped = [];
 
   const nodes = [];
   const blockFrames = blockFramesOf(root);
@@ -511,7 +554,10 @@ async function extractRest(fileKey, nodeId, outDir, doSvg) {
   const icons = [];
   collectIcons(root, [], icons);
   const assets = [];
-  if (doSvg && icons.length) {
+  if (doSvg && icons.length && offline) {
+    offlineSkipped.push({ step: "svg-export", count: icons.length, why: "needs GET /v1/images — re-run `figma-extract rest` with network to export icon SVGs" });
+  }
+  if (doSvg && icons.length && !offline) {
     const ids = icons.map((i) => i.id).join(",");
     const img = await figmaFetch(`https://api.figma.com/v1/images/${fileKey}?ids=${encodeURIComponent(ids)}&format=svg`, token);
     await fs.mkdir(path.join(outDir, "assets"), { recursive: true });
@@ -534,7 +580,13 @@ async function extractRest(fileKey, nodeId, outDir, doSvg) {
   // to its (possibly remote library) master via /v1/components/:key, and take the master text
   // node's content + style runs. No master reachable → drop (matches the server render).
   const broken = nodes.filter((n) => n.brokenOverride);
-  if (broken.length) {
+  if (broken.length && offline) {
+    // The REST path resolves these through /v1/components and DROPS the ones it cannot recover.
+    // Offline we can do neither, so the honest move is to keep them and say so — a dropped node
+    // and an unrecoverable node look identical downstream, and only one of them is a real absence.
+    offlineSkipped.push({ step: "broken-override-recovery", count: broken.length, why: "needs GET /v1/components — these nodes are KEPT unresolved; the rest path would have recovered or dropped them" });
+  }
+  if (broken.length && !offline) {
     const compMeta = data.nodes?.[id]?.components || {};
     const componentIdByInstance = Object.fromEntries(nodes.filter((n) => n.componentId).map((n) => [n.id, n.componentId]));
     const masterCache = new Map();
@@ -577,7 +629,7 @@ async function extractRest(fileKey, nodeId, outDir, doSvg) {
   const finalNodes = nodes.filter((n) => !n.__drop);
   const designNames = finalNodes.map((n) => n.name);
   const iconAssign = doSvg ? await assignIcons(icons, assets, designNames) : { assignments: {}, unassigned: [], skipped: [] };
-  return { source: "rest", fileKey, nodeId: id, boxSpace: "frame-relative", frames, nodeCount: finalNodes.length, nodes: finalNodes, assets, icons: icons.length,
+  return { source: sourceLabel, ...(offline ? { offline: true, offlineSkipped } : {}), fileKey, nodeId: id, boxSpace: "frame-relative", frames, nodeCount: finalNodes.length, nodes: finalNodes, assets, icons: icons.length,
     iconAssignments: iconAssign.assignments, unassignedIcons: iconAssign.unassigned, skippedIconSlots: iconAssign.skipped || [] };
 }
 
@@ -614,8 +666,12 @@ async function main() {
     const [fileKey, nodeId] = rest;
     if (!fileKey || !nodeId) throw new Error("usage: rest <fileKey> <nodeId> [--out <dir>] [--svg]");
     spec = await extractRest(fileKey, nodeId, outDir, rest.includes("--svg"));
+  } else if (cmd === "from-nodes") {
+    const [nodesPath, nodeId] = rest;
+    if (!nodesPath || !nodeId) throw new Error("usage: from-nodes <nodes.json> <nodeId> [--out <dir>]");
+    spec = await extractFromNodes(nodesPath, nodeId, outDir, rest.includes("--svg"));
   } else {
-    throw new Error("usage: figma-extract.mjs token|rest …");
+    throw new Error("usage: figma-extract.mjs token|rest|from-nodes …");
   }
 
   await fs.mkdir(outDir, { recursive: true });

@@ -1,6 +1,7 @@
 // The same design, composed correctly: the -trigger ancestor is present so the chip is live, the
 // dialog root is not used as a container, text is wrapped, and the repeater loop is owned in
-// customer code with R2 feeding each row its commentId.
+// customer code with R2 feeding each row BOTH its commentId and its commentIndex — descendants that
+// resolve a comment by position fall back to the index, and an unpublished index reads as 0.
 import {
   VeltCommentDialogStatusDropdown,
   VeltCommentDialogStatusDropdownTrigger,
@@ -20,8 +21,8 @@ export function LiveChip({ annotationId, comments }) {
           <VeltCommentDialogStatusDropdownTriggerName />
         </VeltCommentDialogStatusDropdownTrigger>
       </VeltCommentDialogStatusDropdown>
-      {comments.map((c) => (
-        <VeltCommentDialogThreadCard key={c.commentId} commentId={c.commentId}>
+      {comments.map((c, commentIndex) => (
+        <VeltCommentDialogThreadCard key={c.commentId} commentId={c.commentId} commentIndex={commentIndex}>
           <VeltCommentDialogThreadCardName><span>Unassigned</span></VeltCommentDialogThreadCardName>
         </VeltCommentDialogThreadCard>
       ))}

@@ -7,6 +7,24 @@ effort: max
 
 You coordinate the run. You hold the shared context and the **append-only run journal** (one event per step: plan / build / judge / verdict / escalate / gap — gives exact resume, estimated-vs-actual coverage, per-phase token cost, and one-line learnings). `guide/` is the source of truth; you and your subagents carry no customization knowledge of your own. Never hack (R0); never invent identifiers (R10). When the guide is silent or a fact is uncertain, **resolve it against ground truth** (Velt Docs MCP / official Velt docs → live SDK → running app) — never guess, hedge, or declare impossible from silence.
 
+## PER-STAGE REVIEW (opt-in — `--review-each-stage`; every other run is unaffected by this block)
+
+Off by default. When the run carries `--review-each-stage`, two things change and **no gate changes**:
+
+1. **Run every gate through the wrapper.** Replace `node scripts/<gate>.mjs …` with
+   `node scripts/run-gate.mjs <phaseDir> <stageId> <gateId> [--app-dir …] [--app-url …]`. The wrapper
+   exits with the CHILD's code, so every "must exit 0" rule in this file keeps its exact meaning —
+   it only makes the verdict survive the shell. Stage and gate ids come from `manifest/stages.json`.
+   Gates the manifest does not list still run as before, or take `-- <cmd…>` after the ids.
+2. **Review before advancing.** At the end of each stage:
+   `node scripts/stage-review.mjs <phaseDir> --stage <stageId> --app-dir <appDir>`
+   Present its **Do this next** list. `blocked` means the stage did not finish: fix, re-run the named
+   gate through the wrapper, re-review. `advisory` is a judgement call — surface it and let the user
+   decide. Do not advance past a `blocked` stage on the grounds that the pixels look right.
+
+The review reads evidence and re-runs nothing, so it cannot change a verdict and is safe to run at any
+point, including after the run is over (`/velt-customize:review`).
+
 ## KNOWLEDGE-UPDATE LIFECYCLE — verified points ONLY, at the fix-verified stage
 A learning enters the knowledge pipeline only after completing the full loop: **(1) IMPLEMENT** (a stage built something) → **(2) FIND the issue** (`velt-judge-2` names a defect / chrome-probe row, or the builder's appearance pass names a mechanism) → **(3) FIX it** (through the owning stage — plan re-point / builder mechanism, never a hack) → **(4) VERIFY the fix held** (a fresh `judge2-chromatic.mjs` + `judge2-to-workorder.mjs` shows the named defect GONE, no regression-guard hit) → **(5) LEARN**: only NOW journal it as a `scope:"general"` candidate, carrying the verification evidence (`{statement, category, evidence: <the before/after measurement>, seenOn:[<thisDesign>], verified: true}`).
 - **The journaling moment is stage 5d (strict fix), immediately after the re-judge that proves the fix** — not when the issue is first spotted (an unfixed observation is a hypothesis, not knowledge), and not at wrap-up from memory (details are lost by then; the run-archive can be deleted).

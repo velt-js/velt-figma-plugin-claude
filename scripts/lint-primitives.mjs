@@ -20,6 +20,11 @@
 //   P6  parent-owned condition   warn   the built-in surface gates this primitive; standalone it will not
 //   P7  unknown primitive        error  identifier is not in the SDK tag registry
 //   P8  unnamed R3 getter        error  a config getter that the SDK does not publish
+//   P9  conditional moved child   error  a RELOCATED top-level child unmounted mid-life crashes React
+//   P10 inert defaultCondition    warn   the prop is passed to a tag whose SDK component never reads it
+//   P11 hardcoded status id       error  "RESOLVED"/"OPEN"/"IN_PROGRESS" are fallbacks, not the catalog
+//   P12 commentId without index   warn   index-resolving descendants silently target the wrong comment
+//   P13 SDK call in a setState updater  error  updaters must be pure; React runs them twice in StrictMode
 //
 // USAGE
 //   node scripts/lint-primitives.mjs <file-or-dir> [...]   # defaults to cwd
@@ -85,6 +90,21 @@ async function loadSdkExports(roots) {
 // Containers whose children render once rather than per item (P5). A repeating container is one whose
 // name marks it as a list/collection; the SDK renders the loop itself.
 const REPEATER_RE = /(List|Threads|Comments|Reactions|Attachments|Recordings|Options|Items)$/;
+
+// P11 — the three ids `CustomFilterService` falls back to when a workspace has configured no status
+// catalog. They are NOT the catalog. A workspace that configured its own gets different ids, classified
+// by `status.type` ('terminal' for resolved-like), so code keyed to these literals hands that customer a
+// filter that silently empties their list. Derive from live data (`status.type`) instead.
+const FALLBACK_STATUS_IDS = /['"](RESOLVED|OPEN|IN_PROGRESS)['"]/g;
+
+// P13 — element methods that mutate Velt state. None of them may run inside a setState updater: React
+// invokes updaters twice in development StrictMode specifically to prove they are pure.
+const VELT_MUTATORS = /\b(setCommentSidebarFilters|setCommentSidebarSort|addComment|deleteComment|editComment|updateComment|clearComposer|setCustomStatus|resolveComment|unresolveComment)\s*\(/;
+
+// P9 — a JSX expression container that OPENS with a conditional: `{x ? …`, `{x && …`.
+// `?.` is optional chaining, not a ternary. `.map(` is excluded because a predicate inside a loop
+// callback (`items.filter(x => x.a && x.b).map(…)`) is not a conditional child.
+const COND_CHILD_RE = /\{[^{}]*(?:&&|\?(?![.:]))/;
 
 const findings = [];
 const add = (rule, severity, file, line, message, fix) => findings.push({ rule, severity, file, line, message, fix });
@@ -167,10 +187,28 @@ function scan(src, file) {
 
       // P1 — a compound-trigger leaf without its -trigger ancestor is a dead control.
       if (known?.requiresTriggerAncestor) checkTriggerAncestor({ name, meta: known, line: lineNo }, stack, file);
+
+      // P10 — `defaultCondition` is declared on the shared primitive BASES, so it typechecks on every
+      // primitive; on most tags nothing consumes it. Passing it there is not neutral — it reads as
+      // deliberate visibility control and there is no gate behind it. `readsDefaultCondition` is
+      // derived from the SDK's own component sources (see sync-primitives.mjs) and is advisory, so
+      // this is a warning: a false negative must never block a correct build.
+      if (known && known.readsDefaultCondition === false && /\bdefaultCondition\s*=/.test(attrs))
+        add("P10", "warn", file, lineNo,
+          `${name} is given defaultCondition, but its SDK component never calls defaultCondition() — the prop is inert here.`,
+          "Drop it. If you meant to take over a visibility condition, name the condition you are overriding and check the primitive actually has one (P6).");
+
+      // P12 — a descendant that resolves its comment by INDEX cannot fall back to one you never
+      // published. Anchoring only `commentId` leaves every index-resolving primitive in the subtree
+      // reading position 0, which renders correctly and describes the wrong comment.
+      if (known && /\bcommentId\s*=/.test(attrs) && !/\bcommentIndex\s*=/.test(attrs))
+        add("P12", "warn", file, lineNo,
+          `${name} anchors commentId without commentIndex — descendants that resolve by index will read position 0.`,
+          "Pass both, and make the index the position in the FULL comment list, not in a collapsed/filtered slice.");
     }
 
     const isVoid = selfClose || VOID_HTML.has(name.toLowerCase());
-    if (!isVoid) stack.push({ name, tag: known?.tag, line: lineNo, meta: known || null, sawElementChild: false, sawExpressionChild: false, textChild: null, hasMap: false });
+    if (!isVoid) stack.push({ name, tag: known?.tag, line: lineNo, meta: known || null, sawElementChild: false, sawExpressionChild: false, textChild: null, hasMap: false, conditionalChild: null });
   }
   consumeText(masked.slice(cursor), cursor, stack, lineAt);
   for (const leftover of stack.reverse()) checkClose(leftover, file);
@@ -178,6 +216,25 @@ function scan(src, file) {
   // P8 — a config getter or hook the SDK does not publish. Whole-file scan; ancestry is irrelevant.
   for (const g of masked.matchAll(/\.(get[A-Z]\w*Config)\s*\(/g))
     if (!R3_GETTER_NAMES.has(g[1])) add("P8", "error", file, lineAt(g.index), `${g[1]}() is not a published Velt config getter.`, `Published getters: ${[...R3_GETTER_NAMES].join(", ")}.`);
+  // P11 — hardcoded status ids. Scoped to files that actually deal with status, so an unrelated
+  // "OPEN" literal elsewhere in an app cannot trip it.
+  if (/status/i.test(masked)) {
+    for (const m2 of masked.matchAll(FALLBACK_STATUS_IDS))
+      add("P11", "error", file, lineAt(m2.index),
+        `${m2[0]} is one of CustomFilterService's FALLBACK status ids, not the workspace's catalog.`,
+        "A workspace with a configured catalog has its own ids. Classify by status.type ('terminal' for resolved-like) and derive the id set from live annotations — there is no public getter for the catalog.");
+  }
+
+  // P13 — a Velt mutation inside a setState updater. React invokes updaters twice in development
+  // StrictMode to prove they are pure, so the SDK call fires twice per toggle.
+  for (const m3 of masked.matchAll(/\bset[A-Z]\w*\(\s*\(?\s*\w+\s*\)?\s*=>/g)) {
+    const body = masked.slice(m3.index, m3.index + 800);
+    const hit = body.match(VELT_MUTATORS);
+    if (hit) add("P13", "error", file, lineAt(m3.index),
+      `${hit[1]}() is called inside a setState updater — updaters must be pure, and React runs them twice in StrictMode.`,
+      "Compute the next value, call setState with it, then call the SDK from the handler.");
+  }
+
   for (const h of masked.matchAll(/\b(use[A-Z]\w*Config)\s*\(/g))
     if (!R3_HOOK_NAMES.has(h[1])) add("P8", "error", file, lineAt(h.index), `${h[1]}() is not a published Velt config hook.`, `The only published React config hook is ${[...R3_HOOK_NAMES][0] || "(none)"}. For every other surface use the element method + useEffect/subscribe.`);
 }
@@ -188,8 +245,20 @@ function consumeText(chunk, offset, stack, lineAt) {
   if (!top) return;
   if (/\{[^}]*\.map\s*\(/.test(chunk)) top.hasMap = true;
   if (/\{/.test(chunk)) top.sawExpressionChild = true;
+  // P9 — a conditional DIRECTLY inside a primitive. Tested on the RAW chunk, before expression
+  // containers are stripped, and only when the innermost open element is the primitive itself:
+  // markup nested inside your own element is never relocated and is safe to toggle.
+  if (top.meta && !/\.map\s*\(/.test(chunk) && COND_CHILD_RE.test(chunk)) {
+    top.conditionalChild ??= { line: lineAt(offset + chunk.search(COND_CHILD_RE)) };
+  }
   // Strip JSX expression containers — {x} is an expression child, not literal text.
-  const stripped = chunk.replace(/\{(?:[^{}]|\{[^{}]*\})*\}/g, " ");
+  // A container that SPANS tags (`{open ? (` … `) : null}`) has its braces split across two chunks,
+  // so the balanced-pair strip leaves the fragment behind and P3 blames the primitive for literal
+  // text it never had. Drop an unterminated opener and a dangling closer as well.
+  const stripped = chunk
+    .replace(/\{(?:[^{}]|\{[^{}]*\})*\}/g, " ")
+    .replace(/\{[^{}]*$/, " ")
+    .replace(/^[^{}]*\}/, " ");
   const text = stripped.trim();
   if (text && !/^[(),;=>{}\[\]]*$/.test(text)) {
     top.textChild ??= { text: text.slice(0, 60), line: lineAt(offset + stripped.indexOf(text[0])) };
@@ -220,6 +289,15 @@ function checkClose(node, file) {
     add("P5", "error", file, line,
       `${name} is a repeating container — children placed inside it render ONCE, not per item.`,
       "Own the loop: fetch the collection, .map() it, and let R2 context feed each row.");
+
+  // P9 — R1 MOVES customer children out of the host into the primitive's anchor, but React still
+  // records the HOST as their parent. Unmounting one makes React call removeChild(host, node) on a
+  // node whose real parent is now elsewhere, and the DOM throws
+  //   NotFoundError: The node to be removed is not a child of this node
+  // taking the whole React root down with it. This is a crash, not a dropped element.
+  if (node.conditionalChild) add("P9", "error", file, node.conditionalChild.line,
+    `${name} has a CONDITIONAL top-level child. R1 relocates that node, so unmounting it makes React call removeChild() on the wrong parent and the DOM throws NotFoundError.`,
+    "Mount it unconditionally and hide it with CSS off a data-* attribute on YOUR OWN ancestor element. (Conditionals nested inside your own markup are safe — only a direct child of the primitive is relocated.)");
 
   // P4 — children are MOVED, so the top-level child must be stable across renders.
   if (node.sawExpressionChild && !node.sawElementChild)

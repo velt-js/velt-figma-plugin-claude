@@ -32,6 +32,7 @@ import { calibrateJudgeValidation } from "./judge-validation.mjs";
 import { calibrateDefectContract } from "./defect-contract.mjs";
 import { calibrateCompiledOracle } from "./compiled-oracle.mjs";
 import { calibratePrimitives } from "./primitives-calibration.mjs";   // PRIMITIVES path only (R1/R2/R3)
+import { calibrateStageReview } from "./stage-review-calibration.mjs";  // the per-stage review layer
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -955,6 +956,8 @@ async function main() {
   if (!compiledOracleCalibrated) failed++;
   const primitivesCalibrated = await calibratePrimitives();
   if (!primitivesCalibrated) failed++;
+  const stageReviewCalibrated = await calibrateStageReview();
+  if (!stageReviewCalibrated) failed++;
 
   if (failed) { console.error(`\n✗ golden offline guard FAILED for ${failed} check(s)`); process.exit(1); }
   console.log(`\n✓ golden offline guard passed (probe/gate/judge calibration suites all green)`);

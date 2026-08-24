@@ -42,6 +42,62 @@
       "seenOn": [
         "harvey primitives run 2026-08-13"
       ]
+    },
+    {
+      "agent": "velt-builder-primitives",
+      "observation": "Will re-implement a visibility gate the primitive already computes — emitting defaultCondition={false} on BOTH the resolve and unresolve buttons and choosing between them in customer code. The SDK's own pair is already mutually exclusive (status.type !== 'terminal' vs === 'terminal') and strictly STRICTER: it also checks !annotation.assignedTo, resolveStatusAccessAdminOnly, !uiState.disabled and !isPlanExpired. The re-derivation showed a resolve button on an assigned thread that Velt would have hidden. Mount mutually exclusive primitives unconditionally and let each answer its own question.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey strictly-primitives run 4 (2026-08-21, hand-audited against the built app)"
+      ]
+    },
+    {
+      "agent": "velt-builder-primitives",
+      "observation": "Toggles composed menus and popovers by conditionally rendering the primitive's direct child. That is a hard React crash under R1 (removeChild on a relocated node), not a dropped element. Lint P9 now catches it. Note the boundary — the same conditional NESTED inside customer markup is safe, and over-applying the rule turns ~16 harmless conditionals into always-mounted Angular composer instances.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey strictly-primitives run 4 (2026-08-21, hand-audited against the built app)"
+      ]
+    },
+    {
+      "agent": "velt-builder-primitives",
+      "observation": "Anchors commentId on a row and omits commentIndex, then maps over a COLLAPSED slice of the comment list so the map index does not match the real position either. Descendants that resolve by index silently read comment 0 — the unread dot drew on the wrong row. Always publish both, always index into the full list, and collapse rows with CSS rather than by slicing.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey strictly-primitives run 4 (2026-08-21, hand-audited against the built app)"
+      ]
+    },
+    {
+      "agent": "velt-builder-primitives",
+      "observation": "Writes load-bearing comments that assert a MECHANISM it never traced ('a hand-composed sidebar card carries no dialogInstanceId', 'the composer avatar stays an unresolved skeleton'). Four such comments were wrong and each read authoritatively enough to block the real fix for hours. Record an observed failure as an observation with its measurement; name a mechanism only when it was traced.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey strictly-primitives run 4 (2026-08-21, hand-audited against the built app)"
+      ]
+    },
+    {
+      "agent": "velt-planner-primitives",
+      "observation": "Declares a control unreachable when no method for it exists on the element facade, without checking the primitive's own INPUTS. The sidebar sort rows were planned inert with a hardcoded tick; the item primitive accepts group-id + item-id and drives the real updateSort.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey strictly-primitives run 4 (2026-08-21, hand-audited against the built app)"
+      ]
+    },
+    {
+      "agent": "velt-planner-primitives",
+      "observation": "Hardcodes SDK enum ids it saw in one workspace's data ('RESOLVED', 'OPEN', 'IN_PROGRESS'). Those are fallbacks; a configured workspace has its own catalog classified by status.type. Plan the derivation, not the literals.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey strictly-primitives run 4 (2026-08-21, hand-audited against the built app)"
+      ]
+    },
+    {
+      "agent": "velt-planner-style",
+      "observation": "A Figma STATE frame contributes a whole box, so the emitted rule puts layout properties (display/flex-direction/gap/flex/position) behind the state selector and the unconditional rule is left without them. Measured: the thread-card action cluster had no gap at rest and 6px of gap on hover, so the resolve button jumped left the moment the pointer entered; selecting a card moved its inter-comment gap 16px->12px. Layout belongs in the unconditional rule; a state rule should only change paint. NOT YET ACTED ON — velt-planner-style is shared with the wireframe flow and this run was scoped to primitives.",
+      "confidence": "tentative",
+      "seenOn": [
+        "harvey strictly-primitives run 4 (2026-08-21, hand-audited against the built app)"
+      ]
     }
   ]
 }

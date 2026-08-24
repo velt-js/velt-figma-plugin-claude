@@ -31,6 +31,25 @@ Run `/velt-customize` against a real Figma Loop node on a target React app with 
 `verdict-gate-blocks.mjs` exit 0** with a clean rules scan. `run-golden.mjs` prints the
 step-by-step checklist.
 
+## The primitives reference build
+
+`golden/primitives/` holds SOURCE fixtures, not a rendered baseline — a `bad/` file that must trip the
+lint and a `good/` file that must pass it. That is deliberate: it costs no browser, it cannot rot
+against a redesign, and it pins the defect class rather than a pixel.
+
+| Pair | Pins |
+|---|---|
+| `bad/DeadChip.tsx` -> `good/LiveChip.tsx` | PR snippyly/sdk#4506 issues #3/#4 — the dead compound trigger, the dialog root used as a container, bare text, an unowned repeater loop. |
+| `bad/StaleFilterRow.tsx` -> `good/LiveFilterRow.tsx` | The five classes the harvey `strictly primitives` run shipped and a human found by hand: a conditional relocated child (P9), inert `defaultCondition` (P10), hardcoded status ids (P11), `commentId` with no `commentIndex` (P12), an SDK call inside a `setState` updater (P13). |
+
+**The reference build itself** is the harvey demo on branch `cursor/harvey-primitives-run-4-98f8`
+(repo `ai-harvey-implementation`). The plugin produced `c4fef0f..b632bf2`; the corrections are
+`39edf95` and `68214b6`, and that repo's `PRIMITIVES.md` / `PRIMITIVES-AUDIT.md` are the long-form
+write-up. Diff those two commits to see the whole delta between what this plugin emits and what a
+correct primitives build looks like. Nothing in the harness reads that repo — it is a human
+reference, kept out on purpose so the suites stay offline and dependency-free.
+See `learnings/primitives-run-4-rollout.md` for where each lesson was enforced.
+
 *(History: until 2026-07-22 this folder also carried two June "golden design" fixtures and a
 frozen `mock-baseline/` set; they predated the two-phase redesign and were removed — the
 calibration suites above are the regression net.)*

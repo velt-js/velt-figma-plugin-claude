@@ -144,6 +144,11 @@ export async function calibrateStageReview() {
   // plan-fidelity joined this stage's gate list, and stage-review reports a DECLARED-but-unrecorded
   // gate rather than reading silence as success — so a CLEAN verdict now requires recording it too.
   run("run-gate.mjs", [clean, "build-primitives", "plan-fidelity", "--", "node", "-e", "process.exit(0)"]);
+  // build-primitives now DECLARES mocks/*.html as a required artifact (the style stage gates on it),
+  // and stage-review reports a missing required artifact rather than reading silence as success — so
+  // a CLEAN verdict needs one present.
+  await fs.mkdir(path.join(clean, "mocks"), { recursive: true });
+  await fs.writeFile(path.join(clean, "mocks", "b1.html"), "<div id=\"mock\"></div>\n");
   const cleanRes = JSON.parse(run("stage-review.mjs", [clean, "--stage", "build-primitives", "--app-dir", path.join(ROOT, "golden/primitives/good"), "--json"]).out);
   ok("all gates passing and nothing flagged reads CLEAN", cleanRes.verdict === "clean", `${cleanRes.verdict}: ${JSON.stringify(cleanRes.nextActions)}`);
 

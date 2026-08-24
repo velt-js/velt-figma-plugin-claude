@@ -536,7 +536,9 @@
             "scripts/dom-snapshot.mjs",
             "<phaseDir>",
             "--url",
-            "<appUrl>"
+            "<appUrl>",
+            "--connect",
+            "<browserWs>"
           ],
           "blocking": true,
           "pass": [
@@ -573,7 +575,9 @@
             "scripts/console-health.mjs",
             "<phaseDir>",
             "--url",
-            "<appUrl>"
+            "<appUrl>",
+            "--connect",
+            "<browserWs>"
           ],
           "blocking": true,
           "pass": [

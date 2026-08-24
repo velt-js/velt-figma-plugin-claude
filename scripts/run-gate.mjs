@@ -21,6 +21,7 @@
 //   node scripts/run-gate.mjs <phaseDir> <stageId> <gateId>            # command resolved from manifest/stages.json
 //   node scripts/run-gate.mjs <phaseDir> <stageId> <gateId> -- <cmd…>  # explicit command
 //   ... --app-dir <p> --app-url <u> --file-key <k> --node-id <n> --surfaces <a,b> --marker <m>
+//   ... --browser-ws <ws>   (or $VELT_CDP_WS) for the gates that require a real browser
 //   ... --json          # print the gate record instead of the child's own stdout
 //
 // EXIT: the child's exit code, verbatim. 64 = usage error in this wrapper itself.
@@ -56,6 +57,10 @@ const SUBS = {
   "<nodeId>": flag("--node-id", ""),
   "<surfaces>": flag("--surfaces", ""),
   "<marker>": flag("--marker", ""),
+  // The measurement gates need a REAL browser endpoint. Without a placeholder for it the manifest
+  // could not express the dependency, so run-gate invoked them with no --connect and they failed as
+  // "environment" — which reads like a broken machine rather than a missing argument.
+  "<browserWs>": flag("--browser-ws", process.env.VELT_CDP_WS || ""),
 };
 
 const manifest = await fs.readFile(path.join(ROOT, "manifest/stages.json"), "utf8").then(JSON.parse).catch(() => null);

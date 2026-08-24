@@ -255,6 +255,28 @@ export async function calibratePrimitives() {
   pp.flowOnly.adoption = [{ what: "thread list", decision: "adopt", into: "nope", why: "x" }];
   ok("plan gate REJECTS adoption into a surface that does not exist", kinds(await lintJson()).has("adopt-into-unknown-surface"));
 
+  // (h) host props must name the component they target and exist on it.
+  dlg.hostProps = [{ prop: "pageMode", value: true, designEvidence: "x" }];
+  ok("plan gate REJECTS a host prop with no target component", kinds(await lintJson()).has("hostprop-without-target"));
+  dlg.hostProps = [{ prop: "notARealProp", value: true, tag: "VeltCommentsSidebarV2", designEvidence: "x" }];
+  ok("plan gate REJECTS a host prop that the target component does not declare", kinds(await lintJson()).has("hostprop-not-on-component"));
+  dlg.hostProps = [{ prop: "pageMode", value: true, tag: "NotAVeltHost", designEvidence: "x" }];
+  ok("plan gate REJECTS an unknown host component", kinds(await lintJson()).has("hostprop-unknown-component"));
+  dlg.hostProps = [{ prop: "pageMode", value: true, tag: "VeltCommentsSidebarV2", designEvidence: "x" }];
+  ok("plan gate ACCEPTS a host prop that names a real component and prop", !kinds(await lintJson()).has("hostprop-not-on-component"));
+  dlg.hostProps = [];
+
+  ok("the manifest carries a host-prop inventory", (M.hostProps?.all || []).length > 50 &&
+     (M.hostProps.byComponent?.VeltCommentsSidebarV2 || []).includes("position"));
+
+  // (i) P21 — a handler wrapped around a primitive that owns its own click double-fires. Gated on
+  // bindsClick, derived from the SDK templates: a presentational primitive is MEANT to be wrapped,
+  // and the first cut of this rule flagged the golden fixture's own correct label-in-a-button.
+  ok("the manifest records which primitives bind their own click",
+     Object.values(M.primitives).filter((v) => v.bindsClick).length > 50 &&
+     M.primitives["velt-comment-dialog-composer-action-button"]?.bindsClick === true &&
+     M.primitives["velt-comment-sidebar-filter-dropdown-content-list-item-label-v2"]?.bindsClick === false);
+
   // --- GENERICITY GUARDS -----------------------------------------------------------------------
   // Every rule added after run 5 was derived from ONE demo's failures. The risk is not that the
   // rules are wrong, it is that they quietly end up describing that one demo: a deriver that only

@@ -1,17 +1,17 @@
 {
-  "_doc": "The stage spine. The run sequence previously existed ONLY as prose in agents/velt-orchestrator.md, so every tool that needed it re-derived or hardcoded it. This file is the single declarative source: which stages exist, who owns each, what each consumes and produces, which gates it must pass and with what exit contract, and what a per-stage review should look at. scripts/run-gate.mjs, scripts/stage-review.mjs and (later) the stage runner all read this. It describes BOTH build flows; `modes` scopes a stage to one of them. Nothing here changes behaviour on its own — it is a description, and golden/stage-review-calibration.mjs checks it against the orchestrator so it cannot drift.",
+  "_doc": "The stage spine. The run sequence previously existed ONLY as prose in agents/velt-orchestrator.md, so every tool that needed it re-derived or hardcoded it. This file is the single declarative source: which stages exist, who owns each, what each consumes and produces, which gates it must pass and with what exit contract, and what a per-stage review should look at. scripts/run-gate.mjs, scripts/stage-review.mjs and (later) the stage runner all read this. It describes BOTH build flows; `modes` scopes a stage to one of them. Nothing here changes behaviour on its own \u2014 it is a description, and golden/stage-review-calibration.mjs checks it against the orchestrator so it cannot drift.",
   "provenance": {
     "derivedFrom": "agents/velt-orchestrator.md Sequence 1-6, cross-checked against each gate script's own exit contract",
-    "note": "Exit contracts are NOT uniform across this codebase — lint-primitives fails with 1, most gates with 2, console-health and browser-endpoint with 3, block-iter with 4/5. Each gate records its own."
+    "note": "Exit contracts are NOT uniform across this codebase \u2014 lint-primitives fails with 1, most gates with 2, console-health and browser-endpoint with 3, block-iter with 4/5. Each gate records its own."
   },
   "severity": {
     "blocking": "the orchestrator may not advance past this stage while the gate fails",
     "advisory": "recorded and surfaced; the human decides"
   },
   "lenses": {
-    "ui": "rendered pixels — captures, diffs, mock scores",
-    "functional": "does it actually behave — driven interactions, asserted states, console health",
-    "code": "the source that was emitted — lints plus the checks lints cannot make"
+    "ui": "rendered pixels \u2014 captures, diffs, mock scores",
+    "functional": "does it actually behave \u2014 driven interactions, asserted states, console health",
+    "code": "the source that was emitted \u2014 lints plus the checks lints cannot make"
   },
   "stages": [
     {
@@ -22,16 +22,96 @@
       "modes": null,
       "consumes": [],
       "produces": [
-        { "path": "progress.log", "required": true, "kind": "log" }
+        {
+          "path": "progress.log",
+          "required": true,
+          "kind": "log"
+        }
       ],
       "gates": [
-        { "id": "check-guide", "cmd": ["node", "scripts/check-guide.mjs"], "blocking": true, "pass": [0], "lens": "code", "why": "the guide's required files are present and carry no external SDK paths" },
-        { "id": "verify-app", "cmd": ["node", "scripts/verify-app.mjs", "<appUrl>", "--expect", "<marker>"], "blocking": true, "pass": [0], "fail": { "2": "look-alike URL — this is not the repo's app" }, "lens": "functional", "why": "pins appUrl to an app that is really this repo AND is really rendering Velt" },
-        { "id": "contract-check-selftest", "cmd": ["node", "scripts/contract-check.mjs", "selftest"], "blocking": true, "pass": [0], "fail": { "2": "producer/consumer schema drift" }, "lens": "code" },
-        { "id": "preflight-env", "cmd": ["node", "scripts/preflight-env.mjs"], "blocking": true, "pass": [0], "lens": "functional" },
-        { "id": "browser-endpoint", "cmd": ["node", "scripts/browser-endpoint.mjs"], "blocking": true, "pass": [0], "fail": { "3": "no real logged-in browser — never falls back to headless" }, "lens": "functional" }
+        {
+          "id": "check-guide",
+          "cmd": [
+            "node",
+            "scripts/check-guide.mjs"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "lens": "code",
+          "why": "the guide's required files are present and carry no external SDK paths"
+        },
+        {
+          "id": "verify-app",
+          "cmd": [
+            "node",
+            "scripts/verify-app.mjs",
+            "<appUrl>",
+            "--expect",
+            "<marker>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "look-alike URL \u2014 this is not the repo's app"
+          },
+          "lens": "functional",
+          "why": "pins appUrl to an app that is really this repo AND is really rendering Velt"
+        },
+        {
+          "id": "contract-check-selftest",
+          "cmd": [
+            "node",
+            "scripts/contract-check.mjs",
+            "selftest"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "producer/consumer schema drift"
+          },
+          "lens": "code"
+        },
+        {
+          "id": "preflight-env",
+          "cmd": [
+            "node",
+            "scripts/preflight-env.mjs"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "lens": "functional"
+        },
+        {
+          "id": "browser-endpoint",
+          "cmd": [
+            "node",
+            "scripts/browser-endpoint.mjs"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "3": "no real logged-in browser \u2014 never falls back to headless"
+          },
+          "lens": "functional"
+        }
       ],
-      "review": { "ui": [], "functional": ["gates"], "code": [] },
+      "review": {
+        "ui": [],
+        "functional": [
+          "gates"
+        ],
+        "code": []
+      },
       "knownGap": "This stage leaves no structured evidence of its own beyond progress.log prose. run-gate.mjs is what makes its verdicts reviewable."
     },
     {
@@ -40,67 +120,297 @@
       "title": "Enumerate blocks",
       "owner": "orchestrator",
       "modes": null,
-      "consumes": ["designSpec.json"],
+      "consumes": [
+        "designSpec.json"
+      ],
       "produces": [
-        { "path": "blocks.json", "required": true, "kind": "json" },
-        { "path": "frames/*.png", "required": true, "kind": "png" }
+        {
+          "path": "blocks.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "frames/*.png",
+          "required": true,
+          "kind": "png"
+        }
       ],
       "gates": [
-        { "id": "enumerate-blocks", "cmd": ["node", "scripts/enumerate-blocks.mjs", "rest", "<fileKey>", "<nodeId>", "--out", "<phaseDir>"], "blocking": true, "pass": [0], "fail": { "3": "above the per-phase block cap (default 8)" }, "lens": "code" }
+        {
+          "id": "enumerate-blocks",
+          "cmd": [
+            "node",
+            "scripts/enumerate-blocks.mjs",
+            "rest",
+            "<fileKey>",
+            "<nodeId>",
+            "--out",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "3": "above the per-phase block cap (default 8)"
+          },
+          "lens": "code"
+        }
       ],
-      "review": { "ui": ["frames/*.png"], "functional": [], "code": ["blocks.json"] }
+      "review": {
+        "ui": [
+          "frames/*.png"
+        ],
+        "functional": [],
+        "code": [
+          "blocks.json"
+        ]
+      }
     },
     {
       "id": "plan-structure",
       "seq": "4a",
       "title": "Plan structure (wireframe path)",
       "owner": "velt-planner-structure",
-      "modes": ["strictly wireframe", "wireframes + primitives", "freeform"],
-      "consumes": ["blocks.json", "designSpec.json", "briefs/*.spec.json"],
+      "modes": [
+        "strictly wireframe",
+        "wireframes + primitives",
+        "freeform"
+      ],
+      "consumes": [
+        "blocks.json",
+        "designSpec.json",
+        "briefs/*.spec.json"
+      ],
       "produces": [
-        { "path": "plan-structure.json", "required": true, "kind": "json" },
-        { "path": "briefs/*.probes.json", "required": true, "kind": "json" },
-        { "path": "host-wiring.json", "required": true, "kind": "json" }
+        {
+          "path": "plan-structure.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "briefs/*.probes.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "host-wiring.json",
+          "required": true,
+          "kind": "json"
+        }
       ],
       "gates": [
-        { "id": "lint-structure", "cmd": ["node", "scripts/brief-scaffold.mjs", "<phaseDir>", "--lint-structure"], "blocking": true, "pass": [0], "fail": { "2": "unfilled _todo or a failing brief" }, "lens": "code" },
-        { "id": "contract-check", "cmd": ["node", "scripts/contract-check.mjs", "check", "<phaseDir>"], "blocking": true, "pass": [0], "fail": { "2": "a block has no frame, or a spec slice is THIN" }, "lens": "code" },
-        { "id": "verify-host-wiring", "cmd": ["node", "scripts/verify-host-wiring.mjs", "<phaseDir>", "--apply"], "blocking": true, "pass": [0], "fail": { "2": "host props still missing after --apply" }, "lens": "code" }
+        {
+          "id": "lint-structure",
+          "cmd": [
+            "node",
+            "scripts/brief-scaffold.mjs",
+            "<phaseDir>",
+            "--lint-structure"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "unfilled _todo or a failing brief"
+          },
+          "lens": "code"
+        },
+        {
+          "id": "contract-check",
+          "cmd": [
+            "node",
+            "scripts/contract-check.mjs",
+            "check",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a block has no frame, or a spec slice is THIN"
+          },
+          "lens": "code"
+        },
+        {
+          "id": "verify-host-wiring",
+          "cmd": [
+            "node",
+            "scripts/verify-host-wiring.mjs",
+            "<phaseDir>",
+            "--apply"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "host props still missing after --apply"
+          },
+          "lens": "code"
+        }
       ],
-      "review": { "ui": [], "functional": [], "code": ["plan-structure.json", "gates"] },
-      "invalidates": ["plan-structure.json", "briefs", "host-wiring.json"]
+      "review": {
+        "ui": [],
+        "functional": [],
+        "code": [
+          "plan-structure.json",
+          "gates"
+        ]
+      },
+      "invalidates": [
+        "plan-structure.json",
+        "briefs",
+        "host-wiring.json"
+      ]
     },
     {
       "id": "plan-primitives",
       "seq": "4a-P",
       "title": "Plan primitives compose tree",
       "owner": "velt-planner-primitives",
-      "modes": ["strictly primitives"],
-      "consumes": ["blocks.json", "designSpec.json", "manifest/velt-primitives.json"],
+      "modes": [
+        "strictly primitives"
+      ],
+      "consumes": [
+        "blocks.json",
+        "designSpec.json",
+        "manifest/velt-primitives.json"
+      ],
       "produces": [
-        { "path": "plan-primitives.json", "required": true, "kind": "json" },
-        { "path": "plan-structure.json", "required": true, "kind": "json", "note": "a layer-agnostic PROJECTION the style stage and the shared gates read" }
+        {
+          "path": "plan-primitives.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "plan-structure.json",
+          "required": true,
+          "kind": "json",
+          "note": "a layer-agnostic PROJECTION the style stage and the shared gates read"
+        }
       ],
       "gates": [
-        { "id": "reachability", "cmd": ["node", "scripts/check-primitive-reachability.mjs", "--surface", "<surfaces>", "--mode", "strictly primitives", "--json"], "blocking": true, "pass": [0], "fail": { "1": "MODE_BLOCKED — no primitive counterpart exists for this surface" }, "lens": "code" },
-        { "id": "plan-lint", "cmd": ["node", "scripts/scaffold-primitives.mjs", "<phaseDir>", "--lint"], "blocking": true, "pass": [0], "fail": { "2": "unfilled _todo, unknown primitive, dead compound trigger, undecided parent-owned condition, unpublished getter, or unresolved shadowDom" }, "lens": "code", "why": "catches the compose-tree defects at PLAN time, before any code exists" }
+        {
+          "id": "reachability",
+          "cmd": [
+            "node",
+            "scripts/check-primitive-reachability.mjs",
+            "--surface",
+            "<surfaces>",
+            "--mode",
+            "strictly primitives",
+            "--json"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "1": "MODE_BLOCKED \u2014 no primitive counterpart exists for this surface"
+          },
+          "lens": "code"
+        },
+        {
+          "id": "plan-lint",
+          "cmd": [
+            "node",
+            "scripts/scaffold-primitives.mjs",
+            "<phaseDir>",
+            "--lint"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "unfilled _todo, unknown primitive, dead compound trigger, undecided parent-owned condition, unpublished getter, or unresolved shadowDom"
+          },
+          "lens": "code",
+          "why": "catches the compose-tree defects at PLAN time, before any code exists"
+        }
       ],
-      "review": { "ui": [], "functional": [], "code": ["plan-primitives.json", "gates"] },
-      "invalidates": ["plan-primitives.json", "plan-structure.json"]
+      "review": {
+        "ui": [],
+        "functional": [],
+        "code": [
+          "plan-primitives.json",
+          "gates"
+        ]
+      },
+      "invalidates": [
+        "plan-primitives.json",
+        "plan-structure.json"
+      ]
     },
     {
       "id": "build-structure",
       "seq": "5a",
       "title": "Build structure (wireframe path)",
       "owner": "velt-builder",
-      "modes": ["strictly wireframe", "wireframes + primitives", "freeform"],
-      "consumes": ["plan-structure.json", "briefs/*"],
-      "produces": [{ "path": "<appDir>", "required": true, "kind": "code", "note": "emitted source, not a phaseDir artifact" }],
-      "gates": [
-        { "id": "lint-customization", "cmd": ["node", "scripts/lint-customization.mjs", "<appDir>", "--json"], "blocking": true, "pass": [0], "fail": { "2": "rules violation (R1/R4/R8/R23/R27)" }, "lens": "code" },
-        { "id": "icon-lint", "cmd": ["node", "scripts/icon-lint.mjs", "<appDir>", "--json"], "blocking": true, "pass": [0], "fail": { "2": "a glyph was redrawn rather than pasted from the export" }, "lens": "code" }
+      "modes": [
+        "strictly wireframe",
+        "wireframes + primitives",
+        "freeform"
       ],
-      "review": { "ui": [], "functional": [], "code": ["diff", "gates"] },
+      "consumes": [
+        "plan-structure.json",
+        "briefs/*"
+      ],
+      "produces": [
+        {
+          "path": "<appDir>",
+          "required": true,
+          "kind": "code",
+          "note": "emitted source, not a phaseDir artifact"
+        }
+      ],
+      "gates": [
+        {
+          "id": "lint-customization",
+          "cmd": [
+            "node",
+            "scripts/lint-customization.mjs",
+            "<appDir>",
+            "--json"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "rules violation (R1/R4/R8/R23/R27)"
+          },
+          "lens": "code"
+        },
+        {
+          "id": "icon-lint",
+          "cmd": [
+            "node",
+            "scripts/icon-lint.mjs",
+            "<appDir>",
+            "--json"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a glyph was redrawn rather than pasted from the export"
+          },
+          "lens": "code"
+        }
+      ],
+      "review": {
+        "ui": [],
+        "functional": [],
+        "code": [
+          "diff",
+          "gates"
+        ]
+      },
       "knownGap": "The orchestrator specifies self-checks only here; nothing forces an artifact. The code lens is what makes this stage reviewable."
     },
     {
@@ -108,14 +418,92 @@
       "seq": "5a-P",
       "title": "Build the primitive tree",
       "owner": "velt-builder-primitives",
-      "modes": ["strictly primitives"],
-      "consumes": ["plan-primitives.json"],
-      "produces": [{ "path": "<appDir>", "required": true, "kind": "code" }],
-      "gates": [
-        { "id": "lint-primitives", "cmd": ["node", "scripts/lint-primitives.mjs", "<appDir>", "--json"], "blocking": true, "pass": [0], "fail": { "1": "P1/P2/P3/P4/P5/P7/P8/P9/P11/P13 errors" }, "lens": "code", "why": "P1 and P9 are the classes no chromatic judge can ever see — the control renders perfectly and is dead, or the toggle crashes React", "warnings": ["P6", "P10", "P12"] },
-        { "id": "verify-host-wiring", "cmd": ["node", "scripts/verify-host-wiring.mjs", "<phaseDir>", "--apply"], "blocking": true, "pass": [0], "fail": { "2": "host props still missing after --apply" }, "lens": "code" }
+      "modes": [
+        "strictly primitives"
       ],
-      "review": { "ui": [], "functional": [], "code": ["diff", "gates"] },
+      "consumes": [
+        "plan-primitives.json"
+      ],
+      "produces": [
+        {
+          "path": "<appDir>",
+          "required": true,
+          "kind": "code"
+        }
+      ],
+      "gates": [
+        {
+          "id": "plan-fidelity",
+          "cmd": [
+            "node",
+            "scripts/plan-fidelity.mjs",
+            "<phaseDir>",
+            "--app-dir",
+            "<appDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a planned primitive, contract class or attribute is absent from the emitted code"
+          },
+          "lens": "code",
+          "why": "every other gate here checks the code against RULES; this is the only one that checks it against the PLAN. Without it a builder can drop a planned node or invent an unplanned one and the whole stage stays green.",
+          "warnings": [
+            "unplanned-class"
+          ]
+        },
+        {
+          "id": "lint-primitives",
+          "cmd": [
+            "node",
+            "scripts/lint-primitives.mjs",
+            "<appDir>",
+            "--json"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "1": "P1/P2/P3/P4/P5/P7/P8/P9/P11/P13 errors"
+          },
+          "lens": "code",
+          "why": "P1 and P9 are the classes no chromatic judge can ever see \u2014 the control renders perfectly and is dead, or the toggle crashes React",
+          "warnings": [
+            "P6",
+            "P10",
+            "P12"
+          ]
+        },
+        {
+          "id": "verify-host-wiring",
+          "cmd": [
+            "node",
+            "scripts/verify-host-wiring.mjs",
+            "<phaseDir>",
+            "--apply"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "host props still missing after --apply"
+          },
+          "lens": "code"
+        }
+      ],
+      "review": {
+        "ui": [],
+        "functional": [],
+        "code": [
+          "diff",
+          "gates",
+          "plan-fidelity"
+        ]
+      },
       "invalidates": []
     },
     {
@@ -124,19 +512,109 @@
       "title": "Snapshot the rendered DOM and repair the drives",
       "owner": "orchestrator",
       "modes": null,
-      "consumes": ["plan-structure.json", "briefs/*"],
+      "consumes": [
+        "plan-structure.json",
+        "briefs/*"
+      ],
       "produces": [
-        { "path": "dom-snapshot/*.json", "required": true, "kind": "json" },
-        { "path": "console-health.json", "required": true, "kind": "json" }
+        {
+          "path": "dom-snapshot/*.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "console-health.json",
+          "required": true,
+          "kind": "json"
+        }
       ],
       "gates": [
-        { "id": "dom-snapshot", "cmd": ["node", "scripts/dom-snapshot.mjs", "<phaseDir>"], "blocking": true, "pass": [0], "fail": { "2": "a planned state is unreachable" }, "lens": "functional" },
-        { "id": "skeleton-check", "cmd": ["node", "scripts/skeleton-check.mjs", "<phaseDir>", "--presence-only"], "blocking": true, "pass": [0], "fail": { "2": "a planned vcClass is missing or zero-size everywhere" }, "lens": "ui", "why": "names the mis-mounted-template twin: in the markup, but 0-size in every state" },
-        { "id": "console-health", "cmd": ["node", "scripts/console-health.mjs", "<phaseDir>"], "blocking": true, "pass": [0], "fail": { "2": "a repeating error signature — a storm", "3": "usage or environment" }, "lens": "functional", "why": "this early, a storm is a STRUCTURE defect" },
-        { "id": "drive-repair", "cmd": ["node", "scripts/drive-repair.mjs", "<phaseDir>", "--apply"], "blocking": true, "pass": [0], "fail": { "2": "unrepairable dead selectors remain" }, "lens": "functional", "why": "the real drive contract — every brief's drive.steps and drive.assert verified against the DOM tree" }
+        {
+          "id": "dom-snapshot",
+          "cmd": [
+            "node",
+            "scripts/dom-snapshot.mjs",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a planned state is unreachable"
+          },
+          "lens": "functional"
+        },
+        {
+          "id": "skeleton-check",
+          "cmd": [
+            "node",
+            "scripts/skeleton-check.mjs",
+            "<phaseDir>",
+            "--presence-only"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a planned vcClass is missing or zero-size everywhere"
+          },
+          "lens": "ui",
+          "why": "names the mis-mounted-template twin: in the markup, but 0-size in every state"
+        },
+        {
+          "id": "console-health",
+          "cmd": [
+            "node",
+            "scripts/console-health.mjs",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a repeating error signature \u2014 a storm",
+            "3": "usage or environment"
+          },
+          "lens": "functional",
+          "why": "this early, a storm is a STRUCTURE defect"
+        },
+        {
+          "id": "drive-repair",
+          "cmd": [
+            "node",
+            "scripts/drive-repair.mjs",
+            "<phaseDir>",
+            "--apply"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "unrepairable dead selectors remain"
+          },
+          "lens": "functional",
+          "why": "the real drive contract \u2014 every brief's drive.steps and drive.assert verified against the DOM tree"
+        }
       ],
-      "review": { "ui": ["skeleton-check"], "functional": ["console-health.json", "drive-repair", "dom-snapshot/*.json"], "code": [] },
-      "invalidates": ["dom-snapshot", "console-health.json"]
+      "review": {
+        "ui": [
+          "skeleton-check"
+        ],
+        "functional": [
+          "console-health.json",
+          "drive-repair",
+          "dom-snapshot/*.json"
+        ],
+        "code": []
+      },
+      "invalidates": [
+        "dom-snapshot",
+        "console-health.json"
+      ]
     },
     {
       "id": "plan-style",
@@ -144,17 +622,75 @@
       "title": "Plan style against the rendered DOM",
       "owner": "velt-planner-style",
       "modes": null,
-      "consumes": ["plan-structure.json", "dom-snapshot/*.json", "mocks/*.html", "frames/*.png"],
+      "consumes": [
+        "plan-structure.json",
+        "dom-snapshot/*.json",
+        "mocks/*.html",
+        "frames/*.png"
+      ],
       "produces": [
-        { "path": "plan-style.json", "required": true, "kind": "json" },
-        { "path": "mock-gate.json", "required": true, "kind": "json" }
+        {
+          "path": "plan-style.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "mock-gate.json",
+          "required": true,
+          "kind": "json"
+        }
       ],
       "gates": [
-        { "id": "mock-gate", "cmd": ["node", "scripts/mock-gate.mjs", "<phaseDir>"], "blocking": true, "pass": [0], "fail": { "2": "a mock scores too far from its Figma frame" }, "lens": "ui", "why": "a wrong mock poisons the style plan AND the appearance review downstream" },
-        { "id": "lint-style", "cmd": ["node", "scripts/brief-scaffold.mjs", "<phaseDir>", "--lint-style"], "blocking": true, "pass": [0], "fail": { "2": "thin or deterministic authorship, a selector token absent from the snapshot corpus, or a structureFingerprint mismatch" }, "lens": "code", "why": "0 rules in plan-style.json is a HALT, not a pass" }
+        {
+          "id": "mock-gate",
+          "cmd": [
+            "node",
+            "scripts/mock-gate.mjs",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a mock scores too far from its Figma frame"
+          },
+          "lens": "ui",
+          "why": "a wrong mock poisons the style plan AND the appearance review downstream"
+        },
+        {
+          "id": "lint-style",
+          "cmd": [
+            "node",
+            "scripts/brief-scaffold.mjs",
+            "<phaseDir>",
+            "--lint-style"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "thin or deterministic authorship, a selector token absent from the snapshot corpus, or a structureFingerprint mismatch"
+          },
+          "lens": "code",
+          "why": "0 rules in plan-style.json is a HALT, not a pass"
+        }
       ],
-      "review": { "ui": ["mock-gate.json"], "functional": [], "code": ["plan-style.json", "gates"] },
-      "invalidates": ["plan-style.json", "mock-gate.json"]
+      "review": {
+        "ui": [
+          "mock-gate.json"
+        ],
+        "functional": [],
+        "code": [
+          "plan-style.json",
+          "gates"
+        ]
+      },
+      "invalidates": [
+        "plan-style.json",
+        "mock-gate.json"
+      ]
     },
     {
       "id": "build-style",
@@ -162,22 +698,146 @@
       "title": "Build style",
       "owner": "velt-builder",
       "modes": null,
-      "consumes": ["plan-style.json"],
+      "consumes": [
+        "plan-style.json"
+      ],
       "produces": [
-        { "path": "appearance/*.json", "required": true, "kind": "json" },
-        { "path": "audit/*.json", "required": true, "kind": "json" },
-        { "path": "mechanism-checklist.json", "required": true, "kind": "json" }
+        {
+          "path": "appearance/*.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "audit/*.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "mechanism-checklist.json",
+          "required": true,
+          "kind": "json"
+        }
       ],
       "gates": [
-        { "id": "mechanism-checklist", "cmd": ["node", "scripts/mechanism-checklist.mjs", "check", "<phaseDir>"], "blocking": true, "pass": [0], "fail": { "2": "an applicable demo-polish item is unaddressed" }, "lens": "ui" },
-        { "id": "structural-invariants", "cmd": ["node", "scripts/structural-invariants.mjs", "<phaseDir>"], "blocking": true, "pass": [0], "fail": { "2": "BLOCKED_FOR_REPLAN" }, "lens": "code" },
-        { "id": "builder-self-audit", "cmd": ["node", "scripts/builder-self-audit.mjs", "<phaseDir>", "--require-appearance"], "blocking": true, "pass": [0], "fail": { "2": "failed measures, incomplete appearance, invariants, host-wiring, checklist or unresolved text" }, "lens": "ui" },
-        { "id": "skeleton-check-full", "cmd": ["node", "scripts/skeleton-check.mjs", "<phaseDir>"], "blocking": true, "pass": [0], "fail": { "2": "presence or arrangement defects" }, "lens": "ui" },
-        { "id": "regression-guard", "cmd": ["node", "scripts/regression-guard.mjs", "check", "<phaseDir>"], "blocking": true, "pass": [0], "fail": { "2": "a regression — revert the structural change that caused it", "3": "no baseline yet" }, "lens": "ui" },
-        { "id": "lint-css", "cmd": ["node", "scripts/lint-customization.mjs", "<appDir>", "--json"], "blocking": true, "pass": [0], "fail": { "2": "rules violation" }, "lens": "code" }
+        {
+          "id": "mechanism-checklist",
+          "cmd": [
+            "node",
+            "scripts/mechanism-checklist.mjs",
+            "check",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "an applicable demo-polish item is unaddressed"
+          },
+          "lens": "ui"
+        },
+        {
+          "id": "structural-invariants",
+          "cmd": [
+            "node",
+            "scripts/structural-invariants.mjs",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "BLOCKED_FOR_REPLAN"
+          },
+          "lens": "code"
+        },
+        {
+          "id": "builder-self-audit",
+          "cmd": [
+            "node",
+            "scripts/builder-self-audit.mjs",
+            "<phaseDir>",
+            "--require-appearance"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "failed measures, incomplete appearance, invariants, host-wiring, checklist or unresolved text"
+          },
+          "lens": "ui"
+        },
+        {
+          "id": "skeleton-check-full",
+          "cmd": [
+            "node",
+            "scripts/skeleton-check.mjs",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "presence or arrangement defects"
+          },
+          "lens": "ui"
+        },
+        {
+          "id": "regression-guard",
+          "cmd": [
+            "node",
+            "scripts/regression-guard.mjs",
+            "check",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a regression \u2014 revert the structural change that caused it",
+            "3": "no baseline yet"
+          },
+          "lens": "ui"
+        },
+        {
+          "id": "lint-css",
+          "cmd": [
+            "node",
+            "scripts/lint-customization.mjs",
+            "<appDir>",
+            "--json"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "rules violation"
+          },
+          "lens": "code"
+        }
       ],
-      "review": { "ui": ["appearance/*.json", "mechanism-checklist.json", "regression-report.json"], "functional": [], "code": ["diff", "gates"] },
-      "invalidates": ["appearance", "audit", "mechanism-checklist.json"]
+      "review": {
+        "ui": [
+          "appearance/*.json",
+          "mechanism-checklist.json",
+          "regression-report.json"
+        ],
+        "functional": [],
+        "code": [
+          "diff",
+          "gates"
+        ]
+      },
+      "invalidates": [
+        "appearance",
+        "audit",
+        "mechanism-checklist.json"
+      ]
     },
     {
       "id": "judge",
@@ -185,20 +845,104 @@
       "title": "Whole-design judge",
       "owner": "velt-judge-2",
       "modes": null,
-      "consumes": ["plan-style.json", "frames/*.png"],
+      "consumes": [
+        "plan-style.json",
+        "frames/*.png"
+      ],
       "produces": [
-        { "path": "judge2/report.json", "required": true, "kind": "json" },
-        { "path": "judge2/findings.named.json", "required": true, "kind": "json" },
-        { "path": "judge-defects.json", "required": true, "kind": "json" },
-        { "path": "judge2/blocks/*/diff.png", "required": false, "kind": "png" }
+        {
+          "path": "judge2/report.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "judge2/findings.named.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "judge-defects.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "judge2/blocks/*/diff.png",
+          "required": false,
+          "kind": "png"
+        }
       ],
       "gates": [
-        { "id": "judge2-chromatic", "cmd": ["node", "scripts/judge2-chromatic.mjs", "<phaseDir>", "--url", "<appUrl>", "--connect"], "blocking": false, "pass": [0], "fail": { "2": "diffs OR blocked states — a state whose guard failed is a finding, never a silent skip" }, "lens": "ui" },
-        { "id": "chrome-probes", "cmd": ["node", "scripts/judge2-chrome-probes.mjs", "<phaseDir>"], "blocking": false, "pass": [0], "fail": { "2": "a named demo-breaking probe failed", "3": "environment" }, "lens": "ui", "why": "the checks a pixel diff structurally cannot make" },
-        { "id": "record-findings", "cmd": ["node", "scripts/judge2-record-findings.mjs", "<phaseDir>"], "blocking": true, "pass": [0], "lens": "code", "why": "auto-runs judge2-to-workorder; refuse an empty workOrderP0 while report.json or the probes still show breakage" }
+        {
+          "id": "judge2-chromatic",
+          "cmd": [
+            "node",
+            "scripts/judge2-chromatic.mjs",
+            "<phaseDir>",
+            "--url",
+            "<appUrl>",
+            "--connect"
+          ],
+          "blocking": false,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "diffs OR blocked states \u2014 a state whose guard failed is a finding, never a silent skip"
+          },
+          "lens": "ui"
+        },
+        {
+          "id": "chrome-probes",
+          "cmd": [
+            "node",
+            "scripts/judge2-chrome-probes.mjs",
+            "<phaseDir>"
+          ],
+          "blocking": false,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a named demo-breaking probe failed",
+            "3": "environment"
+          },
+          "lens": "ui",
+          "why": "the checks a pixel diff structurally cannot make"
+        },
+        {
+          "id": "record-findings",
+          "cmd": [
+            "node",
+            "scripts/judge2-record-findings.mjs",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "lens": "code",
+          "why": "auto-runs judge2-to-workorder; refuse an empty workOrderP0 while report.json or the probes still show breakage"
+        }
       ],
-      "review": { "ui": ["judge2/report.json", "judge2/blocks/*/diff.png", "judge2/chrome-probes.json"], "functional": ["judge2/chrome-probes.json"], "code": ["judge-defects.json"] },
-      "invalidates": ["judge2", "judge-defects.json", "block-report.json", "builder-fix-prompt.md"]
+      "review": {
+        "ui": [
+          "judge2/report.json",
+          "judge2/blocks/*/diff.png",
+          "judge2/chrome-probes.json"
+        ],
+        "functional": [
+          "judge2/chrome-probes.json"
+        ],
+        "code": [
+          "judge-defects.json"
+        ]
+      },
+      "invalidates": [
+        "judge2",
+        "judge-defects.json",
+        "block-report.json",
+        "builder-fix-prompt.md"
+      ]
     },
     {
       "id": "fix",
@@ -206,16 +950,70 @@
       "title": "Strict fix loop",
       "owner": "velt-builder",
       "modes": null,
-      "consumes": ["judge-defects.json", "builder-fix-prompt.md"],
+      "consumes": [
+        "judge-defects.json",
+        "builder-fix-prompt.md"
+      ],
       "produces": [
-        { "path": "loop-state.json", "required": true, "kind": "json" },
-        { "path": "block-report.json", "required": true, "kind": "json" }
+        {
+          "path": "loop-state.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "block-report.json",
+          "required": true,
+          "kind": "json"
+        }
       ],
       "gates": [
-        { "id": "block-iter", "cmd": ["node", "scripts/block-iter.mjs", "check-phase", "<phaseDir>"], "blocking": true, "pass": [0], "fail": { "4": "soft cap reached — BLOCKED with evidence", "5": "plateau; layer escalation budget available" }, "lens": "code" },
-        { "id": "mechanism-checklist", "cmd": ["node", "scripts/mechanism-checklist.mjs", "check", "<phaseDir>"], "blocking": true, "pass": [0], "fail": { "2": "unaddressed item" }, "lens": "ui" }
+        {
+          "id": "block-iter",
+          "cmd": [
+            "node",
+            "scripts/block-iter.mjs",
+            "check-phase",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "4": "soft cap reached \u2014 BLOCKED with evidence",
+            "5": "plateau; layer escalation budget available"
+          },
+          "lens": "code"
+        },
+        {
+          "id": "mechanism-checklist",
+          "cmd": [
+            "node",
+            "scripts/mechanism-checklist.mjs",
+            "check",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "unaddressed item"
+          },
+          "lens": "ui"
+        }
       ],
-      "review": { "ui": ["obs/snapshots"], "functional": [], "code": ["diff", "loop-state.json", "gates"] }
+      "review": {
+        "ui": [
+          "obs/snapshots"
+        ],
+        "functional": [],
+        "code": [
+          "diff",
+          "loop-state.json",
+          "gates"
+        ]
+      }
     },
     {
       "id": "wrapup",
@@ -223,17 +1021,75 @@
       "title": "Verdict and handoff",
       "owner": "orchestrator",
       "modes": null,
-      "consumes": ["blocks.json", "block-report.json"],
+      "consumes": [
+        "blocks.json",
+        "block-report.json"
+      ],
       "produces": [
-        { "path": "verdict.json", "required": true, "kind": "json" },
-        { "path": "golden-path.json", "required": true, "kind": "json" },
-        { "path": "obs/player.html", "required": true, "kind": "html" }
+        {
+          "path": "verdict.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "golden-path.json",
+          "required": true,
+          "kind": "json"
+        },
+        {
+          "path": "obs/player.html",
+          "required": true,
+          "kind": "html"
+        }
       ],
       "gates": [
-        { "id": "verdict-gate", "cmd": ["node", "scripts/verdict-gate-blocks.mjs", "--blocks", "<phaseDir>/blocks.json", "--report", "<phaseDir>/block-report.json"], "blocking": true, "pass": [0], "fail": { "2": "FAIL", "3": "INCOMPLETE", "4": "STOPPED" }, "lens": "ui" },
-        { "id": "golden-path-check", "cmd": ["node", "scripts/golden-path-check.mjs", "<phaseDir>"], "blocking": false, "pass": [0], "fail": { "2": "host wiring, style authorship or the mechanism checklist is short of the golden bar" }, "lens": "code" }
+        {
+          "id": "verdict-gate",
+          "cmd": [
+            "node",
+            "scripts/verdict-gate-blocks.mjs",
+            "--blocks",
+            "<phaseDir>/blocks.json",
+            "--report",
+            "<phaseDir>/block-report.json"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "FAIL",
+            "3": "INCOMPLETE",
+            "4": "STOPPED"
+          },
+          "lens": "ui"
+        },
+        {
+          "id": "golden-path-check",
+          "cmd": [
+            "node",
+            "scripts/golden-path-check.mjs",
+            "<phaseDir>"
+          ],
+          "blocking": false,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "host wiring, style authorship or the mechanism checklist is short of the golden bar"
+          },
+          "lens": "code"
+        }
       ],
-      "review": { "ui": ["verdict.json"], "functional": [], "code": ["golden-path.json"] }
+      "review": {
+        "ui": [
+          "verdict.json"
+        ],
+        "functional": [],
+        "code": [
+          "golden-path.json"
+        ]
+      }
     }
   ]
 }

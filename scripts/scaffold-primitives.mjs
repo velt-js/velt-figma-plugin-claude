@@ -585,6 +585,34 @@ async function lint() {
     });
   }
 
+  // P22 — a host prop must name the component it targets, and exist on it. Structure-producing
+  // host props cannot be faked in CSS, and a planner working from memory gets them subtly wrong:
+  // run 5 rejected `commentPlaceholder` after reasoning about placeholders, while the prop that
+  // feeds a sidebar's page-mode composer is `pageModePlaceholder` — both are real, so "does it
+  // exist" alone would not have caught it. Requiring the TARGET makes the planner look the
+  // component up rather than recall it, and the error prints the real inventory.
+  const HP = M.hostProps;
+  if (HP) {
+    for (const s3 of plan.surfaces || []) {
+      const rows = [...(s3.hostProps || []), ...(s3.hostPropsRejected || [])];
+      for (const r of rows) {
+        if (!r?.prop) continue;
+        const tag = r.tag || r.component || r.on;
+        if (!tag) {
+          bad("hostprop-without-target", `${s3.id} → ${r.prop}`,
+            `name the host component this prop is set on (tag: "<VeltComponent>"). The same prop name can exist on several hosts and mean different things, and verify-host-wiring needs the target to bake it in.`);
+          continue;
+        }
+        const known = HP.byComponent[tag];
+        if (!known) bad("hostprop-unknown-component", `${s3.id} → ${tag}`,
+          `not a Velt host component in the installed package. Known hosts carry ${Object.keys(HP.byComponent).length} distinct prop sets (manifest hostProps.byComponent).`);
+        else if (!known.includes(r.prop))
+          bad("hostprop-not-on-component", `${s3.id} → ${tag}.${r.prop}`,
+            `${tag} declares no '${r.prop}'. Its structure-producing props include: ${known.filter((k) => /^(page|position|embed|collapsed|variant|mode)/i.test(k)).slice(0, 10).join(", ") || known.slice(0, 10).join(", ")}.`);
+      }
+    }
+  }
+
   // P20 — "unverified" must carry its own verification plan. Run 5 recorded three unverified items
   // and shipped the plan; nothing downstream knew how any of them would ever be settled, so they
   // would have survived to the handoff as prose. An unverified claim with no measurement attached is

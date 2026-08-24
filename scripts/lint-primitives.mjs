@@ -20,6 +20,7 @@
 //   P6  parent-owned condition   warn   the built-in surface gates this primitive; standalone it will not
 //   P7  unknown primitive        error  identifier is not in the SDK tag registry
 //   P8  unnamed R3 getter        error  a config getter that the SDK does not publish
+//   P21 handler wraps a primitive error  your handler and the primitive's both fire — the action runs twice
 //   P9  conditional moved child   error  a RELOCATED top-level child unmounted mid-life crashes React
 //   P10 inert defaultCondition    warn   the prop is passed to a tag whose SDK component never reads it
 //   P11 hardcoded status id       error  "RESOLVED"/"OPEN"/"IN_PROGRESS" are fallbacks, not the catalog
@@ -152,6 +153,15 @@ function scan(src, file) {
     cursor = m.index + m[0].length;
 
     const [full, closing, name, attrs, selfClose] = m;
+
+    // A TYPE ARGUMENT is not an element. `useVeltConfig<VeltCommentSidebarConfig>(open)` and
+    // `ConfigStream<VeltCommentDialogConfig | null>` are indistinguishable from JSX to a regex, and
+    // both are ordinary in an app that types its R3 reads — the R3 shim every primitives build needs
+    // is full of them. The tell is what precedes the `<`: JSX opens after whitespace, `(`, `{`, `>`
+    // or start-of-file, while a generic opens immediately after the identifier it parameterises.
+    const prev = m.index > 0 ? masked[m.index - 1] : "";
+    if (!closing && /[\w$)\]]/.test(prev)) { continue; }
+
     const lineNo = lineAt(m.index);
     const known = byReact.get(name);
 
@@ -163,6 +173,19 @@ function scan(src, file) {
     if (stack.length) stack[stack.length - 1].sawElementChild = true;
 
     if (isVeltReact(name)) {
+      // P21 — your handler WRAPPING a primitive that owns its own. A Velt control already has a
+      // click handler bound inside the custom element; putting one on the element that CONTAINS it
+      // means both run, so an action fires twice (measured: a composed send button that submitted
+      // through the SDK's own path AND through a wrapper onClick). The safe pattern is the opposite
+      // nesting — a handler on your own markup INSIDE the primitive, which is how a composed
+      // trigger is meant to work and is not flagged here.
+      const parent = stack[stack.length - 1];
+      const wrapHandler = parent && /\bon(?:Click|MouseDown|MouseUp|PointerDown|PointerUp|KeyDown)\s*=/.exec(parent.attrs || "");
+      if (known && known.bindsClick && wrapHandler && !parent.meta)
+        add("P21", "error", file, lineNo,
+          `<${name}> is wrapped by <${parent.name}> which carries ${wrapHandler[0].replace(/\s*=$/, "")} — the primitive owns its own handler, so both fire and the action runs twice.`,
+          "Move the handler onto your own markup INSIDE the primitive, or drive the action from the primitive's own event instead of wrapping it.");
+
       if (!known) {
         // P7 — not in the registry. Suppress the two false-positive classes: SDK hosts/mount points
         // and the customer's own Velt*-named components (identified by a non-@veltdev import or a
@@ -208,7 +231,7 @@ function scan(src, file) {
     }
 
     const isVoid = selfClose || VOID_HTML.has(name.toLowerCase());
-    if (!isVoid) stack.push({ name, tag: known?.tag, line: lineNo, meta: known || null, sawElementChild: false, sawExpressionChild: false, textChild: null, hasMap: false, conditionalChild: null });
+    if (!isVoid) stack.push({ name, tag: known?.tag, line: lineNo, meta: known || null, attrs, sawElementChild: false, sawExpressionChild: false, textChild: null, hasMap: false, conditionalChild: null });
   }
   consumeText(masked.slice(cursor), cursor, stack, lineAt);
   for (const leftover of stack.reverse()) checkClose(leftover, file);
@@ -235,8 +258,14 @@ function scan(src, file) {
       "Compute the next value, call setState with it, then call the SDK from the handler.");
   }
 
-  for (const h of masked.matchAll(/\b(use[A-Z]\w*Config)\s*\(/g))
+  for (const h of masked.matchAll(/\b(use[A-Z]\w*Config)\s*\(/g)) {
+    // Skip the DECLARATION site. `export function useCommentSidebarConfig()` in the app's own R3
+    // shim is the app defining a hook, not calling an unpublished SDK one — and that shim is
+    // exactly what a primitives build is expected to carry until the SDK publishes these.
+    const before = masked.slice(Math.max(0, h.index - 40), h.index);
+    if (/\b(?:function|const|let|var)\s+$/.test(before)) continue;
     if (!R3_HOOK_NAMES.has(h[1])) add("P8", "error", file, lineAt(h.index), `${h[1]}() is not a published Velt config hook.`, `The only published React config hook is ${[...R3_HOOK_NAMES][0] || "(none)"}. For every other surface use the element method + useEffect/subscribe.`);
+  }
 }
 
 // Attribute a run of inter-tag text to the innermost open element.

@@ -1,0 +1,2125 @@
+{
+  "_doc": "DERIVED from the installed @veltdev/react index.d.ts by scripts/sync-primitives.mjs — the props each Velt host component declares. Structure-producing host props cannot be faked in CSS, so a plan must name real ones; scaffold-primitives --lint refuses a hostProps entry whose prop is not on the component it targets.",
+  "method": "interface I*Props { ... } -> own declared prop names; declare const VeltX: FC<I*Props> -> component mapping",
+  "source": "@veltdev/react 6.0.0-beta.15",
+  "components": 358,
+  "byComponent": {
+    "VeltCommentsSidebarButton": [
+      "currentLocationSuffix",
+      "darkMode",
+      "dialogVariant",
+      "excludeLocationIds",
+      "filterConfig",
+      "filterPanelLayout",
+      "filters",
+      "floatingMode",
+      "groupConfig",
+      "onCommentClick",
+      "onSidebarOpen",
+      "pageMode",
+      "pageModeComposerVariant",
+      "position",
+      "shadowDom",
+      "sidebarShadowDom",
+      "sidebarVariant",
+      "sortData",
+      "tooltipText",
+      "urlNavigation"
+    ],
+    "VeltCommentPlayerTimeline": [
+      "offset",
+      "onCommentClick",
+      "onReactionClick",
+      "shadowDom",
+      "totalMediaLength",
+      "videoPlayerId"
+    ],
+    "VeltVideoPlayer": [
+      "commentTool",
+      "darkMode",
+      "shadowDom",
+      "src",
+      "sync"
+    ],
+    "VeltViewAnalytics": [
+      "locationId",
+      "type"
+    ],
+    "VeltCommentThread": [
+      "annotation",
+      "annotationId",
+      "darkMode",
+      "dialogVariant",
+      "fullExpanded",
+      "onCommentClick",
+      "shadowDom",
+      "variant"
+    ],
+    "VeltNotificationsTool": [
+      "considerAllNotifications",
+      "darkMode",
+      "defaultCondition",
+      "enableCrossOrganization",
+      "enableSettingsAtOrganizationLevel",
+      "maxDays",
+      "onNotificationClick",
+      "pageSize",
+      "panelOpenMode",
+      "panelShadowDom",
+      "panelVariant",
+      "readNotificationsOnForYouTab",
+      "selfNotifications",
+      "settings",
+      "settingsLayout",
+      "shadowDom",
+      "tabConfig",
+      "variant"
+    ],
+    "VeltNotificationsToolIcon": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsToolUnreadIcon": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsToolLabel": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsToolUnreadCount": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanel": [
+      "darkMode",
+      "defaultCondition",
+      "enableCrossOrganization",
+      "enableSettingsAtOrganizationLevel",
+      "onNotificationClick",
+      "pageSize",
+      "panelOpenMode",
+      "readNotificationsOnForYouTab",
+      "selfNotifications",
+      "settings",
+      "settingsLayout",
+      "shadowDom",
+      "tabConfig",
+      "variant"
+    ],
+    "VeltNotificationsPanelTitle": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelTitleText": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelHeader": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelHeaderTabForYou": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelHeaderTabPeople": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelHeaderTabDocuments": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelHeaderTabAll": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelContent": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelContentForYou": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelContentAll": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelContentPeople": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelContentDocuments": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelContentList": [
+      "defaultCondition",
+      "documentId",
+      "listItemTemplate",
+      "listType",
+      "notifications"
+    ],
+    "VeltNotificationsPanelContentListItem": [
+      "defaultCondition",
+      "listItemTemplate",
+      "notification",
+      "notificationId",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentListItemAvatar": [
+      "defaultCondition",
+      "notification",
+      "notificationId",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentListItemUnread": [
+      "defaultCondition",
+      "isDefault",
+      "notification",
+      "notificationId",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentListItemHeadline": [
+      "defaultCondition",
+      "notification",
+      "notificationId",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentListItemBody": [
+      "defaultCondition",
+      "notification",
+      "notificationId",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentListItemFileName": [
+      "defaultCondition",
+      "notification",
+      "notificationId",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentListItemTime": [
+      "defaultCondition",
+      "notification",
+      "notificationId",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentAllList": [
+      "defaultCondition",
+      "listItemTemplate"
+    ],
+    "VeltNotificationsPanelContentAllListItem": [
+      "date",
+      "defaultCondition",
+      "listItemTemplate",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentAllListItemLabel": [
+      "date",
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelContentAllListItemContent": [
+      "date",
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelContentPeopleList": [
+      "defaultCondition",
+      "listItemTemplate"
+    ],
+    "VeltNotificationsPanelContentPeopleListItem": [
+      "data",
+      "defaultCondition",
+      "listItemTemplate",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentPeopleListItemAvatar": [
+      "data",
+      "defaultCondition",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentPeopleListItemName": [
+      "data",
+      "defaultCondition",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentPeopleListItemCount": [
+      "data",
+      "defaultCondition",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentPeopleListItemContent": [
+      "data",
+      "defaultCondition",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentDocumentsList": [
+      "defaultCondition",
+      "listItemTemplate"
+    ],
+    "VeltNotificationsPanelContentDocumentsListItem": [
+      "defaultCondition",
+      "document",
+      "index",
+      "listItemTemplate",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentDocumentsListItemName": [
+      "defaultCondition",
+      "documentId",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentDocumentsListItemCount": [
+      "defaultCondition",
+      "documentId",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentDocumentsListItemContent": [
+      "defaultCondition",
+      "documentId",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentDocumentsListItemUnread": [
+      "defaultCondition",
+      "documentId",
+      "isDefault",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelContentLoadMore": [
+      "defaultCondition",
+      "documentId",
+      "isLoadMoreVisible",
+      "listType",
+      "notifications"
+    ],
+    "VeltNotificationsPanelContentAllReadContainer": [
+      "defaultCondition",
+      "isAllRead"
+    ],
+    "VeltNotificationsPanelCloseButton": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelReadAllButton": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelViewAllButton": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelSkeleton": [
+      "defaultCondition",
+      "isLoading"
+    ],
+    "VeltNotificationsPanelSettingsButton": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelSettings": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelSettingsHeader": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelSettingsHeaderTitle": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelSettingsTitle": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelSettingsDescription": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelSettingsList": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelSettingsMuteAllTitle": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelSettingsMuteAllDescription": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelSettingsMuteAllToggle": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelSettingsAccordion": [
+      "accordionConfig",
+      "accordionId",
+      "defaultCondition",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelSettingsAccordionTrigger": [
+      "accordionConfig",
+      "accordionId",
+      "defaultCondition",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelSettingsAccordionTriggerLabel": [
+      "accordionConfig",
+      "accordionId",
+      "defaultCondition",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelSettingsAccordionTriggerIcon": [
+      "accordionConfig",
+      "accordionId",
+      "defaultCondition",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelSettingsAccordionTriggerSelectedValue": [
+      "accordionConfig",
+      "accordionId",
+      "defaultCondition",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelSettingsAccordionContent": [
+      "accordionConfig",
+      "accordionId",
+      "defaultCondition",
+      "notificationIndex"
+    ],
+    "VeltNotificationsPanelSettingsAccordionContentItem": [
+      "accordionConfig",
+      "accordionId",
+      "accordionItemId",
+      "defaultCondition",
+      "notificationIndex",
+      "option",
+      "optionIndex"
+    ],
+    "VeltNotificationsPanelSettingsAccordionContentItemLabel": [
+      "accordionConfig",
+      "accordionId",
+      "accordionItemId",
+      "defaultCondition",
+      "notificationIndex",
+      "option",
+      "optionIndex"
+    ],
+    "VeltNotificationsPanelSettingsAccordionContentItemIcon": [
+      "accordionConfig",
+      "accordionId",
+      "accordionItemId",
+      "defaultCondition",
+      "notificationIndex",
+      "option",
+      "optionIndex"
+    ],
+    "VeltNotificationsPanelSettingsBackButton": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsPanelSettingsFooter": [
+      "defaultCondition"
+    ],
+    "VeltNotificationsHistoryPanel": [
+      "darkMode",
+      "embedMode",
+      "onNotificationClick"
+    ],
+    "VeltNivoChartComments": [
+      "chartComputedData",
+      "dialogMetadataTemplate",
+      "id"
+    ],
+    "VeltHighChartComments": [
+      "Highcharts",
+      "chartComputedData",
+      "dialogMetadataTemplate",
+      "id"
+    ],
+    "VeltChartComment": [
+      "commentMetadata",
+      "dialogMetadataTemplate",
+      "ghostComment"
+    ],
+    "VeltAutocomplete": [
+      "hotkey",
+      "listData"
+    ],
+    "VeltAutocompletePanel": [
+      "contacts",
+      "defaultCondition",
+      "enableOnFocus",
+      "excludeContacts",
+      "hideInput",
+      "initialSelection",
+      "inline",
+      "metadata",
+      "multiSelect",
+      "placeholder",
+      "position",
+      "readOnly",
+      "selectedFirstOrdering",
+      "showAtHere",
+      "type"
+    ],
+    "VeltAutocompleteOption": [
+      "defaultCondition",
+      "isSelected",
+      "multiSelect",
+      "readOnly",
+      "userId",
+      "userObject",
+      "variant"
+    ],
+    "VeltAutocompleteOptionIcon": [
+      "defaultCondition",
+      "userId",
+      "userObject"
+    ],
+    "VeltAutocompleteOptionName": [
+      "defaultCondition",
+      "userId",
+      "userObject"
+    ],
+    "VeltAutocompleteOptionDescription": [
+      "defaultCondition",
+      "field",
+      "userId",
+      "userObject"
+    ],
+    "VeltAutocompleteOptionErrorIcon": [
+      "defaultCondition",
+      "userId",
+      "userObject"
+    ],
+    "VeltAutocompleteGroupOption": [
+      "defaultCondition",
+      "group",
+      "groupId",
+      "groupName",
+      "groupObject"
+    ],
+    "VeltAutocompleteTool": [
+      "componentMeta",
+      "defaultCondition",
+      "hotkey"
+    ],
+    "VeltAutocompleteEmpty": [
+      "defaultCondition",
+      "newUserContactError"
+    ],
+    "VeltAutocompleteChip": [
+      "contact",
+      "custom",
+      "defaultCondition",
+      "email",
+      "group",
+      "shadowDom",
+      "type",
+      "userId",
+      "userObject"
+    ],
+    "VeltAutocompleteChipTooltip": [
+      "defaultCondition",
+      "shadowDom",
+      "userId",
+      "userObject",
+      "variant"
+    ],
+    "VeltAutocompleteChipTooltipIcon": [
+      "defaultCondition",
+      "userId",
+      "userObject"
+    ],
+    "VeltAutocompleteChipTooltipName": [
+      "defaultCondition",
+      "userId",
+      "userObject"
+    ],
+    "VeltAutocompleteChipTooltipDescription": [
+      "defaultCondition",
+      "userId",
+      "userObject"
+    ],
+    "VeltInlineCommentsSection": [
+      "anonymousEmail",
+      "commentPlaceholder",
+      "composerPlaceholder",
+      "composerPosition",
+      "composerVariant",
+      "config",
+      "context",
+      "contextOptions",
+      "darkMode",
+      "defaultCondition",
+      "dialogVariant",
+      "documentId",
+      "editCommentPlaceholder",
+      "editPlaceholder",
+      "editReplyPlaceholder",
+      "folderId",
+      "fullExpanded",
+      "id",
+      "locationId",
+      "messageTruncation",
+      "messageTruncationLines",
+      "multiThread",
+      "name",
+      "readOnly",
+      "replyPlaceholder",
+      "shadowDom",
+      "sortBy",
+      "sortData",
+      "sortOrder",
+      "targetCommentElementId",
+      "targetElementId",
+      "targetInlineCommentElementId",
+      "variant"
+    ],
+    "VeltInlineCommentsSectionCommentCount": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionComposerContainer": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionList": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionPanel": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionSkeleton": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionFilterDropdown": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionFilterDropdownTrigger": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionFilterDropdownTriggerArrow": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionFilterDropdownTriggerName": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionFilterDropdownContent": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionFilterDropdownContentList": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionFilterDropdownContentListItem": [
+      "defaultCondition",
+      "filter",
+      "filterId",
+      "sectionComponentId",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionFilterDropdownContentListItemCheckbox": [
+      "defaultCondition",
+      "filter",
+      "filterId",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionFilterDropdownContentListItemLabel": [
+      "defaultCondition",
+      "filter",
+      "filterId",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionSortingDropdown": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionSortingDropdownTrigger": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionSortingDropdownTriggerIcon": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionSortingDropdownTriggerName": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionSortingDropdownContent": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltInlineCommentsSectionSortingDropdownContentItem": [
+      "defaultCondition",
+      "sectionComponentId",
+      "sortOption",
+      "sortOptionText",
+      "targetElementId",
+      "type"
+    ],
+    "VeltInlineCommentsSectionSortingDropdownContentItemIcon": [
+      "defaultCondition",
+      "sortOption",
+      "targetElementId",
+      "type"
+    ],
+    "VeltInlineCommentsSectionSortingDropdownContentItemName": [
+      "defaultCondition",
+      "sortOptionText",
+      "targetElementId",
+      "type"
+    ],
+    "VeltInlineCommentsSectionSortingDropdownContentItemTick": [
+      "defaultCondition",
+      "sortOption",
+      "targetElementId",
+      "type"
+    ],
+    "VeltInlineCommentsSectionFilterDropdownContentApplyButton": [
+      "defaultCondition",
+      "targetElementId"
+    ],
+    "VeltCommentPin": [
+      "annotationId",
+      "context",
+      "contextOptions",
+      "defaultCondition",
+      "documentId",
+      "folderId",
+      "locationId",
+      "multiThreadAnnotationId",
+      "variant"
+    ],
+    "VeltCommentText": [
+      "annotationId",
+      "multiThreadAnnotationId"
+    ],
+    "VeltCanvasComment": [
+      "canvasId",
+      "position"
+    ],
+    "VeltData": [
+      "className",
+      "field",
+      "id",
+      "path"
+    ],
+    "VeltIf": [
+      "className",
+      "condition",
+      "id"
+    ],
+    "VeltCommentsMinimap": [
+      "position",
+      "targetScrollableElementId"
+    ],
+    "VeltReactionTool": [
+      "onReactionToolClick",
+      "videoPlayerId"
+    ],
+    "VeltInlineReactionsSection": [
+      "customReactions",
+      "darkMode",
+      "shadowDom",
+      "targetReactionElementId",
+      "variant"
+    ],
+    "VeltCommentComposer": [
+      "context",
+      "darkMode",
+      "dialogVariant",
+      "documentId",
+      "folderId",
+      "locationId",
+      "placeholder",
+      "readOnly",
+      "shadowDom",
+      "targetComposerElementId",
+      "variant"
+    ],
+    "VeltSingleEditorModePanel": [
+      "darkMode",
+      "shadowDom",
+      "variant"
+    ],
+    "VeltVideoEditor": [
+      "annotationId",
+      "blob",
+      "darkMode",
+      "recorderId",
+      "url",
+      "variant"
+    ],
+    "VeltCommentsSidebarV2": [
+      "commentPlaceholder",
+      "context",
+      "currentLocationSuffix",
+      "customActions",
+      "darkMode",
+      "defaultCondition",
+      "defaultMinimalFilter",
+      "dialogSelection",
+      "dialogVariant",
+      "editCommentPlaceholder",
+      "editPlaceholder",
+      "editReplyPlaceholder",
+      "embedMode",
+      "excludeLocationIds",
+      "expandOnSelection",
+      "filterCount",
+      "filterGhostCommentsInSidebar",
+      "filterOperator",
+      "filterOptionLayout",
+      "filterPanelLayout",
+      "filters",
+      "floatingMode",
+      "focusedThreadDialogVariant",
+      "focusedThreadMode",
+      "forceClose",
+      "fullExpanded",
+      "fullScreen",
+      "groupConfig",
+      "maxBufferPx",
+      "measuredSize",
+      "minBufferPx",
+      "miniFilters",
+      "minimalFilters",
+      "onFullscreenClick",
+      "openAnnotationInFocusMode",
+      "pageMode",
+      "pageModeComposerVariant",
+      "pageModePlaceholder",
+      "position",
+      "queryParamsComments",
+      "readOnly",
+      "replyPlaceholder",
+      "searchPlaceholder",
+      "shadowDom",
+      "sidebarButtonCountType",
+      "sortBy",
+      "sortOrder",
+      "systemFiltersOperator",
+      "urlNavigation",
+      "variant"
+    ],
+    "VeltCommentSidebarV2Skeleton": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2Panel": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2Header": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2CloseButton": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2EmptyPlaceholder": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2ResetFilterButton": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2List": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2ListItem": [
+      "annotation",
+      "annotationId",
+      "defaultCondition",
+      "showLine"
+    ],
+    "VeltCommentSidebarV2PageModeComposer": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FocusedThread": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FocusedThreadBackButton": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FocusedThreadDialogContainer": [
+      "annotationId",
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2ListGroupHeader": [
+      "defaultCondition",
+      "group"
+    ],
+    "VeltCommentSidebarV2ListGroupHeaderLabel": [
+      "defaultCondition",
+      "group",
+      "showThisPageSuffix"
+    ],
+    "VeltCommentSidebarV2ListGroupHeaderCount": [
+      "defaultCondition",
+      "group"
+    ],
+    "VeltCommentSidebarV2ListGroupHeaderSeparator": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2ListGroupHeaderChevron": [
+      "defaultCondition",
+      "group"
+    ],
+    "VeltCommentSidebarV2FilterDropdown": [
+      "actions",
+      "defaultCondition",
+      "field",
+      "fields",
+      "label",
+      "showCategoryFilters",
+      "sorts",
+      "type"
+    ],
+    "VeltCommentSidebarV2FilterDropdownTrigger": [
+      "defaultCondition",
+      "isActive"
+    ],
+    "VeltCommentSidebarV2FilterDropdownContent": [
+      "defaultCondition",
+      "groups"
+    ],
+    "VeltCommentSidebarV2FilterDropdownContentList": [
+      "defaultCondition",
+      "groups"
+    ],
+    "VeltCommentSidebarV2FilterDropdownContentListItem": [
+      "defaultCondition",
+      "group",
+      "groupId",
+      "item",
+      "itemId"
+    ],
+    "VeltCommentSidebarV2FilterDropdownContentListItemIndicator": [
+      "defaultCondition",
+      "groupId",
+      "itemId",
+      "mode",
+      "selected"
+    ],
+    "VeltCommentSidebarV2FilterDropdownContentListItemLabel": [
+      "defaultCondition",
+      "groupId",
+      "itemId",
+      "label"
+    ],
+    "VeltCommentSidebarV2FilterDropdownContentListItemCount": [
+      "count",
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FilterDropdownContentListCategory": [
+      "defaultCondition",
+      "group",
+      "groupId",
+      "itemTemplate"
+    ],
+    "VeltCommentSidebarV2FilterDropdownContentListCategoryLabel": [
+      "defaultCondition",
+      "group"
+    ],
+    "VeltCommentSidebarV2FilterDropdownContentListCategoryContent": [
+      "defaultCondition",
+      "group",
+      "groupId",
+      "itemTemplate"
+    ],
+    "VeltCommentSidebarV2FilterButton": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FilterButtonAppliedIcon": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FilterContainer": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FilterContainerTitle": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FilterContainerCloseButton": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FilterContainerGroupBy": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FilterContainerResetButton": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FilterContainerApplyButton": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionList": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FilterContainerSection": [
+      "allOption",
+      "defaultCondition",
+      "group",
+      "optionLayout",
+      "searchable",
+      "selectedIds"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionLabel": [
+      "defaultCondition",
+      "label"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionField": [
+      "allOption",
+      "defaultCondition",
+      "group",
+      "optionLayout",
+      "searchable",
+      "selectedIds"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionControl": [
+      "chips",
+      "defaultCondition",
+      "expanded",
+      "groupId",
+      "isSingle",
+      "placeholder",
+      "searchable",
+      "value"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionControlValue": [
+      "defaultCondition",
+      "isSingle",
+      "value"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionControlChipList": [
+      "chips",
+      "defaultCondition",
+      "groupId",
+      "isSingle"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionControlChip": [
+      "defaultCondition",
+      "label"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionControlSearch": [
+      "defaultCondition",
+      "groupId",
+      "isSingle",
+      "placeholder",
+      "searchable"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionControlChevron": [
+      "defaultCondition",
+      "up"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionOptionList": [
+      "allCount",
+      "allOption",
+      "defaultCondition",
+      "filterCount",
+      "isSingle",
+      "options",
+      "selectedIds"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionOption": [
+      "count",
+      "defaultCondition",
+      "label",
+      "selected",
+      "showCount"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionOptionCheckbox": [
+      "checked",
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionOptionName": [
+      "defaultCondition",
+      "label"
+    ],
+    "VeltCommentSidebarV2FilterContainerSectionOptionCount": [
+      "count",
+      "defaultCondition",
+      "showCount"
+    ],
+    "VeltCommentSidebarV2Search": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2SearchIcon": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2SearchInput": [
+      "defaultCondition"
+    ],
+    "VeltCommentSidebarV2FullscreenButton": [
+      "defaultCondition"
+    ],
+    "VeltCommentDialog": [
+      "annotationId",
+      "anonymousEmail",
+      "commentComposerMode",
+      "commentPinSelected",
+      "commentPinType",
+      "commentPlaceholder",
+      "composerPosition",
+      "containerComponentId",
+      "context",
+      "darkMode",
+      "defaultCondition",
+      "dialogMode",
+      "dialogSelection",
+      "editCommentPlaceholder",
+      "editPlaceholder",
+      "editReplyPlaceholder",
+      "expandOnSelection",
+      "focusedThreadMode",
+      "fullExpanded",
+      "inboxMode",
+      "initialEditCommentIndex",
+      "inlineCommentMode",
+      "inlineCommentSectionMode",
+      "isFocusedThreadEnabled",
+      "isInsidePdfViewer",
+      "locationDisplayName",
+      "locationVersion",
+      "messageTruncation",
+      "messageTruncationLines",
+      "multiThread",
+      "multiThreadAnnotationId",
+      "openAnnotationInFocusMode",
+      "pageModeComposer",
+      "placeholder",
+      "readOnly",
+      "replyPlaceholder",
+      "shadowDom",
+      "sidebarMode",
+      "sortBy",
+      "sortOrder",
+      "targetComposerElementId",
+      "targetElementId",
+      "variant"
+    ],
+    "VeltCommentDialogContextWrapper": [
+      "annotationId"
+    ],
+    "VeltCommentDialogStatusDropdown": [
+      "annotationId",
+      "defaultCondition",
+      "disabled",
+      "inlineCommentSectionMode",
+      "onChangeStatus",
+      "status",
+      "statusOptionType"
+    ],
+    "VeltCommentDialogStatusDropdownTrigger": [
+      "annotationId",
+      "defaultCondition",
+      "disabled",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogStatusDropdownTriggerIcon": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "statusId",
+      "statusObj"
+    ],
+    "VeltCommentDialogStatusDropdownTriggerName": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "statusId",
+      "statusObj"
+    ],
+    "VeltCommentDialogStatusDropdownTriggerArrow": [
+      "annotationId",
+      "defaultCondition",
+      "disabled",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogStatusDropdownContent": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "variant"
+    ],
+    "VeltCommentDialogStatusDropdownContentItem": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "statusId",
+      "statusIndex",
+      "statusObj"
+    ],
+    "VeltCommentDialogStatusDropdownContentItemIcon": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "statusId",
+      "statusObj"
+    ],
+    "VeltCommentDialogStatusDropdownContentItemName": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "statusId",
+      "statusObj"
+    ],
+    "VeltCommentDialogPriorityDropdown": [
+      "annotationId",
+      "defaultCondition",
+      "disabled",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogPriorityDropdownTrigger": [
+      "annotationId",
+      "defaultCondition",
+      "disabled",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogPriorityDropdownTriggerIcon": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "priorityObj"
+    ],
+    "VeltCommentDialogPriorityDropdownTriggerName": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "priorityObj"
+    ],
+    "VeltCommentDialogPriorityDropdownTriggerArrow": [
+      "annotationId",
+      "defaultCondition",
+      "disabled",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogPriorityDropdownContent": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "variant"
+    ],
+    "VeltCommentDialogPriorityDropdownContentItem": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "priorityId",
+      "priorityIndex",
+      "priorityObj"
+    ],
+    "VeltCommentDialogPriorityDropdownContentItemIcon": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "priorityId",
+      "priorityObj"
+    ],
+    "VeltCommentDialogPriorityDropdownContentItemName": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "priorityId",
+      "priorityObj"
+    ],
+    "VeltCommentDialogPriorityDropdownContentItemTick": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "priorityId",
+      "priorityObj"
+    ],
+    "VeltCommentDialogOptionsDropdown": [
+      "allowAssignment",
+      "allowChangeCommentAccessMode",
+      "allowEdit",
+      "allowToggleNotification",
+      "annotationId",
+      "commentIndex",
+      "commentObj",
+      "contentTemplate",
+      "defaultCondition",
+      "enableAssignment",
+      "enableEdit",
+      "enableNotifications",
+      "enablePrivateMode",
+      "inlineCommentSectionMode",
+      "onOpenDropdownIndex",
+      "triggerTemplate"
+    ],
+    "VeltCommentDialogOptionsDropdownTrigger": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogOptionsDropdownContent": [
+      "annotationId",
+      "commentIndex",
+      "commentObj",
+      "defaultCondition",
+      "enableAssignment",
+      "enableEdit",
+      "enableMarkAsRead",
+      "enableNotifications",
+      "enablePrivateMode",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogOptionsDropdownContentAssign": [
+      "annotationId",
+      "commentObj",
+      "defaultCondition",
+      "enableAssignment",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogOptionsDropdownContentEdit": [
+      "annotationId",
+      "commentIndex",
+      "commentObj",
+      "defaultCondition",
+      "enableEdit",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogOptionsDropdownContentDelete": [
+      "annotationId",
+      "commentId",
+      "commentIndex",
+      "commentObj",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "type"
+    ],
+    "VeltCommentDialogOptionsDropdownContentDeleteComment": [
+      "annotationId",
+      "commentId",
+      "commentIndex",
+      "commentObj",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogOptionsDropdownContentDeleteThread": [
+      "annotationId",
+      "commentIndex",
+      "commentObj",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogOptionsDropdownContentMakePrivate": [
+      "annotationId",
+      "commentObj",
+      "defaultCondition",
+      "enablePrivateMode",
+      "inlineCommentSectionMode",
+      "type"
+    ],
+    "VeltCommentDialogOptionsDropdownContentMakePrivateEnable": [
+      "annotationId",
+      "defaultCondition",
+      "enablePrivateMode",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogOptionsDropdownContentMakePrivateDisable": [
+      "annotationId",
+      "defaultCondition",
+      "enablePrivateMode",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogOptionsDropdownContentNotification": [
+      "annotationId",
+      "commentObj",
+      "defaultCondition",
+      "enableNotifications",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogOptionsDropdownContentNotificationSubscribe": [
+      "annotationId",
+      "defaultCondition",
+      "enableNotifications",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogOptionsDropdownContentNotificationUnsubscribe": [
+      "annotationId",
+      "defaultCondition",
+      "enableNotifications",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogOptionsDropdownContentMarkAsRead": [
+      "annotationId",
+      "defaultCondition",
+      "enableMarkAsRead",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogOptionsDropdownContentMarkAsReadMarkRead": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogOptionsDropdownContentMarkAsReadMarkUnread": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogAssignDropdown": [
+      "annotationId",
+      "assignTo",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "onSetAssignTo",
+      "selectedUserContacts"
+    ],
+    "VeltCommentDialogAttachmentButton": [
+      "allowedFileTypes",
+      "annotationId",
+      "componentMeta",
+      "componentName",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "onClicked",
+      "onSelectFiles",
+      "suffix",
+      "template",
+      "variant"
+    ],
+    "VeltCommentDialogDeviceTypeIcons": [
+      "annotationId",
+      "defaultCondition",
+      "deviceType",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogVisibilityDropdownTrigger": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogVisibilityDropdownTriggerLabel": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogVisibilityDropdownTriggerIcon": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogVisibilityDropdownContent": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogVisibilityDropdownContentPublic": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogVisibilityDropdownContentPrivate": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogMetadata": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode",
+      "metadata"
+    ],
+    "VeltCommentDialogPrivateButton": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltWireframe": [],
+    "VeltCommentDialogSuggestionBodyWireframe": [],
+    "VeltCommentDialogSuggestionAgentAvatarWireframe": [],
+    "VeltCommentDialogSuggestionAgentNameWireframe": [],
+    "VeltCommentDialogSuggestionAuthorAvatarWireframe": [],
+    "VeltCommentDialogSuggestionAuthorNameWireframe": [],
+    "VeltCommentDialogSuggestionTimestampWireframe": [],
+    "VeltCommentDialogSuggestionMenuTriggerWireframe": [],
+    "VeltCommentDialogSuggestionMenuContentItemIconWireframe": [],
+    "VeltCommentDialogSuggestionMenuContentItemLabelWireframe": [],
+    "VeltCommentDialogSuggestionFooterOpenCommentWireframe": [],
+    "VeltCommentDialogSuggestionActionAcceptWireframe": [],
+    "VeltCommentDialogSuggestionActionRejectWireframe": [],
+    "VeltCommentDialogSuggestionBannerAvatarUserImageWireframe": [],
+    "VeltCommentDialogSuggestionBannerAvatarStatusIconWireframe": [],
+    "VeltCommentDialogSuggestionBannerLabelWireframe": [],
+    "VeltCommentDialogSuggestionBannerSeparatorWireframe": [],
+    "VeltCommentDialogSuggestionBannerTimestampWireframe": [],
+    "VeltCommentDialogSuggestionBannerResolverUserNameWireframe": [],
+    "VeltCommentDialogWireframe": [],
+    "VeltCommentsSidebarWireframe": [],
+    "VeltCommentsSidebarV2Wireframe": [],
+    "VeltCommentPinWireframe": [],
+    "VeltSidebarButtonWireframe": [],
+    "VeltCommentToolWireframe": [],
+    "VeltTextCommentToolWireframe": [],
+    "VeltUserSelectorDropdown": [],
+    "VeltAutocompleteOptionWireframe": [],
+    "VeltAutocompleteGroupOptionWireframe": [],
+    "VeltAutocompleteEmptyWireframe": [],
+    "VeltButtonWireframe": [
+      "active",
+      "disabled",
+      "group",
+      "id",
+      "type"
+    ],
+    "VeltActivityLog": [
+      "darkMode",
+      "shadowDom",
+      "useDummyData",
+      "variant"
+    ],
+    "VeltActivityLogHeader": [
+      "defaultCondition"
+    ],
+    "VeltActivityLogHeaderTitle": [
+      "defaultCondition"
+    ],
+    "VeltActivityLogHeaderCloseButton": [
+      "defaultCondition"
+    ],
+    "VeltActivityLogHeaderFilter": [
+      "defaultCondition"
+    ],
+    "VeltActivityLogHeaderFilterTrigger": [
+      "defaultCondition"
+    ],
+    "VeltActivityLogHeaderFilterTriggerIcon": [
+      "defaultCondition"
+    ],
+    "VeltActivityLogHeaderFilterTriggerLabel": [
+      "defaultCondition"
+    ],
+    "VeltActivityLogHeaderFilterContent": [
+      "defaultCondition"
+    ],
+    "VeltActivityLogHeaderFilterContentItem": [
+      "defaultCondition",
+      "filterOption",
+      "isActive"
+    ],
+    "VeltActivityLogHeaderFilterContentItemIcon": [
+      "defaultCondition",
+      "isActive"
+    ],
+    "VeltActivityLogHeaderFilterContentItemLabel": [
+      "defaultCondition",
+      "filterOption"
+    ],
+    "VeltActivityLogEmpty": [
+      "defaultCondition"
+    ],
+    "VeltActivityLogLoading": [
+      "defaultCondition"
+    ],
+    "VeltActivityLogList": [
+      "defaultCondition"
+    ],
+    "VeltActivityLogListDateGroup": [
+      "dateGroup",
+      "defaultCondition"
+    ],
+    "VeltActivityLogListDateGroupLabel": [
+      "dateGroup",
+      "defaultCondition"
+    ],
+    "VeltActivityLogListShowMore": [
+      "dateGroup",
+      "defaultCondition"
+    ],
+    "VeltActivityLogListItem": [
+      "activityRecord",
+      "defaultCondition"
+    ],
+    "VeltActivityLogListItemAvatar": [
+      "activityRecord",
+      "defaultCondition"
+    ],
+    "VeltActivityLogListItemIcon": [
+      "activityRecord",
+      "defaultCondition"
+    ],
+    "VeltActivityLogListItemTime": [
+      "activityRecord",
+      "defaultCondition"
+    ],
+    "VeltActivityLogListItemContent": [
+      "activityRecord",
+      "defaultCondition"
+    ],
+    "VeltActivityLogListItemContentUser": [
+      "activityRecord",
+      "defaultCondition"
+    ],
+    "VeltActivityLogListItemContentAction": [
+      "activityRecord",
+      "defaultCondition"
+    ],
+    "VeltActivityLogListItemContentTarget": [
+      "activityRecord",
+      "defaultCondition"
+    ],
+    "VeltActivityLogListItemContentDetail": [
+      "activityRecord",
+      "defaultCondition"
+    ],
+    "VeltCommentBubbleAvatar": [
+      "annotationId",
+      "defaultCondition"
+    ],
+    "VeltCommentBubbleCommentsCount": [
+      "annotationId",
+      "defaultCondition"
+    ],
+    "VeltCommentBubbleUnreadIcon": [
+      "annotationId",
+      "defaultCondition"
+    ],
+    "VeltSidebarButtonIcon": [
+      "defaultCondition"
+    ],
+    "VeltSidebarButtonCommentsCount": [
+      "defaultCondition"
+    ],
+    "VeltSidebarButtonUnreadIcon": [
+      "defaultCondition"
+    ],
+    "VeltTextComment": [
+      "defaultCondition",
+      "variant"
+    ],
+    "VeltTextCommentTool": [
+      "defaultCondition"
+    ],
+    "VeltTextCommentToolbar": [
+      "defaultCondition"
+    ],
+    "VeltTextCommentToolbarCommentAnnotation": [
+      "defaultCondition"
+    ],
+    "VeltTextCommentToolbarDivider": [
+      "defaultCondition"
+    ],
+    "VeltTextCommentToolbarCopywriter": [
+      "defaultCondition"
+    ],
+    "VeltTextCommentToolbarGeneric": [
+      "defaultCondition"
+    ],
+    "VeltMultiThreadCommentDialog": [
+      "annotation",
+      "annotationId",
+      "commentPinSelected",
+      "commentPinType",
+      "containerComponentId",
+      "context",
+      "defaultCondition",
+      "dialogVariant",
+      "inboxMode",
+      "multiThreadAnnotationId",
+      "onSaveComment",
+      "readOnly",
+      "user",
+      "variant"
+    ],
+    "VeltMultiThreadCommentDialogList": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogPanel": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogComposerContainer": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogCommentCount": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogEmptyPlaceholder": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogCloseButton": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogNewThreadButton": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogResetFilterButton": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalFilterDropdown": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalFilterDropdownTrigger": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalFilterDropdownContent": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalFilterDropdownContentFilterAll": [
+      "annotationId",
+      "contextId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalFilterDropdownContentFilterRead": [
+      "annotationId",
+      "contextId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalFilterDropdownContentFilterResolved": [
+      "annotationId",
+      "contextId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalFilterDropdownContentFilterUnread": [
+      "annotationId",
+      "contextId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalFilterDropdownContentSelectedIcon": [
+      "annotationId",
+      "defaultCondition",
+      "isSelected",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalFilterDropdownContentSortDate": [
+      "annotationId",
+      "contextId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalFilterDropdownContentSortUnread": [
+      "annotationId",
+      "contextId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalActionsDropdown": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalActionsDropdownTrigger": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalActionsDropdownContent": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalActionsDropdownContentMarkAllRead": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltMultiThreadCommentDialogMinimalActionsDropdownContentMarkAllResolved": [
+      "annotationId",
+      "defaultCondition",
+      "multiThreadAnnotationId"
+    ],
+    "VeltCommentDialogSuggestion": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionBody": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionHeader": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionAgent": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionAgentAvatar": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionAgentName": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionAuthor": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionAuthorAvatar": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionAuthorName": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionTimestamp": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionMenu": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionMenuTrigger": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionMenuContent": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionMenuContentItem": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionMenuContentItemIcon": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionMenuContentItemLabel": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionFooter": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionFooterOpenComment": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionActions": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionActionAccept": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionActionReject": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionBanner": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionBannerAvatar": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionBannerAvatarUserImage": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionBannerAvatarStatusIcon": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionBannerLabel": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionBannerSeparator": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionBannerTimestamp": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ],
+    "VeltCommentDialogSuggestionBannerResolverUserName": [
+      "annotationId",
+      "defaultCondition",
+      "inlineCommentSectionMode"
+    ]
+  },
+  "all": [
+    "Highcharts",
+    "accordionConfig",
+    "accordionId",
+    "accordionItemId",
+    "actions",
+    "active",
+    "activityRecord",
+    "allCount",
+    "allOption",
+    "allowAssignment",
+    "allowChangeCommentAccessMode",
+    "allowEdit",
+    "allowToggleNotification",
+    "allowedFileTypes",
+    "annotation",
+    "annotationId",
+    "anonymousEmail",
+    "assignTo",
+    "blob",
+    "canvasId",
+    "chartComputedData",
+    "checked",
+    "chips",
+    "className",
+    "commentComposerMode",
+    "commentId",
+    "commentIndex",
+    "commentMetadata",
+    "commentObj",
+    "commentPinSelected",
+    "commentPinType",
+    "commentPlaceholder",
+    "commentTool",
+    "componentMeta",
+    "componentName",
+    "composerPlaceholder",
+    "composerPosition",
+    "composerVariant",
+    "condition",
+    "config",
+    "considerAllNotifications",
+    "contact",
+    "contacts",
+    "containerComponentId",
+    "contentTemplate",
+    "context",
+    "contextId",
+    "contextOptions",
+    "count",
+    "currentLocationSuffix",
+    "custom",
+    "customActions",
+    "customReactions",
+    "darkMode",
+    "data",
+    "date",
+    "dateGroup",
+    "defaultCondition",
+    "defaultMinimalFilter",
+    "deviceType",
+    "dialogMetadataTemplate",
+    "dialogMode",
+    "dialogSelection",
+    "dialogVariant",
+    "disabled",
+    "document",
+    "documentId",
+    "editCommentPlaceholder",
+    "editPlaceholder",
+    "editReplyPlaceholder",
+    "email",
+    "embedMode",
+    "enableAssignment",
+    "enableCrossOrganization",
+    "enableEdit",
+    "enableMarkAsRead",
+    "enableNotifications",
+    "enableOnFocus",
+    "enablePrivateMode",
+    "enableSettingsAtOrganizationLevel",
+    "excludeContacts",
+    "excludeLocationIds",
+    "expandOnSelection",
+    "expanded",
+    "field",
+    "fields",
+    "filter",
+    "filterConfig",
+    "filterCount",
+    "filterGhostCommentsInSidebar",
+    "filterId",
+    "filterOperator",
+    "filterOption",
+    "filterOptionLayout",
+    "filterPanelLayout",
+    "filters",
+    "floatingMode",
+    "focusedThreadDialogVariant",
+    "focusedThreadMode",
+    "folderId",
+    "forceClose",
+    "fullExpanded",
+    "fullScreen",
+    "ghostComment",
+    "group",
+    "groupConfig",
+    "groupId",
+    "groupName",
+    "groupObject",
+    "groups",
+    "hideInput",
+    "hotkey",
+    "id",
+    "inboxMode",
+    "index",
+    "initialEditCommentIndex",
+    "initialSelection",
+    "inline",
+    "inlineCommentMode",
+    "inlineCommentSectionMode",
+    "isActive",
+    "isAllRead",
+    "isDefault",
+    "isFocusedThreadEnabled",
+    "isInsidePdfViewer",
+    "isLoadMoreVisible",
+    "isLoading",
+    "isSelected",
+    "isSingle",
+    "item",
+    "itemId",
+    "itemTemplate",
+    "label",
+    "listData",
+    "listItemTemplate",
+    "listType",
+    "locationDisplayName",
+    "locationId",
+    "locationVersion",
+    "maxBufferPx",
+    "maxDays",
+    "measuredSize",
+    "messageTruncation",
+    "messageTruncationLines",
+    "metadata",
+    "minBufferPx",
+    "miniFilters",
+    "minimalFilters",
+    "mode",
+    "multiSelect",
+    "multiThread",
+    "multiThreadAnnotationId",
+    "name",
+    "newUserContactError",
+    "notification",
+    "notificationId",
+    "notificationIndex",
+    "notifications",
+    "offset",
+    "onChangeStatus",
+    "onClicked",
+    "onCommentClick",
+    "onFullscreenClick",
+    "onNotificationClick",
+    "onOpenDropdownIndex",
+    "onReactionClick",
+    "onReactionToolClick",
+    "onSaveComment",
+    "onSelectFiles",
+    "onSetAssignTo",
+    "onSidebarOpen",
+    "openAnnotationInFocusMode",
+    "option",
+    "optionIndex",
+    "optionLayout",
+    "options",
+    "pageMode",
+    "pageModeComposer",
+    "pageModeComposerVariant",
+    "pageModePlaceholder",
+    "pageSize",
+    "panelOpenMode",
+    "panelShadowDom",
+    "panelVariant",
+    "path",
+    "placeholder",
+    "position",
+    "priorityId",
+    "priorityIndex",
+    "priorityObj",
+    "queryParamsComments",
+    "readNotificationsOnForYouTab",
+    "readOnly",
+    "recorderId",
+    "replyPlaceholder",
+    "searchPlaceholder",
+    "searchable",
+    "sectionComponentId",
+    "selected",
+    "selectedFirstOrdering",
+    "selectedIds",
+    "selectedUserContacts",
+    "selfNotifications",
+    "settings",
+    "settingsLayout",
+    "shadowDom",
+    "showAtHere",
+    "showCategoryFilters",
+    "showCount",
+    "showLine",
+    "showThisPageSuffix",
+    "sidebarButtonCountType",
+    "sidebarMode",
+    "sidebarShadowDom",
+    "sidebarVariant",
+    "sortBy",
+    "sortData",
+    "sortOption",
+    "sortOptionText",
+    "sortOrder",
+    "sorts",
+    "src",
+    "status",
+    "statusId",
+    "statusIndex",
+    "statusObj",
+    "statusOptionType",
+    "suffix",
+    "sync",
+    "systemFiltersOperator",
+    "tabConfig",
+    "targetCommentElementId",
+    "targetComposerElementId",
+    "targetElementId",
+    "targetInlineCommentElementId",
+    "targetReactionElementId",
+    "targetScrollableElementId",
+    "template",
+    "tooltipText",
+    "totalMediaLength",
+    "triggerTemplate",
+    "type",
+    "up",
+    "url",
+    "urlNavigation",
+    "useDummyData",
+    "user",
+    "userId",
+    "userObject",
+    "value",
+    "variant",
+    "videoPlayerId"
+  ]
+}

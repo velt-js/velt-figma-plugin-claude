@@ -126,7 +126,13 @@ export function collectRequiredWiring(plan, knowledge) {
       addHp({
         kind: "hostProp",
         componentId: comp.id,
-        tag: tag || "VeltComments",
+        // The PLAN's target wins. A prop's meaning is per-host — `position` on a sidebar decides
+        // which edge it anchors to and does not exist on <VeltComments> at all — so deriving the
+        // target from the surface id lands structure-producing props on the wrong component, where
+        // they typecheck as unknown props and do nothing. The planner now records `tag` for exactly
+        // this (plan gate P22 requires it and checks it against the host-prop inventory); honour it,
+        // and fall back to the derived tag only when the plan does not say.
+        tag: hp.tag || tag || "VeltComments",
         prop: hp.prop,
         value: hp.value,
         designEvidence: hp.designEvidence || null,

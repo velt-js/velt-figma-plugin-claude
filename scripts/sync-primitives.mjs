@@ -548,6 +548,7 @@ async function deriveSdkParents(sdkPath) {
   await walk(appDir);
 
   const parents = {};       // child tag -> Set(parent tags)
+  const clicky = new Set();  // tags whose own template binds a click
   let scanned = 0;
   for (const f of files) {
     const src = await fs.readFile(f, "utf8").catch(() => null);
@@ -565,16 +566,74 @@ async function deriveSdkParents(sdkPath) {
       if (child === parent) continue;                       // self-recursive templates
       (parents[child] ||= new Set()).add(parent);
     }
+    // Does this primitive BIND A CLICK of its own? Only a primitive that owns an action can be
+    // double-fired by a handler wrapped around it; a presentational one (a label, an icon, a
+    // container) is meant to be wrapped, and flagging that would forbid the correct pattern.
+    if (/\(click\)\s*=/.test(tpl) || /@HostListener\(\s*['"]click/.test(src)) clicky.add(parent);
   }
 
   const doc = {
     _doc: "DERIVED from SDK component templates by scripts/sync-primitives.mjs — the built-in containment graph. `sdkParents[child]` lists the primitives whose OWN template renders that child. A composed tree that places a child outside every one of its built-in parents loses whatever the parent supplies (positioning, local UI state, popover anchoring) and does so silently. Advisory: a host may supply the container instead.",
     method: "component selector (minus -internal) -> its templateUrl -> every <velt-*|snippyly-*> tag the template opens",
     scannedTemplates: scanned,
+    bindsClick: [...clicky].sort(),
     sdkParents: Object.fromEntries(Object.entries(parents).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, [...v].sort()])),
   };
   await fs.writeFile(path.join(SRC, "sdk-parents.json"), JSON.stringify(doc, null, 2) + "\n");
   console.log(`  derived sdk-parents.json (${Object.keys(parents).length} tag(s) have a built-in parent, from ${scanned} template(s))`);
+}
+
+// ---------------------------------------------------------------------------
+// DERIVED (not copied): the PROPS each Velt host component accepts.
+//
+// WHY. Structure-producing host props cannot be faked in CSS — `pageMode`, `position`,
+// `pageModePlaceholder` and friends change what the SDK renders at all. A planner that reasons
+// about them from memory gets them subtly wrong: run 5's plan rejected `commentPlaceholder` after
+// reasoning about placeholders, while the prop that actually feeds a sidebar's page-mode composer
+// is `pageModePlaceholder` (the SDK binds it straight to [commentPlaceholder] on the inner dialog),
+// and it never considered `position` at all — so the composed sidebar had no side.
+//
+// Recording the real inventory turns "which host props exist for this surface" from recall into a
+// lookup, and lets the plan gate refuse a prop name that is not on the host it targets.
+async function deriveHostProps(reactPkgPath) {
+  const dts = await fs.readFile(path.join(reactPkgPath, "index.d.ts"), "utf8").catch(() => "");
+  if (!dts) { console.error(`✗ cannot read index.d.ts under ${reactPkgPath}`); process.exit(1); }
+
+  // interface IFooProps { ... }  ->  its own declared prop names (inherited HTML attributes are
+  // not host props and would drown the list).
+  const ifaces = {};
+  for (const m of dts.matchAll(/interface\s+(I[A-Za-z0-9_]*Props)\b[^{]*\{/g)) {
+    const start = m.index + m[0].length - 1;
+    let depth = 0, end = -1;
+    for (let j = start; j < dts.length; j++) {
+      if (dts[j] === "{") depth++;
+      else if (dts[j] === "}") { depth--; if (depth === 0) { end = j; break; } }
+    }
+    if (end < 0) continue;
+    const body = dts.slice(start + 1, end);
+    const props = new Set();
+    for (const pm of body.matchAll(/^\s*([a-zA-Z_][A-Za-z0-9_]*)\??\s*:/gm)) props.add(pm[1]);
+    ifaces[m[1]] = [...props].sort();
+  }
+
+  // declare const VeltFoo: React.FC<IFooProps>
+  const byComponent = {};
+  for (const m of dts.matchAll(/declare\s+const\s+(Velt[A-Za-z0-9_]*)\s*:\s*[A-Za-z0-9_$]*\.?FC<\s*(I[A-Za-z0-9_]*Props)\s*>/g))
+    if (ifaces[m[2]]) byComponent[m[1]] = ifaces[m[2]];
+
+  const all = new Set();
+  for (const v of Object.values(byComponent)) for (const p2 of v) all.add(p2);
+  const pkg = await readJSON(path.join(reactPkgPath, "package.json"), {}).catch(() => ({}));
+  const doc = {
+    _doc: "DERIVED from the installed @veltdev/react index.d.ts by scripts/sync-primitives.mjs — the props each Velt host component declares. Structure-producing host props cannot be faked in CSS, so a plan must name real ones; scaffold-primitives --lint refuses a hostProps entry whose prop is not on the component it targets.",
+    method: "interface I*Props { ... } -> own declared prop names; declare const VeltX: FC<I*Props> -> component mapping",
+    source: `@veltdev/react ${pkg.version || "unknown"}`,
+    components: Object.keys(byComponent).length,
+    byComponent,
+    all: [...all].sort(),
+  };
+  await fs.writeFile(path.join(SRC, "host-props.json"), JSON.stringify(doc, null, 2) + "\n");
+  console.log(`  derived host-props.json (${Object.keys(byComponent).length} host component(s) · ${all.size} distinct prop(s))`);
 }
 
 async function build() {
@@ -638,6 +697,8 @@ async function build() {
     .then(JSON.parse).catch(() => null);
   const parentsDoc = await fs.readFile(path.join(SRC, "sdk-parents.json"), "utf8")
     .then(JSON.parse).catch(() => null);
+  const hostPropsDoc = await fs.readFile(path.join(SRC, "host-props.json"), "utf8")
+    .then(JSON.parse).catch(() => null);
 
   const primitives = {};
   for (const tag of tags) {
@@ -670,6 +731,9 @@ async function build() {
       // The primitives whose BUILT-IN template renders this one. Composing it outside all of them
       // silently forfeits whatever the parent supplies. Advisory — a host may supply the container.
       sdkParents: parentsDoc ? (parentsDoc.sdkParents?.[tag] || null) : null,
+      // true = the SDK component binds its own click. Only these can be double-fired by a handler
+      // wrapped around them (lint P21); a presentational primitive is meant to be wrapped.
+      bindsClick: parentsDoc ? (parentsDoc.bindsClick || []).includes(tag) : null,
     };
   }
   // Reverse-index the compound-trigger relation onto the descendant leaves (lint P1 reads this).
@@ -726,6 +790,7 @@ async function build() {
     // The PUBLISHED element facade — every method and event name the installed @veltdev/types ships.
     // This is the answer to "is there really no API for this?", which a planner must consult BEFORE
     // recording a gap. Absent snapshot -> null, and the matching lint rule stays silent.
+    hostProps: hostPropsDoc ? { source: hostPropsDoc.source, byComponent: hostPropsDoc.byComponent, all: hostPropsDoc.all } : null,
     elementApis: apiDoc ? { source: apiDoc.source, facades: apiDoc.facades, byFacade: apiDoc.byFacade, methods: apiDoc.methods, events: apiDoc.events } : null,
     parity,
     surfaceReachability: SURFACE_REACHABILITY,
@@ -840,7 +905,7 @@ async function main() {
   // in the SDK repo, so they are vendored separately. Both are optional: absent snapshots leave the
   // derived manifest fields null and every lint rule that reads them stays silent rather than guess.
   const reactPkg = val("--react");
-  if (reactPkg) { console.log(`deriving React wrapper behaviour from ${reactPkg}`); await deriveReactWrappers(reactPkg); }
+  if (reactPkg) { console.log(`deriving React wrapper behaviour from ${reactPkg}`); await deriveReactWrappers(reactPkg); await deriveHostProps(reactPkg); }
   const typesPkg = val("--types");
   if (typesPkg) { console.log(`deriving element APIs from ${typesPkg}`); await deriveElementApis(typesPkg); }
 

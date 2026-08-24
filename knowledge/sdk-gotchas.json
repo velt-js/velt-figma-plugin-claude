@@ -548,6 +548,54 @@
       "seenOn": [
         "harvey (primitives run 5, @veltdev/types 6.0.0-beta.15, 2026-08-24)"
       ]
+    },
+    {
+      "id": "sdk-wrapper-chain-paints-nothing-but-owns-the-box",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "Every planned value is correct and the composed surface still looks nothing like the design — boxes too tall, content indented, no single rule to blame.",
+      "fix": "Between your element and its content the SDK inserts a CHAIN of hosts (page-mode-composer > dialog-composer > composer-input > input--container). None of them paints, so a paint-only audit never lists them, but each carries its own display/width/padding and they stack. Neutralise the whole chain: display:block, width:100%, min-width:0, padding/margin/border 0, background transparent, box-shadow none, min-height 0. dom-snapshot's unstyledVeltInternals hint now lists layout-only wrappers too (layoutOnly:true).",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, style stage, 2026-08-24)"
+      ]
+    },
+    {
+      "id": "never-neutralize-a-control-or-a-painter",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "Neutralising the SDK wrapper chain blanks the thing it was wrapping — avatars become empty rings, the send button disappears.",
+      "fix": "A wrapper is a PASS-THROUGH container. An element that renders content of its own — button/input/svg/img, or anything named avatar/initial/icon/glyph/badge — is not a wrapper, and zeroing its box erases what it draws. The hint now excludes controls and leaf painters; keep them styled, never neutralised.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, measured: blanket neutralisation emptied every avatar, 2026-08-24)"
+      ]
+    },
+    {
+      "id": "figma-layer-name-is-not-a-css-instruction",
+      "veltVersion": "n/a",
+      "component": "all",
+      "kind": "behavior",
+      "symptom": "A verbatim-copied declaration lays the surface out wrongly even though it came straight from the design.",
+      "fix": "Copy the VALUES, but read the frame's role before adopting layout declarations. A frame named 'justification' carried justify-content:center and centred every comment body; a header row carried justify-content:space-between which is correct in Figma — where a second child (the options kebab) sits at the far edge — but throws the group to the middle when that child is not built in this phase. Adopting space-between from a frame whose sibling you do not render is the common case.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, style stage, 2026-08-24)"
+      ]
+    },
+    {
+      "id": "designs-font-is-not-loaded-and-fonts-check-lies",
+      "veltVersion": "n/a",
+      "component": "all",
+      "kind": "behavior",
+      "symptom": "Every planned font-family is applied and the whole surface still renders in the browser serif.",
+      "fix": "The design's face was never loaded by the app — the host loads its own (Inter here) and the planned family silently falls back. document.fonts.check('16px Poppins') returns TRUE in that state, because it answers 'is this family usable' (fallback included), not 'is this face loaded'; the reliable test is document.fonts, which listed only Inter and Geist. Import the design's face in the customization stylesheet. Measured: the free-drawn mock scored 4.9% against Figma precisely because it imported the face, and that one difference was most of the remaining visual gap.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, style stage, 2026-08-24)"
+      ]
     }
   ]
 }

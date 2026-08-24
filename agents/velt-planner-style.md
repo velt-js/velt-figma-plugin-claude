@@ -36,5 +36,17 @@ You are the **style brain** — the second of TWO planners, dispatched AFTER the
 3. **Fill the style briefs** (the `_todo`s in `briefs/*.probes.json` + `styleRows`): element selector fills (from the vcClasses contract / snapshot), relations/gaps, layer specs, **wrapperRows dispositions** (neutralize vs style, from step 1a), **spacingRows dispositions** (zero vs adopt, from step 1a2 — every listed spacing default gets a decision), **suppressionRows keep-decisions** (which glyph is the design's, citing the exported SVG), **clipRows**, **focusRows** (expected outline/box-shadow decls verbatim from the spec — or the explicit `outline: none` suppression when the design draws no ring). These rows are exactly the loop1 blind-spot classes (D1/D3 wrapper gaps/boxes, overlapping glyphs, clipped hairline, focus ring) — now asserted mechanically. **Exit criterion: `node scripts/brief-scaffold.mjs <phaseDir> --lint-style` exits 0** (every selector token exists in the snapshot corpus; zero `_todo` leftovers).
 4. **Time-box + heartbeat** — identical discipline to the structure planner. Depth = every VISIBLE element of every state placed, not perfection; the judge + strict-fix own convergence.
 
+## State rules are not optional where the design draws states
+
+A family with several state blocks draws DIFFERENT values per state. Planned as one `default` set
+they collapse into the resting state and the other states never differ — which is exactly what a
+flat plan produced on run 5: three composer frames, one set of rules, one appearance. Scope them on
+the customer's own state attribute (`.vc-x[data-vc-…="filled"] .vc-y`), which is the only stable
+state signal — the SDK sets no `data-velt-*` state attributes; they are designed, not built.
+
+The tell is already in your own output: a `--lint-style` **cross-frame conflict** between blocks
+that are STATES of one family is not a divergence to accept, it is a state rule you have not written
+yet. Only a conflict between INSTANCES on one frame (two list rows, two cards) is a real divergence.
+
 ## Output
 `plan-style.json` (rules[] as above) + the filled style briefs + a short summary: rules per purpose (style / neutralize-wrapper / suppress-default / state-rule), snapshot elements left unmapped (each tagged), states that were unreachable, and any `style-plan-gap` items (a design value with no reachable selector — routed to the orchestrator, never improvised). Hand back — you do not build.

@@ -139,7 +139,33 @@ export function SNAPSHOT_FN(surfaceSelector, maxDepth) {
     const isVeltInternal = n.tag.startsWith("velt-") || n.classes.some((c) => c.startsWith("velt-") || c.startsWith("s-"));
     const ownMarkup = n.classes.some((c) => c.startsWith("vc-") || c.startsWith("hw-"));
     if (isVeltInternal && !ownMarkup && n.visible && (n.paints.background || n.paints.border || n.paints.boxShadow || n.paints.outline)) {
-      unstyledVeltInternals.push({ selector: sel(f), box: n.box, paints: n.paints });
+      unstyledVeltInternals.push({ selector: sel(f), box: n.box, paints: n.paints, why: "paints a box the design may not draw" });
+    }
+    // A wrapper that paints NOTHING can still wreck the layout. Between a customer element and its
+    // content the SDK inserts a chain of hosts — page-mode-composer > dialog-composer > composer-input
+    // > input--container — each carrying display/width/padding of its own. None of them paints, so the
+    // paint-only test above never listed them, the planner never dispositioned them, and the composed
+    // result was wrong with no rule to blame it on. The reference build neutralises the whole chain.
+    // A wrapper is IN THE CHAIN when it sits inside customer markup and still has children.
+    // A PASS-THROUGH wrapper only. An element that renders content of its own — a control, a media
+    // leaf, the avatar's painter — is not a wrapper, and zeroing its box erases the thing it draws
+    // (measured: blanket-neutralising the chain turned every avatar into an empty ring and blanked
+    // the send button). The test is behavioural: it has element children, it is not a control, and
+    // it is not a leaf painter.
+    else if (isVeltInternal && !ownMarkup && n.visible && n.children.length &&
+             !/^(button|input|textarea|select|a|svg|img|canvas|video)$/.test(n.tag) &&
+             !/avatar|initial|icon|glyph|badge/i.test(n.tag + " " + n.classes.join(" ")) && (() => {
+               // walk up via parentIdx: is this wrapper inside customer markup?
+               let p = f.parentIdx;
+               while (p != null && p >= 0) {
+                 const pc = flat[p]?.node?.classes || [];
+                 if (pc.some((c) => c.startsWith("vc-") || c.startsWith("hw-"))) return true;
+                 p = flat[p]?.parentIdx;
+               }
+               return false;
+             })()) {
+      unstyledVeltInternals.push({ selector: sel(f), box: n.box, paints: n.paints || {},
+        layoutOnly: true, why: "SDK wrapper between your markup and its content — paints nothing, but carries its own display/width/padding" });
     }
     // DEFAULT-SPACING hint (loop2 root cause): an SDK-internal element carrying non-zero computed
     // spacing is a live layout input the plan must DISPOSITION (keep or zero) — planning design

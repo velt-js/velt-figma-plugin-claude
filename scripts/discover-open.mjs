@@ -193,6 +193,14 @@ if (flag("--apply")) {
       b.liveSelector = commonRoot;
       if (b.browser) b.browser.surfaceSelector = commonRoot;
       b.selectorProvenance = `discover-open: nearest live ancestor containing every planned surface (${surfaces.map((s3) => "." + s3.cls).join(", ")}) — an acceptance block must capture the whole screen, not one surface`;
+      const dataWaits = results.filter((r) => r.status === "became-ready")
+        .map((r) => ({ action: "waitFor", selector: `.${r.cls}`,
+          why: `an acceptance block captures the whole screen, so it must wait for every data-backed surface on it — otherwise the screenshot is of a half-loaded page`,
+          discoveredBy: "scripts/discover-open.mjs" }));
+      const keep = (b.drive?.steps || []).filter((s4) => s4.discoveredBy !== "scripts/discover-open.mjs");
+      b.drive = b.drive || {};
+      b.drive.steps = [...(signedInAs ? [{ action: "selectUser", text: signedInAs, why: "identify before measuring", discoveredBy: "scripts/discover-open.mjs" }] : []), ...keep, ...dataWaits];
+      if (!b.drive.assert && dataWaits.length) b.drive.assert = dataWaits[0].selector;
       await fs.writeFile(path.join(briefDir, f), JSON.stringify(b, null, 2) + "\n");
       written++;
     }
@@ -209,7 +217,17 @@ if (flag("--apply")) {
     const pre = signedInAs
       ? [{ action: "selectUser", text: signedInAs, why: `the app gates its collaboration data behind identification (signs in as ${signedInLabel}); without it the surface has no rows to render`, discoveredBy: "scripts/discover-open.mjs" }]
       : [];
-    b.drive.steps = [...pre, step, ...rest];
+    // WAIT FOR THE DATA, not just the element. A surface whose content arrives asynchronously is in
+    // the DOM long before it has anything in it, so a capture taken on presence alone records an
+    // EMPTY surface and reports success — the style stage then plans against a blank screen.
+    // Measured: the thread list snapshotted at height 0 while the same list rendered 16 threads by
+    // hand moments later. waitFor is the right verb because it waits for VISIBILITY, and an element
+    // with no content has no box — so "visible" is exactly "has content".
+    const dataBacked = results.filter((r) => r.status === "became-ready");
+    const post = dataBacked.map((r) => ({ action: "waitFor", selector: `.${r.cls}`,
+      why: `${r.cls} is data-backed — it exists before its content arrives, so presence alone would capture it empty`,
+      discoveredBy: "scripts/discover-open.mjs" }));
+    b.drive.steps = [...pre, step, ...rest, ...post];
     // Adding steps to a brief that had none would violate the drive contract's "steps without an
     // assert is a false-pass" rule. The open step's own success IS assertable — the surface is
     // present — so supply that rather than leaving the brief in a state our own gate rejects.

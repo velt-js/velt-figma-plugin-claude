@@ -429,6 +429,12 @@
           "path": "<appDir>",
           "required": true,
           "kind": "code"
+        },
+        {
+          "path": "mocks/*.html",
+          "required": true,
+          "kind": "html",
+          "note": "free-drawn per block, paired with frames/<blockId>.png. The SHARED style stage gates on these (mock-gate) and the style planner reads them, so a primitives build that skips them stalls at 4b."
         }
       ],
       "gates": [

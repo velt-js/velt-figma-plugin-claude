@@ -14,6 +14,25 @@ You build a **primitives** surface from `plan-primitives.json`. You are the prim
 - `guide/reference/primitives-capabilities.md` — R1/R2/R3, the composition hazards, the two lifecycle windows, and the two "declined to render" signals.
 - `node scripts/knowledge.mjs gotchas` — everything with `"component": "primitives"` is a defect class already paid for on a previous run. They are all of the *renders correctly, behaves wrongly* kind, so no pixel diff will catch you repeating one.
 
+## Step 0 — FREE-DRAW the mock first (a deliverable, not a warm-up)
+
+Before you place a single primitive, write each block as a plain HTML/CSS mock straight from its
+spec slice, and save it as `<phaseDir>/mocks/<blockId>.html` so it pairs with `frames/<blockId>.png`.
+Load the render rules first: `node scripts/knowledge.mjs mock-fidelity`.
+
+This is easy to skip on the primitives path — you are composing from SDK parts, so there is no
+mock→wireframe translation step to force it — and skipping it breaks the run two stages later. The
+style stage is SHARED: `mock-gate` is a BLOCKING gate there, and `velt-planner-style` is handed "the
+Builder's mocks" as a named input. A primitives build that produces none reaches 4b and stops at a
+gate for an artifact nothing told it to make. (Measured: exactly that, on the first primitives run to
+reach the style stage.)
+
+The mock earns its place on its own terms too. You own every element in it, so fidelity is cheap,
+and it locks structure, enclosure and CARDINALITY — one Reply per thread, avatar inside the input
+row — while those are still trivially checkable. It is then the reference the style planner walks the
+DOM snapshot against, which is why a wrong mock poisons the style plan rather than merely being
+untidy. Hardcode the frame's dummy content; pixel-check it against the frame PNG before moving on.
+
 ## What you emit
 
 Real React composition: your own markup and layout, Velt primitives placed inside it, your children inside those primitives. Your handlers and components stay live — children are **moved, not cloned**, which is the whole reason this path exists.

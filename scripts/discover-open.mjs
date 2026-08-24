@@ -154,6 +154,28 @@ for (const s of surfaces) {
     : found.self ? { ...s, status: "became-ready", box: found.box }
     : { ...s, status: "opener-found", opener: found.selector, label: found.label, box: found.box });
 }
+// A FLOW block is a full-surface acceptance screen, so it must be rooted at an element that holds
+// EVERY planned surface — not at one of them. The scaffold cannot know that container: before the
+// build there is no DOM, so it falls back to a surface's own vcClass and the acceptance snapshot
+// then captures one surface and calls it the whole screen. Measured: flow and flow-2 both rooted at
+// the header, so the composer and the thread list were absent from the very snapshots the style
+// stage treats as the full picture. Live, the container is simply the nearest common ancestor.
+const commonRoot = await page.evaluate((clsList) => {
+  const els = clsList.map((c) => document.querySelector("." + c)).filter(Boolean);
+  if (els.length < 2) return null;
+  let n = els[0];
+  while (n && n !== document.body) {
+    if (els.every((e) => n.contains(e))) {
+      const cls = [...n.classList].filter((c) => !/^ng-/.test(c));
+      if (cls.length) return "." + cls[0];
+      if (n.id) return "#" + n.id;
+      return n.tagName.toLowerCase();
+    }
+    n = n.parentElement;
+  }
+  return null;
+}, surfaces.map((s2) => s2.cls));
+
 await browser.close();
 
 // Write an IDEMPOTENT open step into every brief for a surface whose opener we found. Idempotent
@@ -166,6 +188,14 @@ if (flag("--apply")) {
   for (const f of files) {
     const b = await readJson(path.join(briefDir, f), null);
     if (!b) continue;
+    // Re-root the acceptance blocks on the common container before anything else.
+    if (/^flow/.test(b.blockId || "") && commonRoot) {
+      b.liveSelector = commonRoot;
+      if (b.browser) b.browser.surfaceSelector = commonRoot;
+      b.selectorProvenance = `discover-open: nearest live ancestor containing every planned surface (${surfaces.map((s3) => "." + s3.cls).join(", ")}) — an acceptance block must capture the whole screen, not one surface`;
+      await fs.writeFile(path.join(briefDir, f), JSON.stringify(b, null, 2) + "\n");
+      written++;
+    }
     const surf = results.find((r) => (b.liveSelector || "").includes(r.cls) || (b.browser?.surfaceSelector || "").includes(r.cls));
     if (!surf || surf.status !== "opener-found") continue;
     const step = { action: "eval",
@@ -201,6 +231,7 @@ else {
     else if (r.status === "opener-found") console.log(`✓ ${r.id}: .${r.cls} revealed by '${r.opener}'${r.label ? ` (${r.label})` : ""}`);
     else console.error(`✗ ${r.id}: .${r.cls} could not be revealed by any of ${r.triedCandidates} candidate control(s) — the planner must supply the opener`);
   }
+  if (commonRoot) console.log(`· acceptance blocks re-rooted on '${commonRoot}' (holds every planned surface)`);
   if (signedInAs) console.log(`· signed in as '${signedInAs}'${signedInLabel && signedInLabel !== signedInAs ? ` (${signedInLabel})` : ""} before probing — recorded as a selectUser step`);
   console.log(`\n${unreachable.length ? "✗" : "✓"} discover-open: ${results.length - unreachable.length}/${results.length} surface(s) reachable${flag("--apply") ? ` · ${written} brief(s) updated` : " (dry run — pass --apply)"}`);
 }

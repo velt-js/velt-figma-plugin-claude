@@ -36,6 +36,14 @@ You are the **style brain** — the second of TWO planners, dispatched AFTER the
 3. **Fill the style briefs** (the `_todo`s in `briefs/*.probes.json` + `styleRows`): element selector fills (from the vcClasses contract / snapshot), relations/gaps, layer specs, **wrapperRows dispositions** (neutralize vs style, from step 1a), **spacingRows dispositions** (zero vs adopt, from step 1a2 — every listed spacing default gets a decision), **suppressionRows keep-decisions** (which glyph is the design's, citing the exported SVG), **clipRows**, **focusRows** (expected outline/box-shadow decls verbatim from the spec — or the explicit `outline: none` suppression when the design draws no ring). These rows are exactly the loop1 blind-spot classes (D1/D3 wrapper gaps/boxes, overlapping glyphs, clipped hairline, focus ring) — now asserted mechanically. **Exit criterion: `node scripts/brief-scaffold.mjs <phaseDir> --lint-style` exits 0** (every selector token exists in the snapshot corpus; zero `_todo` leftovers).
 4. **Time-box + heartbeat** — identical discipline to the structure planner. Depth = every VISIBLE element of every state placed, not perfection; the judge + strict-fix own convergence.
 
+## Plan the surface ROOT's box, not only its leaves
+
+Every surface root is a flex CHILD of the SDK's panel. Given no width or `align-self` of its own it
+shrink-wraps to content, and the whole surface collapses while every leaf rule stays individually
+correct — measured on run 5: the header rendered 91px of a 322px rail and its title and filter
+stacked vertically. The coverage gate does not catch it, because the root IS claimed by rules for
+its children. Give each root an explicit box.
+
 ## State rules are not optional where the design draws states
 
 A family with several state blocks draws DIFFERENT values per state. Planned as one `default` set

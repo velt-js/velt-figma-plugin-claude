@@ -596,6 +596,18 @@
       "seenOn": [
         "harvey (primitives run 5, style stage, 2026-08-24)"
       ]
+    },
+    {
+      "id": "surface-root-shrinkwraps-without-an-explicit-stretch",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "A whole composed surface collapses to a fraction of the rail width and its children stack vertically, while every planned value on the leaves is correct.",
+      "fix": "Each surface root is a flex CHILD of the SDK's panel. With no width or align-self of its own it shrink-wraps to content — measured: the sidebar header rendered 91px of a 322px rail, so its title and filter stacked instead of sitting on one row. Plan the ROOT's own box (display, align-self:stretch, width:100%, box-sizing), not just its leaves. The reference build carries exactly this rule on every surface root.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, style stage, 2026-08-24)"
+      ]
     }
   ]
 }

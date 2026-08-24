@@ -589,6 +589,22 @@ async function lint() {
       const attrs = node.ownAttributes || {};
       const has = "defaultCondition" in attrs || "default-condition" in attrs;
       const decided = (s2.parentConditions || []).some((d) => d.primitive === node.primitive && /defaultCondition/i.test(JSON.stringify(d)));
+      // Deciding is not enough — the decision has to achieve what the design shows. A primitive that
+      // reads defaultCondition and is left un-passed keeps the SDK's OWN gate, and when that gate is
+      // false the primitive renders 0x0 AND silently discards the children you placed in it. So
+      // "accept-divergence / not passed" on an element the design DRAWS (it cites a spec node) is a
+      // decision to render nothing. Measured: 16 Reply controls planned that way, 0 with a box.
+      if (has === false || !has) {
+        const acc = (s2.parentConditions || []).find((d) => d.primitive === node.primitive &&
+          /defaultCondition/i.test(JSON.stringify(d)) && d.decision === "accept-divergence");
+        if (acc && node.specNodeId)
+          // ADVISORY, deliberately. Whether the SDK's gate is actually false cannot be known before
+          // the thing runs — for the empty placeholder that same gate is exactly what the design
+          // wants. So this raises the question and skeleton-check, which MEASURES, owns the verdict:
+          // a primitive that renders zero-size in every state fails there as an error.
+          warn("accepted-gate-on-a-drawn-element", `${at} → ${node.primitive}`,
+            `the design DRAWS this (cites ${node.specNodeId}) and the decision leaves the SDK's own defaultCondition gate in force. Where that gate is false the primitive renders 0x0 AND discards the children you place in it. If the design shows this unconditionally, pass defaultCondition={false} and own the visibility; skeleton-check will fail it after the build if it stays invisible.`);
+      }
       if (!has && !decided)
         bad("undecided-defaultcondition", `${at} → ${node.primitive}`,
           `this primitive CALLS defaultCondition(), so the prop is a live opt-out of a real gate here. Either pass it in ownAttributes (and say which condition you are taking over) or record the decision in parentConditions.`);

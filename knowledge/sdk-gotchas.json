@@ -608,6 +608,42 @@
       "seenOn": [
         "harvey (primitives run 5, style stage, 2026-08-24)"
       ]
+    },
+    {
+      "id": "accepting-the-sdk-gate-renders-nothing-and-eats-your-children",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "A control the design draws is placed, passes every lint, and is invisible — and the markup you put inside it is not in the DOM either.",
+      "fix": "A primitive that READS defaultCondition and is left un-passed keeps the SDK's own visibility gate. Where that gate is false the primitive renders 0x0 AND silently discards its hand-placed children, so the glyph and label you composed never appear. Passing defaultCondition={false} is the documented way to take the visibility over. Measured: 16 Reply controls planned as accept-divergence, 0 with a box. Deciding is not enough — the decision has to achieve what the design shows; skeleton-check now fails a planned primitive that renders zero-size in every state.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, judge stage, 2026-08-24)"
+      ]
+    },
+    {
+      "id": "never-neutralize-a-scrollport",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "A long list stops scrolling and grows the panel instead, after the SDK wrapper chain is neutralised.",
+      "fix": "One of those wrappers is the SCROLLPORT. Flattening it to display:block strips the overflow-y and the min-height:0 that let a flex child scroll at all. Neutralise its PAINT and keep overflow/min-height/flex — the reference build carries exactly that on velt-comment-sidebar-list-v2 (flex:1 1 auto, min-height:0, overflow-y:auto). dom-snapshot now marks these isScrollport.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, style stage, 2026-08-24)"
+      ]
+    },
+    {
+      "id": "an-unmapped-design-node-is-silent",
+      "veltVersion": "n/a",
+      "component": "all",
+      "kind": "behavior",
+      "symptom": "A spacing or padding the design clearly shows is simply absent, and no gate says anything.",
+      "fix": "Coverage was only checked one way — is every LIVE element claimed by a rule. An unmapped DESIGN node has no live element to go unclaimed, so the requirement just never arrives. Measured: 611:31382 carries the 16px gap between thread cards and 611:31358 the panel's 12px/16px padding; neither was mapped, both rendered 0, every gate green. brief-scaffold --lint-style now also checks the design→rule direction and refuses a node carrying real values that no rule cites, unless waived in plan-style.unmappedNodes[].",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, judge stage, 2026-08-24)"
+      ]
     }
   ]
 }

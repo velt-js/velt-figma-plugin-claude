@@ -110,7 +110,9 @@ export function SNAPSHOT_FN(surfaceSelector, maxDepth) {
       ...(el.getAttribute?.("data-velt-hidden") ? { veltHidden: el.getAttribute("data-velt-hidden") } : {}),
       box,
       visible: visibleOf(el, cs, box),
-      paints: paintsOf(el, cs),
+      // overflow rides along with the paints so a consumer can tell a SCROLLPORT from a plain box.
+      // Without it every wrapper looks alike and neutralising one silently removes the scrolling.
+      paints: { ...paintsOf(el, cs), ...(/(auto|scroll)/.test(cs.overflowY || "") ? { overflowY: cs.overflowY } : {}) },
       children: [],
     };
     const sp = spacingOf(cs);
@@ -169,8 +171,16 @@ export function SNAPSHOT_FN(surfaceSelector, maxDepth) {
                }
                return false;
              })()) {
+      // A SCROLLPORT is not a pass-through box. Flattening one to display:block strips the overflow
+      // and the min-height:0 that let a flex child scroll at all, and a long list then grows the
+      // panel instead of scrolling inside it. Marked so the disposition can keep those properties.
+      const ov = (n.paints && (n.paints.overflowY || n.paints.overflow)) || "";
+      const isScrollport = /auto|scroll/.test(String(ov));
       unstyledVeltInternals.push({ selector: sel(f), box: n.box, paints: n.paints || {},
-        layoutOnly: true, why: "SDK wrapper between your markup and its content — paints nothing, but carries its own display/width/padding" });
+        layoutOnly: true, ...(isScrollport ? { isScrollport: true } : {}),
+        why: isScrollport
+          ? "SDK SCROLLPORT — neutralise its paint, but keep overflow/min-height/flex or the list stops scrolling"
+          : "SDK wrapper between your markup and its content — paints nothing, but carries its own display/width/padding" });
     }
     // DEFAULT-SPACING hint (loop2 root cause): an SDK-internal element carrying non-zero computed
     // spacing is a live layout input the plan must DISPOSITION (keep or zero) — planning design

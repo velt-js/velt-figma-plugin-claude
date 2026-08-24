@@ -798,6 +798,30 @@ async function main() {
       const covGaps = styleCoverageGaps(rules, snaps, planStyle.defaultOk || []);
       for (const g of covGaps.slice(0, 15)) { console.log(`✗ style-coverage: visible ${g.hasText ? "TEXT" : "painted"} element '${g.selector}' is claimed by NO rule (and not defaultOk) — renders RAW on the unstyled base`); bad++; }
       if (covGaps.length > 15) { console.log(`✗ style-coverage: … and ${covGaps.length - 15} more uncovered element(s)`); }
+      // DESIGN-NODE COVERAGE — the other direction, and the one that was missing. The check above
+      // asks "is every live element claimed by a rule". It cannot notice a DESIGN node that was
+      // never mapped, because an unmapped node has no live element to go unclaimed — the design
+      // simply never arrives. Measured: 611:31382 carries the 16px gap between thread cards and
+      // 611:31358 the panel's 12px/16px padding; neither was mapped, both rendered as 0, and every
+      // gate stayed green. A design value that reaches no selector is a dropped requirement, so it
+      // is named here or waived explicitly in plan-style.unmappedNodes[].
+      {
+        const cited = new Set(rules.map((r) => r.specNodeId).filter(Boolean));
+        const waived = new Set((planStyle.unmappedNodes || []).map((u) => (typeof u === "string" ? u : u.specNodeId)));
+        const LAYOUT_PROPS = /^(display|flex-direction|gap|row-gap|column-gap|padding|margin|width|height|border-radius|border|background|box-shadow|color|font-size|font-weight|line-height)$/;
+        const missed = [];
+        for (const [nid, node] of specById) {
+          if (cited.has(nid) || waived.has(nid)) continue;
+          const decls = node.cssDecls || node.decls || node.expected || {};
+          const props = Object.keys(decls).filter((k) => LAYOUT_PROPS.test(k));
+          if (props.length >= 2) missed.push({ nid, name: node.name || "?", props: props.slice(0, 4) });
+        }
+        for (const m of missed.slice(0, 12))
+          console.log(`✗ design-coverage: node ${m.nid} ('${m.name}', ${m.props.join("/")}) is cited by NO rule — its values reach nothing. Map it, or waive it in plan-style.unmappedNodes[] with a reason.`);
+        if (missed.length > 12) console.log(`✗ design-coverage: … and ${missed.length - 12} more unmapped design node(s)`);
+        bad += missed.length;
+      }
+
       // STALE-PLAN GATE: the plan must have been made against THIS rendered structure. A structure
       // change after plan-style (the fix-pass failure class, seen live loop2) invalidates every
       // selector/placement decision in it — patching onto a stale plan is what turns "fixed" into

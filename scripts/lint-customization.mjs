@@ -29,7 +29,12 @@ const JSON_OUT = process.argv.includes("--json");
 
 async function walk(dir) {
   const out = [];
+  // Vendor trees are not the customer's code. Walking them produced ~1,900 findings from Django's
+  // admin CSS, Tailwind and Next's bundles — noise that buries the handful of real ones and makes
+  // the gate's exit code meaningless.
+  const SKIP = /^(node_modules|\.next|\.git|dist|build|out|coverage|venv|\.venv|__pycache__|site-packages)$/;
   for (const e of await fs.readdir(dir, { withFileTypes: true }).catch(() => [])) {
+    if (e.isDirectory() && SKIP.test(e.name)) continue;
     const p = path.join(dir, e.name);
     if (e.isDirectory()) out.push(...(await walk(p)));
     else out.push(p);
@@ -53,8 +58,18 @@ async function main() {
   const tsx = files.filter((f) => /\.(tsx|jsx|ts|js)$/.test(f));
   const css = files.filter((f) => /\.css$/.test(f));
 
-  // R8 — one stylesheet
-  if (css.length > 1) err("R8", css[1], 0, `${css.length} stylesheets found (${css.map((c) => path.basename(c)).join(", ")}) — all Velt CSS goes in ONE file`);
+  // R8 — the Velt CSS lives in ONE stylesheet. Count only sheets that actually carry customization
+  // CSS: a SELECTOR targeting a velt-*/vc-* class or tag. Every host app has its own globals.css,
+  // and a lone `--velt-default-font-family` variable in it is app font config, not customization —
+  // counting it made the rule fire on every real project.
+  const veltCss = [];
+  for (const f of css) {
+    const src = await fs.readFile(f, "utf8").catch(() => "");
+    const stripped = src.replace(/\/\*[\s\S]*?\*\//g, "");
+    // a selector (not a declaration) mentioning a velt/vc class or custom-element tag
+    if (/(^|[\s,>+~])[.a-zA-Z\[]?[^;{}]*\b(velt-|vc-)[a-zA-Z0-9_-]*[^;{}]*\{/m.test(stripped)) veltCss.push(f);
+  }
+  if (veltCss.length > 1) err("R8", veltCss[1], 0, `${veltCss.length} stylesheets carry Velt CSS (${veltCss.map((c) => path.basename(c)).join(", ")}) — it all goes in ONE file`);
 
   // R1 — exactly one <VeltWireframe>
   let wfCount = 0, wfFiles = [];
@@ -69,7 +84,11 @@ async function main() {
   // R4 — interactive React inside wireframe files
   for (const f of tsx) {
     const src = await fs.readFile(f, "utf8");
-    const declaresWireframe = /Wireframe[\s.>]/.test(src);
+    // A JSX TAG, not the word. Keying on the bare token made a comment explaining why a primitives
+    // build registers NO wireframe ("…VeltButtonWireframe.") mark the host file as a wireframe file,
+    // and every useEffect in it was then reported as inert.
+    const withoutComments = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+    const declaresWireframe = /<\s*[A-Za-z]*Wireframe[\s/>]/.test(withoutComments);
     if (!declaresWireframe) continue;
     for (const { line, text } of findLines(src, /\bonClick=|\bonChange=|\bonMouseDown=|\buseState\s*\(|\buseEffect\s*\(|\buseRef\s*\(/))
       err("R4", f, line, `interactive React inside a wireframe file — cloned to inert DOM, does nothing: ${text}`);

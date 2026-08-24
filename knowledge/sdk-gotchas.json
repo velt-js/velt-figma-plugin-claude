@@ -237,7 +237,7 @@
         ".velt-user-avatar--initial"
       ],
       "symptom": "The avatar initial <span> is EMPTY — the letter lives in its data-modal-author-initial attribute and Velt paints it via CSS content:attr(...). The unstyled base STRIPS that painter, so avatars render with no letter (a correctly-styled empty element, invisible to text checks).",
-      "cssFix": ".s-user-avatar-initial:empty::before, .velt-user-avatar--initial:empty::before { content: attr(data-modal-author-initial); }",
+      "cssFix": ".s-user-avatar-initial:empty::before, .velt-user-avatar--initial:empty::before { content: attr(data-modal-author-initial) !important; }",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (verified live twice: empty span → rendered letter via ::before)"

@@ -679,6 +679,21 @@ async function lint() {
       bad("non-idempotent-drive", at,
         "the first step is a bare click — every block shares ONE reused page, so this toggles what the previous block set up. Guard it: {\"action\":\"eval\",\"js\":\"if(!document.querySelector('<marker>')){ …open… }\"}");
 
+    // (4) a wait for a HIDDEN-marker selector can never be satisfied. dom-snapshot waits for a
+    // locator to be VISIBLE, and `data-velt-hidden="true"` is the SDK saying it parked the element
+    // behind an inline display:none — so the step is a guaranteed 30s timeout that then records the
+    // whole state unreachable. It reads so plausibly ("wait until loading is done") that it survived
+    // review: the loading window really is over when the skeleton hides, but you must wait for what
+    // APPEARS, not for the thing that disappears.
+    for (const st of steps) {
+      // Strip :not(...) first — `:not([data-velt-hidden="true"])` is the CORRECT form (wait for the
+      // element that is NOT hidden), and matching it would flag exactly the fix this rule asks for.
+      const sel2 = (st?.selector || "").replace(/:not\([^)]*\)/g, "");
+      if (/waitFor/i.test(st?.action || "") && /\[data-velt-hidden\s*=\s*['"]?true/.test(sel2))
+        bad("waits-for-hidden-element", at,
+          `step waits for '${sel2}' to be visible, but data-velt-hidden="true" means the SDK gave it an inline display:none — this can only ever time out. Wait for the element that APPEARS when the condition clears instead.`);
+    }
+
     // (3) a surface that needs opening must assert something.
     if (steps.length && !b.drive?.assert)
       bad("drive-without-assert", at, "drive has steps but no assert — the capture can succeed against nothing (classic false-pass)");

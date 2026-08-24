@@ -534,14 +534,17 @@
           "cmd": [
             "node",
             "scripts/dom-snapshot.mjs",
-            "<phaseDir>"
+            "<phaseDir>",
+            "--url",
+            "<appUrl>"
           ],
           "blocking": true,
           "pass": [
             0
           ],
           "fail": {
-            "2": "a planned state is unreachable"
+            "2": "a planned state is unreachable",
+            "1": "usage \u2014 the script needs --url <appUrl>"
           },
           "lens": "functional"
         },
@@ -568,7 +571,9 @@
           "cmd": [
             "node",
             "scripts/console-health.mjs",
-            "<phaseDir>"
+            "<phaseDir>",
+            "--url",
+            "<appUrl>"
           ],
           "blocking": true,
           "pass": [
@@ -576,7 +581,8 @@
           ],
           "fail": {
             "2": "a repeating error signature \u2014 a storm",
-            "3": "usage or environment"
+            "3": "usage or environment",
+            "1": "usage \u2014 the script needs --url <appUrl>"
           },
           "lens": "functional",
           "why": "this early, a storm is a STRUCTURE defect"

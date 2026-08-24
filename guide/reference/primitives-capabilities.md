@@ -120,3 +120,34 @@ Behaviours that produce a **correct-looking, wrong-behaving** result — none of
 | **Inherited `shadowDom`** | Class-based CSS silently stops applying while CSS variables still work — reads as "some CSS is randomly ignored". | Hand-placed primitives **inherit** flags they previously defaulted. Resolve the effective value before choosing a CSS strategy. |
 | **Virtualization divergence** | A hand-composed list renders every row where the built-in shows a window of them. | Expected, not a defect. Own virtualization if the design needs it. |
 | **Unverified mutating actions** | Unknown. | Delete thread, mark-all-read/resolved, make private, assign, unsubscribe, accept/reject suggestion, edit, attachments and recordings were not exercised hand-composed upstream. Build them; report them as unverified. |
+| **Conditional relocated child** | Toggling a composed menu throws `NotFoundError: The node to be removed is not a child of this node` and unmounts the React root. | R1 **moves** your child; React still records the primitive host as its parent. Mount it unconditionally and hide it with CSS. Only a *direct* child of a primitive is relocated — a conditional nested inside your own markup is safe. |
+| **Remount inside the destroy window** | A fast collapse/expand brings a row back as an empty shell, permanently. | `@angular/elements` destroys a disconnected element after **10 ms**, so a reconnect inside that window skips the init that resolves the entity from R2 context. Keep the element connected; collapse with `display:none` on the **host**. |
+| **Inert `defaultCondition`** | The prop typechecks and controls nothing. | It is declared on the shared primitive **bases**, so it compiles on every tag; **216 of 441** never call `defaultCondition()`. See `readsDefaultCondition` in `manifest/velt-primitives.json`. |
+| **Dropped `className` / `style`** | A class on a primitive never reaches the DOM. | The React wrappers' prop types extend `HTMLAttributes`, but **73 of 441** primitive tags have a wrapper that forwards only its declared props plus `children`. Put your classes on your own markup; address the primitive by tag name. See `forwardsClassName` in `manifest/velt-primitives.json`. |
+| **Renamed tag** | A selector built from the manifest tag matches nothing, though the primitive is on screen. | **366 of 441** primitive tags have a wrapper that renders a `-wireframe`-suffixed element — `VeltCommentDialogComposerInput` emits `velt-comment-dialog-composer-input-wireframe`. Build selectors from `emitsTag`, never from the registry name. |
+| **Re-gating a self-conditioned primitive** | A composed surface disagrees with the built-in — an empty state over a populated document, a flicker no pixel diff explains. | **407 of 441** primitives evaluate their own visibility — some via a `shouldShow` computed on the component, some via `shouldShowFor*` helpers inherited from a shared base (`ownsVisibility.viaBaseClass`), and the SDK's condition is the stricter one: the sidebar empty placeholder reads `uiState.noCommentsFound \|\| uiState.noCommentsFoundForAppliedFilters`, separating "empty" from "empty under filters" in a way a row count cannot. Mount it unconditionally. See `ownsVisibility`. |
+| **Declared absence that is not one** | A plan records "no published action/field" and hand-rolls a replacement the SDK already ships. | The **19** element facades publish **434 members and 118 events** (`elementApis`, with `byFacade` for the per-family view). `clearComposer`, `composerTextChange` and `getComposerData` were all recorded as missing on one run. Cite what you ruled out, or drop the claim. |
+
+---
+
+## Lifecycle — the two windows before a primitive can answer anything
+
+A primitive is an Angular custom element, so its conditions cannot run until the element is upgraded. Composed UIs have two windows to cover, and they need different treatment:
+
+1. **Before upgrade.** Every `<velt-*>` is an unknown inline element. It evaluates nothing, so *every* surface you composed paints at once — an empty placeholder over a thread list over a header. Anything that paints in this window must be styled entirely by your own stylesheet, and any `position:absolute` anchored to an element **Velt** renders has no containing block yet, so it resolves against the nearest positioned ancestor further out. Anchor to your own wrapper.
+2. **After upgrade, while data is in flight.** Conditions now run, but the ones that gate on *content* are not gating on *loading*: with `uiState.skeletonLoading` still true the surface has no comments, so an empty placeholder concludes — correctly, by its own lights — that the document is empty.
+
+The skeleton primitive is the one element that distinguishes both windows: it carries no `data-velt-hidden` until the SDK clears `skeletonLoading`. Gating the rest of the surface on that covers both with one signal and no second source of truth.
+
+---
+
+## The two "declined to render" signals
+
+A composed surface must handle both, and they are not the same:
+
+| Signal | What happened | Test | Trap |
+|---|---|---|---|
+| `data-velt-hidden="true"` **+ inline `display:none`** | The primitive **parked your children** — it is not rendering them. | `[data-velt-hidden='true'] { display:none !important }` | An `!important` author rule beats a non-important inline style, so a layout rule such as `display:flex !important` on that host keeps it visible and painting orphaned children that have no handler behind them. |
+| *(nothing)* | The primitive rendered **nothing at all**, so it set no attribute. | `:not(:has(*))` | Easy to miss precisely because there is no attribute to key on. |
+
+In both cases an element with no content is still a flex item and still contributes the parent's `gap`.

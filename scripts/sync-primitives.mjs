@@ -17,6 +17,7 @@
 //   docs/primitives-gates.md                          - the slot<->primitive parity measurement
 //   scripts/primitive-capability-exceptions.json      - primitives that do NOT support a capability
 //   scripts/primitive-parent-conditions.baseline.json - conditions a parent owns that the primitive can't evaluate
+//   src/app/**/*.component.ts (+ templates)           - DERIVED: which primitives actually read `defaultCondition`
 //
 // USAGE
 //   node scripts/sync-primitives.mjs                  # from the vendored snapshot in manifest/primitives-src/
@@ -224,6 +225,356 @@ async function vendorFromSdk(sdkPath) {
     await fs.writeFile(path.join(SRC, name), body);
     console.log(`  re-vendored ${name}`);
   }
+  await deriveDefaultConditionReaders(sdkPath);
+  await deriveSelfConditions(sdkPath);
+  await deriveSdkParents(sdkPath);
+}
+
+// ---------------------------------------------------------------------------
+// DERIVED (not copied): which primitives actually read `defaultCondition`.
+//
+// WHY. `defaultCondition` is declared on the shared primitive bases, so it typechecks on EVERY
+// primitive and a generator will happily pass it anywhere. On most tags nothing consumes it. The
+// harvey primitives run shipped seven such uses — the whole sidebar-V2 filter-dropdown family plus
+// the sidebar header — where the prop is read by nothing at all; they looked like deliberate
+// visibility control and were inert. Passing it where it is not read is worse than useless: it
+// documents an intent the code does not have, and it sends the next reader looking for a gate.
+//
+// HOW. A component reads it if its own `.ts` or template CALLS `defaultCondition()`, or calls a base
+// helper that gates on it. Declaration alone does not count — `comment-dialog-options-dropdown-content`
+// re-declares the input at L262 and never calls it, which a textual `defaultCondition` grep scores as
+// a reader. The key is the component SELECTOR with `-internal` stripped, not `componentId`:
+// `velt-comment-sidebar-skeleton-v2-internal` carries `componentId = 'velt-comments-sidebar-skeleton-v2'`
+// (plural), which does not match its own tag.
+//
+// This is a HEURISTIC over source text and it is recorded as one. lint-primitives P10 is a WARNING,
+// never an error, precisely because a false negative here would block a correct build.
+const BASE_HELPERS_THAT_GATE = ["shouldShowForFilterPanel"];
+
+async function deriveDefaultConditionReaders(sdkPath) {
+  const appDir = path.join(sdkPath, "src/app");
+  const files = [];
+  const walk = async (d) => {
+    for (const e of await fs.readdir(d, { withFileTypes: true }).catch(() => [])) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) { await walk(p); continue; }
+      if (e.name.endsWith(".component.ts") && !e.name.endsWith(".spec.ts")) files.push(p);
+    }
+  };
+  await walk(appDir);
+  if (!files.length) { console.error(`✗ no *.component.ts under ${appDir}`); process.exit(1); }
+
+  const readers = new Set();
+  const scanned = new Set();
+  const callRe = new RegExp(`\\b(?:defaultCondition|${BASE_HELPERS_THAT_GATE.join("|")})\\s*\\(`);
+  for (const f of files) {
+    const src = await fs.readFile(f, "utf8").catch(() => null);
+    if (!src) continue;
+    const sel = src.match(/selector:\s*['"]([a-z0-9-]+)['"]/);
+    if (!sel || !/^(velt|snippyly)-/.test(sel[1])) continue;
+    const tag = sel[1].replace(/-internal$/, "");
+    scanned.add(tag);
+    let tpl = "";
+    const t = src.match(/templateUrl:\s*['"]([^'"]+)['"]/);
+    if (t) tpl = await fs.readFile(path.resolve(path.dirname(f), t[1]), "utf8").catch(() => "");
+    if (callRe.test(src) || callRe.test(tpl)) readers.add(tag);
+  }
+
+  const doc = {
+    _doc: "DERIVED from SDK component sources by scripts/sync-primitives.mjs — which primitive tags CALL defaultCondition(). Heuristic; lint P10 treats it as advisory (warning), never as an error.",
+    method: "selector (minus -internal) -> component .ts + templateUrl scanned for a CALL to defaultCondition() or a base helper that gates on it",
+    baseHelpersThatGate: BASE_HELPERS_THAT_GATE,
+    scannedTags: scanned.size,
+    readers: [...readers].sort(),
+  };
+  await fs.writeFile(path.join(SRC, "default-condition-readers.json"), JSON.stringify(doc, null, 2) + "\n");
+  console.log(`  derived default-condition-readers.json (${readers.size} reader(s) of ${scanned.size} scanned tag(s))`);
+}
+
+// ---------------------------------------------------------------------------
+// DERIVED (not copied): which primitives evaluate their OWN visibility condition.
+//
+// WHY. Run 5's planner gated the sidebar empty placeholder on its own read of
+// `data.listRows` + `uiState.skeletonLoading`. The primitive already owns that decision —
+// `shouldShow` reads `uiState.noCommentsFound || uiState.noCommentsFoundForAppliedFilters`,
+// which additionally separates "empty document" from "empty under the applied filters", a
+// distinction a row count structurally cannot make. A customer-side re-derivation of a gate the
+// SDK already computes can only ever DISAGREE with it, and the guide already says so in prose
+// ("Never plan a re-implementation of a gate the primitive already computes"). Prose is not
+// enforcement: nothing read those words at plan time, so the plan passed every gate.
+//
+// This records, per tag, that a self-condition exists and WHICH config fields it consumes, so
+// scaffold-primitives --lint can refuse a plan whose r3.reads collide with them.
+//
+// HOW. Find the component's `shouldShow` (the SDK's uniform name for this computed) and collect
+// the `uiState.` / `data.` / `appState.` / `featureState.` field paths it dereferences. Both
+// `config?.uiState?.x` and `this.componentConfigSignal()?.uiState?.x` spellings occur.
+async function deriveSelfConditions(sdkPath) {
+  // Visibility logic is NOT declared uniformly. The comment tree writes `shouldShow = computed(...)`
+  // on the component itself; the notifications tree declares `shouldShowForPane()` /
+  // `shouldShowForTab()` on a shared BASE and folds them into each primitive, so the concrete
+  // component has no `shouldShow` at all. Matching only the first style found 175 tags and reported
+  // ZERO for NotificationsPanel (64 tags), ActivityLog (27) and Autocomplete (14) — families that
+  // plainly gate themselves. A rule that silently never fires for a third of the registry is worse
+  // than no rule, because it reads as "checked, nothing found".
+  //
+  // So: collect every `shouldShow*` member in the SDK with the config fields it reads, then resolve
+  // each component's INHERITANCE CHAIN and union in whatever its bases contribute.
+  const appDir = path.join(sdkPath, "src/app");
+  const files = [];
+  const walk = async (d) => {
+    for (const e of await fs.readdir(d, { withFileTypes: true }).catch(() => [])) {
+      const p2 = path.join(d, e.name);
+      if (e.isDirectory()) { await walk(p2); continue; }
+      if (e.name.endsWith(".ts") && !e.name.endsWith(".spec.ts")) files.push(p2);
+    }
+  };
+  await walk(appDir);
+  if (!files.length) { console.error(`✗ no *.ts under ${appDir}`); process.exit(1); }
+
+  const FIELD = /\.\s*(uiState|data|appState|featureState)\s*\??\.\s*([A-Za-z0-9_]+)/g;
+  // Slice a member body by brace balance from its declaration — a fixed line window clips the long ones.
+  const bodyAt = (src, idx) => {
+    const open = src.indexOf("{", idx);
+    if (open < 0) return "";
+    let depth = 0;
+    for (let j = open; j < src.length; j++) {
+      if (src[j] === "{") depth++;
+      else if (src[j] === "}") { depth--; if (depth === 0) return src.slice(idx, j + 1); }
+    }
+    return "";
+  };
+
+  const classes = {};   // className -> { extends, gates:Set(fields), hasGate:bool }
+  const tagOfClass = {};
+  for (const f of files) {
+    const src = await fs.readFile(f, "utf8").catch(() => null);
+    if (!src) continue;
+    for (const cm of src.matchAll(/export\s+(?:abstract\s+)?class\s+([A-Za-z0-9_]+)(?:\s+extends\s+([A-Za-z0-9_]+))?/g)) {
+      const [, name, base] = cm;
+      const rec = (classes[name] ||= { extends: base || null, gates: new Set(), hasGate: false });
+      if (base) rec.extends = base;
+      // Every shouldShow-ish member declared anywhere in this file, attributed to this class. Files
+      // hold one exported class in this codebase, so file-scope attribution is safe here.
+      for (const gm of src.matchAll(/\bshouldShow[A-Za-z0-9_]*\s*(?:=\s*computed\s*\(|\s*\()/g)) {
+        rec.hasGate = true;
+        const body = bodyAt(src, gm.index);
+        for (const fm of body.matchAll(FIELD)) rec.gates.add(`${fm[1]}.${fm[2]}`);
+      }
+    }
+    const sel = src.match(/selector:\s*['"]([a-z0-9-]+)['"]/);
+    const cls = src.match(/export\s+class\s+([A-Za-z0-9_]+)/);
+    if (sel && cls && /^(velt|snippyly)-/.test(sel[1])) tagOfClass[cls[1]] = sel[1].replace(/-internal$/, "");
+  }
+
+  const resolve = (name, seen = new Set()) => {
+    const rec = classes[name];
+    if (!rec || seen.has(name)) return { hasGate: false, gates: new Set() };
+    seen.add(name);
+    const up = rec.extends ? resolve(rec.extends, seen) : { hasGate: false, gates: new Set() };
+    return { hasGate: rec.hasGate || up.hasGate, gates: new Set([...rec.gates, ...up.gates]) };
+  };
+
+  const out = {};
+  for (const [cls, tag] of Object.entries(tagOfClass)) {
+    const r = resolve(cls);
+    if (!r.hasGate) continue;
+    out[tag] = { computesOwnVisibility: true, reads: [...r.gates].sort(), viaBaseClass: !classes[cls]?.hasGate };
+  }
+
+  const doc = {
+    _doc: "DERIVED from SDK sources by scripts/sync-primitives.mjs — which primitive tags evaluate their OWN visibility, and which config fields that evaluation reads. Covers BOTH declaration styles: a `shouldShow` computed on the component, and `shouldShowFor*` helpers declared on a shared base and inherited (`viaBaseClass: true`). scaffold-primitives --lint uses this to refuse a plan that re-implements a gate the primitive already owns.",
+    method: "every shouldShow* member in the SDK -> its uiState./data./appState./featureState. field reads -> unioned along each component's `extends` chain -> keyed by component selector (minus -internal)",
+    scannedFiles: files.length,
+    tags: Object.fromEntries(Object.entries(out).sort(([a], [b]) => a.localeCompare(b))),
+  };
+  await fs.writeFile(path.join(SRC, "self-conditions.json"), JSON.stringify(doc, null, 2) + "\n");
+  const viaBase = Object.values(out).filter((v) => v.viaBaseClass).length;
+  console.log(`  derived self-conditions.json (${Object.keys(out).length} tag(s) own their visibility, ${viaBase} via a base class)`);
+}
+
+// ---------------------------------------------------------------------------
+// DERIVED (not copied): what each React wrapper actually EMITS, and whether it forwards
+// arbitrary props (className/style among them).
+//
+// WHY. Two independent traps, both invisible to the compiler:
+//
+//  (1) DROPPED className. The wrapper prop types extend HTMLAttributes, so `className` typechecks
+//      on every primitive — but the SidebarV2 wrappers destructure ONLY their declared props plus
+//      children, so the class never reaches the DOM. Run 5's planner put six vc-* contract classes
+//      on primitive nodes; the style stage would then have planned selectors against classes that
+//      can never exist, which is exactly the "planned class existed nowhere in the DOM" failure
+//      skeleton-check exists to catch — three stages and one build too late.
+//
+//  (2) A DIFFERENT TAG than the manifest name. `VeltCommentDialogComposerInput` renders
+//      `velt-comment-dialog-composer-input-wireframe`, not `...-input`. Anything that reasons about
+//      the rendered DOM from the manifest tag — a planned selector, a probe, a snapshot assertion —
+//      is then addressing an element that is not there.
+//
+// HOW. Parse the wrapper bodies out of the installed package's ESM bundle. A wrapper that calls
+// `__rest(props, [...])` and spreads the remainder forwards arbitrary props; one that destructures
+// named props only does not. The emitted tag is the first argument to React.createElement.
+async function deriveReactWrappers(reactPkgPath) {
+  const esm = path.join(reactPkgPath, "esm", "index.js");
+  const src = await fs.readFile(esm, "utf8").catch(() => null);
+  if (!src) { console.error(`✗ cannot read ${esm} — pass --react <path to node_modules/@veltdev/react>`); process.exit(1); }
+
+  const pkg = await readJSON(path.join(reactPkgPath, "package.json"), {}).catch(() => ({}));
+  const byTag = {};
+  const byComponent = {};
+  const RE = /var\s+(Velt[A-Za-z0-9_$]*)\s*=\s*function\s*\(props\)\s*\{/g;
+  let m;
+  while ((m = RE.exec(src))) {
+    const name = m[1];
+    let i = src.indexOf("{", m.index), depth = 0, end = -1;
+    for (let j = i; j < src.length; j++) {
+      if (src[j] === "{") depth++;
+      else if (src[j] === "}") { depth--; if (depth === 0) { end = j; break; } }
+    }
+    if (end < 0) continue;
+    const body = src.slice(i, end + 1);
+    const tagM = body.match(/React\.createElement\(\s*["']([a-z][a-z0-9-]*)["']/);
+    if (!tagM) continue;                              // not a custom-element wrapper
+    const emits = tagM[1];
+    const forwards = /__rest\s*\(\s*props\s*,/.test(body);
+    const rec = { component: name.replace(/\$\d+$/, ""), emits, forwardsArbitraryProps: forwards };
+    byComponent[rec.component] = rec;
+    // The manifest tag is the emitted tag minus a -wireframe suffix when the wrapper adds one.
+    const manifestTag = emits.replace(/-wireframe$/, "");
+    if (!byTag[manifestTag] || forwards) byTag[manifestTag] = rec;
+  }
+
+  const doc = {
+    _doc: "DERIVED from the installed @veltdev/react ESM bundle by scripts/sync-primitives.mjs. `forwardsArbitraryProps:false` means className/style are DESTRUCTURED AWAY and never reach the DOM — put contract classes on your own markup and address the primitive by tag. `emits` is the tag the wrapper actually renders, which is not always the manifest tag.",
+    method: "wrapper function bodies parsed out of esm/index.js; __rest(props,...) => forwards; first React.createElement string arg => emitted tag",
+    source: `@veltdev/react ${pkg.version || "unknown"}`,
+    wrappers: Object.keys(byComponent).length,
+    dropsClassName: Object.values(byComponent).filter((r) => !r.forwardsArbitraryProps).length,
+    renamesTag: Object.values(byComponent).filter((r) => /-wireframe$/.test(r.emits)).length,
+    byTag: Object.fromEntries(Object.entries(byTag).sort(([a], [b]) => a.localeCompare(b))),
+  };
+  await fs.writeFile(path.join(SRC, "react-wrappers.json"), JSON.stringify(doc, null, 2) + "\n");
+  console.log(`  derived react-wrappers.json (${doc.wrappers} wrappers · ${doc.dropsClassName} drop className · ${doc.renamesTag} emit a -wireframe tag)`);
+}
+
+// ---------------------------------------------------------------------------
+// DERIVED (not copied): the PUBLISHED element-facade methods and event names.
+//
+// WHY. Run 5's planner recorded two capabilities as unavailable that the SDK publishes:
+// the composer's Cancel was called a gap with "no published action" when
+// `clearComposer(ClearComposerRequest)` is public, and composer content state was called a gap
+// with "no published field" when `composerTextChange` is a published event and
+// `getComposerData()` a one-time fetch. It then planned to scrape a contenteditable instead —
+// the exact fallback the guide forbids. The planner's own brief already warns
+// ("'No method on the element facade' is not 'no public API'"), which again is prose that
+// nothing checked.
+//
+// Recording the real inventory lets scaffold-primitives --lint refuse a declared absence whose
+// name matches something the SDK actually ships.
+async function deriveElementApis(typesPkgPath) {
+  // EVERY element facade, not just the comment one. The SDK ships 19 (`notification`, `presence`,
+  // `recorder`, `activity`, `reaction`, `contact`, `huddle`, …) and a primitives run can target any
+  // family the reachability gate allows. Scanning one facade made the inventory silently wrong for
+  // every non-comment surface: a plan for a notifications panel would be judged against comment
+  // methods, so a real absence would go uncaught and a real API would be reported as missing.
+  //
+  // Declaration style is NOT uniform either. comment-element writes `public openCommentDialog: (…)`,
+  // while notification-element writes `openHistoryPanel: () => void`. Keying on `public` alone found
+  // 229 methods on one facade and ZERO on twelve others that plainly have them.
+  const dir = path.join(typesPkgPath, "app/models/element");
+  const files = (await fs.readdir(dir).catch(() => [])).filter((f) => f.endsWith(".model.d.ts"));
+  if (!files.length) { console.error(`✗ no element models under ${dir} — pass --types <path to node_modules/@veltdev/types>`); process.exit(1); }
+
+  // A member declaration: optional `public`, a name, then `:` (property-style, incl. arrow types) or
+  // `(` (method-style). Excludes `private`/`protected` and the `constructor`.
+  const MEMBER = /^\s*(?!private\b|protected\b|constructor\b)(?:public\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*[:(]/gm;
+  const byFacade = {};
+  const all = new Set();
+  for (const f of files) {
+    const src = await fs.readFile(path.join(dir, f), "utf8").catch(() => "");
+    const facade = f.replace(/-element\.model\.d\.ts$/, "");
+    const names = new Set();
+    for (const m of src.matchAll(MEMBER)) names.add(m[1]);
+    byFacade[facade] = [...names].sort();
+    for (const n of names) all.add(n);
+  }
+
+  // Events are declared once, feature-wide, in the shared enum file.
+  const enums = await fs.readFile(path.join(typesPkgPath, "app/utils/enums.d.ts"), "utf8").catch(() => "");
+  const events = new Set();
+  for (const m of enums.matchAll(/readonly\s+[A-Z0-9_]+\s*:\s*["']([a-zA-Z0-9_]+)["']/g)) events.add(m[1]);
+
+  const pkg = await readJSON(path.join(typesPkgPath, "package.json"), {}).catch(() => ({}));
+  const doc = {
+    _doc: "DERIVED from the installed @veltdev/types by scripts/sync-primitives.mjs — the members of EVERY element facade plus the published event names. scaffold-primitives --lint refuses a plan that records a GAP for something named here. Both declaration styles are covered: `public name: (…)` and `name: (…) => …`.",
+    method: "every app/models/element/*.model.d.ts -> member declarations (public or bare, property- or method-style, minus private/protected/constructor); event names from the readonly enums in app/utils/enums.d.ts",
+    source: `@veltdev/types ${pkg.version || "unknown"}`,
+    facades: files.length,
+    byFacade,
+    methods: [...all].sort(),
+    events: [...events].sort(),
+  };
+  await fs.writeFile(path.join(SRC, "element-apis.json"), JSON.stringify(doc, null, 2) + "\n");
+  console.log(`  derived element-apis.json (${files.length} facade(s) · ${all.size} member(s) · ${events.size} event(s))`);
+}
+
+// ---------------------------------------------------------------------------
+// DERIVED (not copied): the SDK's OWN containment graph — which primitive each primitive is
+// rendered inside by the built-in templates.
+//
+// WHY. A hand-composed tree can place a primitive anywhere it likes, and the compiler, the lint and
+// a pixel diff are all equally happy. But the built-in composition is load-bearing: the sidebar
+// filter dropdown is rendered INSIDE velt-comment-sidebar-header-v2, and the header, page-mode
+// composer, list and empty placeholder are all rendered inside velt-comment-sidebar-panel-v2. A
+// primitive lifted out of its built-in parent loses whatever that parent supplies — positioning
+// context, a local UI state, an anchor for a popover — and the failure is silent.
+//
+// Run 5's planner placed the filter dropdown with no header ancestor and every surface with no
+// panel ancestor. Nothing said a word. The golden reference places the header explicitly, which is
+// the tell that the omission was a defect and not a simplification.
+//
+// This is ADVISORY, not blocking: a host may legitimately supply the container (the sidebar root
+// renders the panel), so absence is a question to answer, not proof of a bug.
+async function deriveSdkParents(sdkPath) {
+  const appDir = path.join(sdkPath, "src/app");
+  const files = [];
+  const walk = async (d) => {
+    for (const e of await fs.readdir(d, { withFileTypes: true }).catch(() => [])) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) { await walk(p); continue; }
+      if (e.name.endsWith(".component.ts") && !e.name.endsWith(".spec.ts")) files.push(p);
+    }
+  };
+  await walk(appDir);
+
+  const parents = {};       // child tag -> Set(parent tags)
+  let scanned = 0;
+  for (const f of files) {
+    const src = await fs.readFile(f, "utf8").catch(() => null);
+    if (!src) continue;
+    const sel = src.match(/selector:\s*['"]([a-z0-9-]+)['"]/);
+    if (!sel || !/^(velt|snippyly)-/.test(sel[1])) continue;
+    const parent = sel[1].replace(/-internal$/, "");
+    const t = src.match(/templateUrl:\s*['"]([^'"]+)['"]/);
+    if (!t) continue;
+    const tpl = await fs.readFile(path.resolve(path.dirname(f), t[1]), "utf8").catch(() => "");
+    if (!tpl) continue;
+    scanned++;
+    for (const m of tpl.matchAll(/<((?:velt|snippyly)-[a-z0-9-]+)/g)) {
+      const child = m[1].replace(/-internal$/, "");
+      if (child === parent) continue;                       // self-recursive templates
+      (parents[child] ||= new Set()).add(parent);
+    }
+  }
+
+  const doc = {
+    _doc: "DERIVED from SDK component templates by scripts/sync-primitives.mjs — the built-in containment graph. `sdkParents[child]` lists the primitives whose OWN template renders that child. A composed tree that places a child outside every one of its built-in parents loses whatever the parent supplies (positioning, local UI state, popover anchoring) and does so silently. Advisory: a host may supply the container instead.",
+    method: "component selector (minus -internal) -> its templateUrl -> every <velt-*|snippyly-*> tag the template opens",
+    scannedTemplates: scanned,
+    sdkParents: Object.fromEntries(Object.entries(parents).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, [...v].sort()])),
+  };
+  await fs.writeFile(path.join(SRC, "sdk-parents.json"), JSON.stringify(doc, null, 2) + "\n");
+  console.log(`  derived sdk-parents.json (${Object.keys(parents).length} tag(s) have a built-in parent, from ${scanned} template(s))`);
 }
 
 async function build() {
@@ -270,6 +621,24 @@ async function build() {
   const exceptionsByTag = {};
   for (const e of exceptionsDoc.exceptions || []) (exceptionsByTag[e.component] ||= []).push({ capability: e.capability, reason: e.reason });
 
+  // DERIVED, optional: which tags actually read `defaultCondition` (see deriveDefaultConditionReaders).
+  // Absent snapshot -> every entry is `null` (unknown) and lint P10 stays silent rather than guessing.
+  const dcDoc = await fs.readFile(path.join(SRC, "default-condition-readers.json"), "utf8")
+    .then(JSON.parse).catch(() => null);
+  const dcReaders = dcDoc ? new Set(dcDoc.readers || []) : null;
+
+  // DERIVED, optional: primitives that evaluate their own visibility, and what the React wrapper
+  // actually emits / forwards. Absent snapshot -> the field is null (unknown) and the matching lint
+  // rule stays silent; a false positive here would block a correct build.
+  const selfDoc = await fs.readFile(path.join(SRC, "self-conditions.json"), "utf8")
+    .then(JSON.parse).catch(() => null);
+  const wrapDoc = await fs.readFile(path.join(SRC, "react-wrappers.json"), "utf8")
+    .then(JSON.parse).catch(() => null);
+  const apiDoc = await fs.readFile(path.join(SRC, "element-apis.json"), "utf8")
+    .then(JSON.parse).catch(() => null);
+  const parentsDoc = await fs.readFile(path.join(SRC, "sdk-parents.json"), "utf8")
+    .then(JSON.parse).catch(() => null);
+
   const primitives = {};
   for (const tag of tags) {
     const family = familyFor(tag);
@@ -288,6 +657,19 @@ async function build() {
       requiresTriggerAncestor: null,               // filled below
       parentOwnedConditions: conds.length ? conds : null,
       capabilityExceptions: exceptionsByTag[tag] || null,
+      // true = the SDK component calls defaultCondition(); false = it does not, so passing the prop
+      // is inert; null = not derived (no vendored snapshot). Advisory only — lint P10 is a warning.
+      readsDefaultCondition: dcReaders ? dcReaders.has(tag) : null,
+      // The primitive evaluates its OWN visibility. Re-deriving these fields customer-side can only
+      // disagree with the SDK, so scaffold-primitives --lint refuses a plan whose r3.reads collide.
+      ownsVisibility: selfDoc ? (selfDoc.tags?.[tag] || null) : null,
+      // false = the React wrapper destructures declared props only, so className/style NEVER reach
+      // the DOM. `emitsTag` is what it actually renders, which is not always this tag.
+      forwardsClassName: wrapDoc ? (wrapDoc.byTag?.[tag]?.forwardsArbitraryProps ?? null) : null,
+      emitsTag: wrapDoc ? (wrapDoc.byTag?.[tag]?.emits ?? null) : null,
+      // The primitives whose BUILT-IN template renders this one. Composing it outside all of them
+      // silently forfeits whatever the parent supplies. Advisory — a host may supply the container.
+      sdkParents: parentsDoc ? (parentsDoc.sdkParents?.[tag] || null) : null,
     };
   }
   // Reverse-index the compound-trigger relation onto the descendant leaves (lint P1 reads this).
@@ -341,6 +723,10 @@ async function build() {
       note: "The SDK coverage matrix scores R3 443/443 across all 13 families but names only these 6 public getters. Families without a named getter are recorded as null — NOT inferred. Never emit a getter name that is not listed here.",
       familiesWithoutNamedGetter: Object.keys(families).filter((f) => !R3_GETTERS[f]),
     },
+    // The PUBLISHED element facade — every method and event name the installed @veltdev/types ships.
+    // This is the answer to "is there really no API for this?", which a planner must consult BEFORE
+    // recording a gap. Absent snapshot -> null, and the matching lint rule stays silent.
+    elementApis: apiDoc ? { source: apiDoc.source, facades: apiDoc.facades, byFacade: apiDoc.byFacade, methods: apiDoc.methods, events: apiDoc.events } : null,
     parity,
     surfaceReachability: SURFACE_REACHABILITY,
     primitives,
@@ -450,6 +836,13 @@ async function main() {
   await fs.mkdir(SRC, { recursive: true });
   const sdk = val("--sdk");
   if (sdk) { console.log(`re-vendoring from ${sdk}`); await vendorFromSdk(sdk); }
+  // The React wrapper bodies and the element facade live in the CONSUMING app's node_modules, not
+  // in the SDK repo, so they are vendored separately. Both are optional: absent snapshots leave the
+  // derived manifest fields null and every lint rule that reads them stays silent rather than guess.
+  const reactPkg = val("--react");
+  if (reactPkg) { console.log(`deriving React wrapper behaviour from ${reactPkg}`); await deriveReactWrappers(reactPkg); }
+  const typesPkg = val("--types");
+  if (typesPkg) { console.log(`deriving element APIs from ${typesPkg}`); await deriveElementApis(typesPkg); }
 
   const manifest = await build();
   const next = stable(manifest);

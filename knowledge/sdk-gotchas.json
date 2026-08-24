@@ -392,6 +392,162 @@
         "harvey (primitives run 2026-08-13)",
         "pre-existing build-gotchas entry (corroborates)"
       ]
+    },
+    {
+      "id": "primitive-children-are-relocated-so-a-conditional-child-crashes-react",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "Toggling a menu or popover composed from primitives throws `NotFoundError: The node to be removed is not a child of this node` and unmounts the whole React root.",
+      "fix": "R1 MOVES customer children out of the host into the primitive's anchor, but React still records the HOST as their parent. Unmounting a direct child of a primitive makes React call removeChild(host, node) on a node whose real parent is now elsewhere. Mount it unconditionally and hide it with CSS off a data-* attribute on your own ancestor. The rule is narrow on purpose: only a node R1 RELOCATED is at risk — a conditional nested inside your own markup is untouched and safe. Lint P9.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
+      ]
+    },
+    {
+      "id": "never-unmount-a-primitive-you-will-remount",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "Collapsing and re-expanding a row quickly brings it back as an empty shell — permanently, and only under fast toggling.",
+      "fix": "@angular/elements destroys a disconnected element after a 10ms delay. A fast collapse/expand reconnects the host INSIDE that window, so the component never re-runs the init that resolves its entity from R2 context. Measured: the message element's innerHTML was 77 bytes against 660+ on a working row, while the host's __veltContext still carried the correct comment-id. Keep the element CONNECTED and collapse with display:none on the HOST — a 0-height host is still a flex item and still draws the parent's gap.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
+      ]
+    },
+    {
+      "id": "two-distinct-declined-to-render-signals",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "A composed control looks live and does nothing, or an invisible primitive keeps its box and drags the layout.",
+      "fix": "There are TWO signals and a composed UI needs both. (1) The primitive parked your children: it sets data-velt-hidden=\"true\" AND an inline display:none on the host — an !important author rule beats a non-important inline style, so a layout rule like `display:flex !important` on that host keeps it visible and painting orphaned children. Collapse with `[data-velt-hidden='true'] { display:none !important }`. (2) The primitive rendered nothing at all: it sets NO attribute, so the test is `:not(:has(*))`. Measured: a Delete row reported data-velt-hidden=true and style.display=none yet computed to display:flex, 36px tall, on another user's comment.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
+      ]
+    },
+    {
+      "id": "default-condition-is-declared-on-the-base-not-read-by-every-tag",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "`defaultCondition` typechecks on every primitive and appears to control visibility; on most tags nothing reads it.",
+      "fix": "It is declared on the shared primitive bases, so it compiles anywhere. 216 of 441 registry tags never call defaultCondition() — the whole sidebar-V2 filter-dropdown family among them. Passing it there is worse than useless: it documents a gate that does not exist. manifest/velt-primitives.json now carries readsDefaultCondition, derived from the SDK's component sources; lint P10 warns. Where it IS read, it is an opt-OUT of a real condition — name the condition you are overriding.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
+      ]
+    },
+    {
+      "id": "status-fallback-ids-are-not-the-workspace-catalog",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "A status filter works in the demo workspace and silently empties the list for a customer who configured their own statuses.",
+      "fix": "\"OPEN\"/\"IN_PROGRESS\"/\"RESOLVED\" are only CustomFilterService's fallback ids. A configured workspace has its own, classified by status.type ('terminal' for resolved-like). There is no public getter for the catalog (setCustomStatus is a setter with no counterpart), so derive the id sets from the live UNFILTERED annotations by status.type — unfiltered, so the derivation still sees resolved threads while the filter is hiding them. Test resolved-ness with status.type === 'terminal', never status.id === 'RESOLVED'. Lint P11.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
+      ]
+    },
+    {
+      "id": "set-comment-sidebar-filters-merges-by-key",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "Un-selecting a filter does nothing; the previous filter stays applied.",
+      "fix": "setCommentSidebarFilters MERGES: a present key overwrites that field, [] clears just that field, an ABSENT key keeps the previous value, {} clears everything. Build the object by VALUE — send every key the menu owns on every call, with [] for the off state — never by omission. Measured: mentions-on gave 2 of 10 threads and mentions-off gave the same 2, because the following call carried no `tagged` key at all. Also call it from the handler: an updater passed to setState must be pure, and React runs updaters twice in StrictMode (lint P13).",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
+      ]
+    },
+    {
+      "id": "a-primitives-own-inputs-are-part-of-the-public-api",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "A control is written off as unreachable because no method for it exists on the element facade, and gets faked with customer state.",
+      "fix": "\"No method on the element facade\" is not the same as \"no public API\". Check the primitive's own INPUTS first. velt-comment-sidebar-filter-dropdown-content-list-item-v2 accepts group-id + item-id, resolves the canonical item from the SDK's quick-filter registry and runs the real updateSort on click — the sort rows had been emitted inert with a hardcoded tick.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
+      ]
+    },
+    {
+      "id": "react-wrappers-drop-classname-and-style",
+      "veltVersion": "1.x (@veltdev/react 6.0.0-beta.15)",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "A className on a Velt primitive typechecks and never reaches the DOM.",
+      "fix": "The wrapper prop types extend HTMLAttributes, so className/style/id typecheck, but the wrappers destructure only their declared props plus children and forward nothing else — 1269 of 1269 wrappers. Put your own classes on your OWN markup and address the primitive by tag name, scoped under a class you control.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
+      ]
+    },
+    {
+      "id": "unupgraded-primitives-all-paint-at-once",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "On refresh, mutually exclusive surfaces flash together for a frame — an empty placeholder over a thread list, sometimes escaping its container entirely.",
+      "fix": "Before @angular/elements upgrades the tags, every primitive is an unknown inline element with no condition of its own, so all of them paint. A second window follows: after the upgrade but while uiState.skeletonLoading is true, conditions that gate on CONTENT still conclude 'empty'. Gate on the skeleton primitive's own data-velt-hidden — it covers both windows with one signal. Two matching hazards: any absolute/inset rule anchored to a container VELT renders has no containing block before boot (measured: an inset:0 empty state resolved against the page at 1280x176), so anchor it to your own wrapper; and any markup that paints pre-boot must be styled entirely by your own stylesheet.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
+      ]
+    },
+    {
+      "id": "react-wrappers-drop-classname-on-most-primitives",
+      "veltVersion": "6.0.0-beta.15",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "A className passed to a Velt primitive typechecks, renders nothing in the DOM, and the stylesheet keyed to it silently never matches.",
+      "fix": "The wrapper prop types extend HTMLAttributes, but 73 of the 441 primitive tags are rendered through a wrapper that destructures its DECLARED props plus children and drops the rest — className and style among them. Put contract classes on your own markup and address the primitive by tag. manifest/velt-primitives.json now carries forwardsClassName per tag (derived from the installed package's ESM bundle); scaffold-primitives --lint errors with undeliverable-vcclass.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, @veltdev/react 6.0.0-beta.15, 2026-08-24)"
+      ]
+    },
+    {
+      "id": "react-wrapper-emits-a-wireframe-suffixed-tag",
+      "veltVersion": "6.0.0-beta.15",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "A selector or probe built from the manifest tag name matches nothing, though the primitive is clearly on screen.",
+      "fix": "366 of the 441 primitive tags are rendered through a -wireframe-suffixed element: VeltCommentDialogComposerInput emits <velt-comment-dialog-composer-input-wireframe>, not <velt-comment-dialog-composer-input>. The manifest records emitsTag per tag; build every selector, probe and snapshot assertion from THAT, not from the registry name.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, @veltdev/react 6.0.0-beta.15, 2026-08-24)"
+      ]
+    },
+    {
+      "id": "primitives-evaluate-their-own-visibility",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "A composed surface flickers, or shows an empty state over a populated document, or disagrees with the built-in in a way no pixel diff explains.",
+      "fix": "407 of 441 primitives evaluate their own visibility — some via a `shouldShow` computed on the component, some via `shouldShowFor*` helpers inherited from a shared base. Matching only the first style reported a confident ZERO for NotificationsPanel, ActivityLog and NotificationsTool, which all gate themselves. Re-deriving it customer-side can only disagree: the sidebar empty placeholder reads uiState.noCommentsFound || uiState.noCommentsFoundForAppliedFilters, which separates 'empty document' from 'empty under filters' — a data.listRows count cannot. Mount such a primitive unconditionally and let it decide. manifest ownsVisibility records the exact fields; scaffold-primitives --lint errors with reimplements-own-condition.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, SDK local build mayank/primitives-r3-data, 2026-08-24)"
+      ]
+    },
+    {
+      "id": "composer-state-and-cancel-have-published-apis",
+      "veltVersion": "6.0.0-beta.15",
+      "component": "primitives",
+      "kind": "behavior",
+      "symptom": "A plan records 'no published action' / 'no published field' for composer cancel or composer content, and falls back to reading the contenteditable.",
+      "fix": "Both are published. clearComposer({ targetComposerElementId }) clears a composer instance; composerTextChange streams its text and getComposerData() fetches it once. Register the composer under a stable targetComposerElementId so both can address it. The 19 element facades publish 434 members and 118 events — manifest elementApis carries the inventory (byFacade for the per-family view; scanning only comment-element made it silently wrong for every other family); scaffold-primitives --lint errors with unchecked-absence when a denial cites nothing.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, @veltdev/types 6.0.0-beta.15, 2026-08-24)"
+      ]
     }
   ]
 }

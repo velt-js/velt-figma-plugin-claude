@@ -1,0 +1,3496 @@
+{
+  "_doc": "DERIVED from SDK sources by scripts/sync-primitives.mjs — which primitive tags evaluate their OWN visibility, and which config fields that evaluation reads. Covers BOTH declaration styles: a `shouldShow` computed on the component, and `shouldShowFor*` helpers declared on a shared base and inherited (`viaBaseClass: true`). scaffold-primitives --lint uses this to refuse a plan that re-implements a gate the primitive already owns.",
+  "method": "every shouldShow* member in the SDK -> its uiState./data./appState./featureState. field reads -> unioned along each component's `extends` chain -> keyed by component selector (minus -internal)",
+  "scannedFiles": 1388,
+  "tags": {
+    "snippyly-comment-bubble": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "snippyly-comment-pin": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "snippyly-sidebar-button": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-activity-log-empty": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.filteredActivities"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-activity-log-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.filteredActivities"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-activity-log-list-item-avatar": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-activity-log-list-item-content-detail": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-activity-log-list-item-content-target": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-activity-log-list-show-more": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.defaultVisibleCount"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-activity-log-loading": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.allActivities"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-bubble-avatar": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-bubble-comments-count": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-comment-bubble-unread-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.unreadCount"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-all-comment": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.dialogMode",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly",
+        "uiState.sidebarButtonOnCommentDialogVisible"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-approve": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.isUserAdmin",
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "featureState.moderatorMode",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-assign-menu": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-assignee-banner": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "data.isAssignedCheckbox",
+        "featureState.assignToType",
+        "featureState.enableFormatOptions",
+        "featureState.inlineCommentMode",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-assignee-banner-resolve-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.canResolveAnnotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-assignee-banner-unresolve-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.canUnresolveAnnotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-assignee-banner-user-avatar": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-assignee-banner-user-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-body": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-close-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-comment-category": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableAutoCategorize",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-comment-index": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-comment-number": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-comment-suggestion-status": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.commentAcceptedStatus",
+        "featureState.commentRejectedStatus",
+        "featureState.enableFormatOptions",
+        "featureState.suggestionMode",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-composer": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.isKnownUser",
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "featureState.isPlanExpired",
+        "uiState.disabled",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-composer-action-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-assign-user": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.userMentions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-composer-attachments": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-composer-attachments-image": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-composer-attachments-image-delete": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-attachments-image-download": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-attachments-image-loading": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly",
+        "uiState.uploadingAttachments"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-composer-attachments-image-preview": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-attachments-invalid": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-attachments-invalid-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-attachments-invalid-item-delete": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-attachments-invalid-item-message": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-attachments-invalid-item-preview": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-attachments-other": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-composer-attachments-other-delete": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-attachments-other-download": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-attachments-other-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-attachments-other-loading": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly",
+        "uiState.uploadingAttachments"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-composer-attachments-other-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-attachments-other-size": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-attachments-selected": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-avatar": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-composer-format-toolbar": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-format-toolbar-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-input": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-composer-private-badge": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "featureState.visibilityOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.isPrivateComment",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-composer-recordings": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-context-wrapper": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-copy-link": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-custom-annotation-dropdown": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "data.customChipData",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-custom-annotation-dropdown-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-custom-annotation-dropdown-content-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-custom-annotation-dropdown-content-item-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-custom-annotation-dropdown-content-item-label": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-custom-annotation-dropdown-trigger": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-custom-annotation-dropdown-trigger-arrow": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-custom-annotation-dropdown-trigger-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-custom-annotation-dropdown-trigger-list-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-custom-annotation-dropdown-trigger-placeholder": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "data.customChipData",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-custom-annotation-dropdown-trigger-remaining-count": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "data.customChipData",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-delete-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.user",
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-ghost-banner": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "featureState.inlineCommentMode",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly",
+        "uiState.showGhostCommentMessage"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-header": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-hide-reply": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.collapsedComments",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-legacy-suggestion-action": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly",
+        "uiState.showSuggestionModeActions"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-legacy-suggestion-action-accept": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly",
+        "uiState.showSuggestionModeActions"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-legacy-suggestion-action-reject": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-metadata": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-more-reply": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.collapsedRepliesPreview",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly",
+        "uiState.showAllComments",
+        "uiState.showReplies"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-more-reply-count": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-more-reply-text": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-navigation-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-options-dropdown": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-assign": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-delete": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-delete-comment": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.deleteThreadWithFirstComment",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-delete-thread": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.deleteThreadWithFirstComment",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-edit": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-make-private": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.isUserAdmin",
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "featureState.visibilityOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-make-private-disable": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.isUserAdmin",
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-make-private-enable": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.isUserAdmin",
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-mark-as-read": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.isKnownUser",
+        "appState.user",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-mark-as-read-mark-read": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-mark-as-read-mark-unread": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-notification": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-notification-subscribe": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-content-notification-unsubscribe": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.user",
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-options-dropdown-trigger": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-priority": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-priority-dropdown": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.enablePriority",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-priority-dropdown-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-priority-dropdown-content-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-priority-dropdown-content-item-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-priority-dropdown-content-item-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-priority-dropdown-content-item-tick": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-priority-dropdown-trigger": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.enablePriority",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-priority-dropdown-trigger-arrow": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.user",
+        "featureState.enableFormatOptions",
+        "uiState.disabled",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-priority-dropdown-trigger-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.enablePriority",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-priority-dropdown-trigger-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.enablePriority",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-private-banner": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "featureState.visibilityOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.isPrivateComment",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-private-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-reply-avatars": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.repliesUniqueUsers",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-reply-avatars-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-reply-avatars-list-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-reply-avatars-remaining-count": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.repliesUniqueUsers",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.maxReplyAvatars",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-resolve-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.isUserAdmin",
+        "appState.user",
+        "data.annotation",
+        "featureState.canResolveAnnotation",
+        "featureState.enableFormatOptions",
+        "featureState.resolveStatusAccessAdminOnly",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-sign-in": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.user",
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "featureState.enableSignInButton",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-status": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-status-dropdown": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.enableStatus",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-status-dropdown-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-status-dropdown-content-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-status-dropdown-content-item-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-status-dropdown-content-item-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-status-dropdown-trigger": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.enableStatus",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-status-dropdown-trigger-arrow": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.user",
+        "featureState.enableFormatOptions",
+        "uiState.disabled",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-status-dropdown-trigger-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.enableStatus",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-status-dropdown-trigger-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.enableStatus",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion-action-accept": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion-action-reject": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion-actions": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion-agent": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion-agent-avatar": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-agent-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-author": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion-author-avatar": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-author-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-banner": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion-banner-avatar": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-banner-avatar-status-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-banner-avatar-user-image": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-banner-label": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-banner-resolver-user-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion-banner-separator": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion-banner-timestamp": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion-body": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion-footer": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-footer-open-comment": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion-header": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-menu": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-suggestion-menu-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-menu-content-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-menu-content-item-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-menu-content-item-label": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-menu-trigger": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-suggestion-timestamp": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.collapsedRepliesPreview",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly",
+        "uiState.showReplies"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-assign-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.isPlanExpired",
+        "featureState.userMentions",
+        "uiState.disabled",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-attachments": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-attachments-image": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-attachments-image-delete": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.user",
+        "featureState.enableFormatOptions",
+        "featureState.isPlanExpired",
+        "uiState.disabled",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-attachments-image-download": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.user",
+        "featureState.enableFormatOptions",
+        "featureState.isPlanExpired",
+        "uiState.disabled",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-attachments-image-preview": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-attachments-other": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-attachments-other-delete": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.user",
+        "featureState.enableFormatOptions",
+        "featureState.isPlanExpired",
+        "uiState.disabled",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-attachments-other-download": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-attachments-other-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-attachments-other-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-attachments-other-size": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-avatar": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-device-type": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly",
+        "uiState.showScreenSizeInfo"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-draft": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-edit-composer": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-edited": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-message": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-message-show-less": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.inlineCommentSectionMode",
+        "featureState.messageTruncation",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-message-show-more": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.inlineCommentSectionMode",
+        "featureState.messageTruncation",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-options": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.isKnownUser",
+        "appState.isUserAdmin",
+        "appState.user",
+        "featureState.dialogSelectedByKnownUser",
+        "featureState.enableFormatOptions",
+        "featureState.isPlanExpired",
+        "featureState.sidebarMode",
+        "uiState.disabled",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-reaction-pin": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-reaction-tool": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.enableReactions",
+        "uiState.disabled",
+        "uiState.formatToolbarOpen",
+        "uiState.hasReactionsByCommentId",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-reactions": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.enableReactions",
+        "uiState.formatToolbarOpen",
+        "uiState.hasReactionsByCommentId",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-recordings": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-reply": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-seen-dropdown": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.isKnownUser",
+        "appState.user",
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "featureState.seenByUsers",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-seen-dropdown-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-seen-dropdown-content-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-seen-dropdown-content-item-avatar": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-seen-dropdown-content-item-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-seen-dropdown-content-item-time": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-thread-card-seen-dropdown-content-items": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-seen-dropdown-content-title": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-seen-dropdown-trigger": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-time": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-thread-card-unread": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.isKnownUser",
+        "appState.user",
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-threads": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.collapsedRepliesPreview",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly",
+        "uiState.showAllComments",
+        "uiState.showReplies"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-toggle-reply": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.collapsedComments",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-toggle-reply-count": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-toggle-reply-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-toggle-reply-text": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-unresolve-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.canUnresolveAnnotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-upgrade": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "featureState.enableUpgradeButton",
+        "featureState.isPlanExpired",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-visibility-banner": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.isPrivateCommentsEnabled",
+        "featureState.visibilityOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-visibility-banner-dropdown": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "featureState.visibilityOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-visibility-banner-dropdown-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-visibility-banner-dropdown-content-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-visibility-banner-dropdown-content-item-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-visibility-banner-dropdown-content-item-label": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-visibility-banner-dropdown-content-org-picker": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-visibility-banner-dropdown-content-user-picker": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-visibility-banner-dropdown-trigger": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-remaining-count": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-visibility-banner-dropdown-trigger-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-dialog-visibility-banner-dropdown-trigger-label": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-visibility-banner-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-dialog-visibility-banner-text": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.enableFormatOptions",
+        "uiState.formatToolbarOpen",
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-pin-ghost-comment-indicator": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.isGhostComment",
+        "data.isPrivateComment"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-pin-index": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "data.isGhostComment",
+        "data.isPrivateComment",
+        "featureState.showCommentIndex"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-pin-number": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotation",
+        "data.isGhostComment",
+        "data.isPrivateComment",
+        "featureState.showCommentIndex"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-pin-private-comment-indicator": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.isPrivateComment"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-pin-triangle": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.popoverMode"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-pin-unread-comment-indicator": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.user",
+        "data.annotation",
+        "data.unreadCommentsMap"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-close-button-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-empty-placeholder-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible",
+        "uiState.noCommentsFound",
+        "uiState.noCommentsFoundForAppliedFilters"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-filter-button-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-button-v2-applied-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-filter-container-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-apply-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-close-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-group-by": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-reset-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-section": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-section-control": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-section-control-chevron": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-section-control-chip": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-section-control-chip-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-filter-container-v2-section-control-search": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-filter-container-v2-section-control-value": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-filter-container-v2-section-field": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-section-label": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-filter-container-v2-section-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-section-option": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-section-option-checkbox": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-section-option-count": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-filter-container-v2-section-option-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-section-option-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-container-v2-title": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-dropdown-content-list-category-content-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-dropdown-content-list-category-label-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-filter-dropdown-content-list-category-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-dropdown-content-list-item-count-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-filter-dropdown-content-list-item-indicator-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-dropdown-content-list-item-label-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-dropdown-content-list-item-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-dropdown-content-list-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-dropdown-content-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-dropdown-trigger-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-filter-dropdown-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-focused-thread-back-button-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-focused-thread-dialog-container-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.focusedAnnotation",
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-focused-thread-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.focusedAnnotation",
+        "uiState.moreFiltersVisible",
+        "uiState.skeletonLoading"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-fullscreen-button-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.fullscreenEnabled",
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-header-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-list-group-header-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-list-group-header-v2-chevron": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-list-group-header-v2-count": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-list-group-header-v2-label": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-list-group-header-v2-separator": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-list-item-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-list-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.filteredAnnotations",
+        "uiState.moreFiltersVisible",
+        "uiState.noCommentsFound"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-page-mode-composer-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.user",
+        "data.pageCommentAnnotation",
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-panel-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.focusedAnnotation",
+        "uiState.moreFiltersVisible",
+        "uiState.skeletonLoading"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-reset-filter-button-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible",
+        "uiState.noCommentsFound"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-search-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-search-v2-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-search-v2-input": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-comment-sidebar-skeleton-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible",
+        "uiState.skeletonLoading"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-comment-sidebar-v2": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.moreFiltersVisible"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-comment-count": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-composer-container": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "appState.user",
+        "data.annotations",
+        "data.composerCommentAnnotation"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-inline-comments-section-filter-dropdown": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-filter-dropdown-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.filterState"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-inline-comments-section-filter-dropdown-content-apply-button": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-filter-dropdown-content-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.filterState"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-inline-comments-section-filter-dropdown-content-list-item": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-filter-dropdown-content-list-item-checkbox": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-filter-dropdown-content-list-item-label": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-filter-dropdown-trigger": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-filter-dropdown-trigger-arrow": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-filter-dropdown-trigger-name": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.annotations"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-inline-comments-section-panel": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.skeletonLoading"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-inline-comments-section-skeleton": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.skeletonLoading"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-inline-comments-section-sorting-dropdown": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-sorting-dropdown-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.sortState"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-inline-comments-section-sorting-dropdown-content-item": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-sorting-dropdown-content-item-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.sortState"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-inline-comments-section-sorting-dropdown-content-item-name": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-sorting-dropdown-content-item-tick": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.sortState"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-inline-comments-section-sorting-dropdown-trigger": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-sorting-dropdown-trigger-icon": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-inline-comments-section-sorting-dropdown-trigger-name": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-multi-thread-comment-dialog": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-close-button": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-comment-count": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.nonDraftCommentsCount"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-composer-container": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.hideMultiThreadAnnotationComposer"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-empty-placeholder": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.noCommentsFound",
+        "uiState.noCommentsFoundForAppliedFilters"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-list": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-actions-dropdown": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-actions-dropdown-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.minimalActionsDropdownOpen"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-actions-dropdown-content-mark-all-read": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-actions-dropdown-content-mark-all-resolved": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-actions-dropdown-trigger": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-filter-dropdown": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.minimalFilterDropdownOpen"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-all": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-read": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-resolved": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-unread": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-selected-icon": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-sort-date": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-sort-unread": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-minimal-filter-dropdown-trigger": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-new-thread-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.readOnly"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-panel": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-multi-thread-comment-dialog-reset-filter-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.noCommentsFoundForAppliedFilters"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-notifications-panel": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-close-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-all": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-all-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-all-list-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-all-list-item-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-all-list-item-label": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-all-read-container": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-documents": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-documents-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-documents-list-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-documents-list-item-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-documents-list-item-count": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-documents-list-item-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-documents-list-item-unread": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-for-you": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-list-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-list-item-avatar": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-list-item-body": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-list-item-file-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-list-item-headline": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-list-item-time": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-list-item-unread": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-load-more": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-notifications-panel-content-people": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-people-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-people-list-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-people-list-item-avatar": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-people-list-item-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-people-list-item-count": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-content-people-list-item-name": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-header": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-header-tab-all": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-header-tab-documents": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-header-tab-for-you": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-header-tab-people": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-read-all-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-accordion": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-accordion-content": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-accordion-content-item": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-accordion-content-item-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-accordion-content-item-label": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-accordion-trigger": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-accordion-trigger-icon": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-accordion-trigger-label": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-accordion-trigger-selected-value": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-back-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-description": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-footer": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-header": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-header-title": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-list": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-mute-all-description": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-mute-all-title": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-mute-all-toggle": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-settings-title": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-skeleton": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-title": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-title-text": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-panel-view-all-button": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "featureState.settingsEnabled",
+        "uiState.panelOpenMode",
+        "uiState.settingsOpen"
+      ],
+      "viaBaseClass": true
+    },
+    "velt-notifications-tool": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-notifications-tool-icon": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-notifications-tool-label": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-notifications-tool-unread-count": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-notifications-tool-unread-icon": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": true
+    },
+    "velt-sidebar-button-comments-count": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-sidebar-button-icon": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-sidebar-button-unread-icon": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-text-comment": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-text-comment-tool": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.user",
+        "uiState.commentToolEnabled",
+        "uiState.disabled",
+        "uiState.enableTextComments",
+        "uiState.isPlanExpired",
+        "uiState.isUserAllowed",
+        "uiState.rewriterDefaultUIEnabled",
+        "uiState.rewriterEnabled"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-text-comment-toolbar": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "data.user",
+        "uiState.disabled",
+        "uiState.enableTextComments",
+        "uiState.isPlanExpired",
+        "uiState.isUserAllowed",
+        "uiState.rewriterDefaultUIEnabled",
+        "uiState.rewriterEnabled"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-text-comment-toolbar-comment-annotation": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.commentToolEnabled"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-text-comment-toolbar-copywriter": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    },
+    "velt-text-comment-toolbar-divider": {
+      "computesOwnVisibility": true,
+      "reads": [
+        "uiState.commentToolEnabled"
+      ],
+      "viaBaseClass": false
+    },
+    "velt-text-comment-toolbar-generic": {
+      "computesOwnVisibility": true,
+      "reads": [],
+      "viaBaseClass": false
+    }
+  }
+}

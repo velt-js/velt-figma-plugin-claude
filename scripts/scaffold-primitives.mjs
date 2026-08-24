@@ -22,6 +22,7 @@
 // USAGE
 //   node scripts/scaffold-primitives.mjs <phaseDir>            # scaffold both files
 //   node scripts/scaffold-primitives.mjs <phaseDir> --lint     # the pre-build gate
+//   node scripts/scaffold-primitives.mjs <phaseDir> --reproject  # refresh plan-structure.json AFTER the Planner fills the plan
 //   ... --json for machine-readable lint output
 //
 // EXIT: 0 clean · 2 unfilled _todo / contract violations · 1 usage or missing inputs.
@@ -128,7 +129,7 @@ async function scaffold() {
       root: {
         element: "div",
         vcClass: vc,
-        _todo_children: "the compose tree for this surface. Each node: { primitive: <velt-* tag from manifest/velt-primitives.json>, children: [...], ownAttributes: {}, vcClass?: string, specNodeId?: string }. RULES: (a) a primitive whose manifest entry has requiresTriggerAncestor MUST sit inside that ancestor or the control renders and does nothing; (b) velt-comment-dialog / velt-comment-dialog-thread are NOT containers (velt-comment-dialog-composer is); (c) children on a repeating container render ONCE — own the loop instead.",
+        _todo_children: "the compose tree for this surface. TWO node shapes: a PRIMITIVE node { primitive: <velt-* tag from manifest/velt-primitives.json>, children: [...], ownAttributes: {}, specNodeId?: string } and an OWN-MARKUP node { element: <html tag>, vcClass: string, text?: string, children: [...], specNodeId?: string }. RULES: (a) a primitive whose manifest entry has requiresTriggerAncestor MUST sit inside that ancestor or the control renders and does nothing; (b) velt-comment-dialog / velt-comment-dialog-thread are NOT containers (velt-comment-dialog-composer is); (c) children on a repeating container render ONCE — own the loop instead; (d) vcClass belongs on OWN-MARKUP nodes ONLY — 325 of the React wrappers destructure their declared props and drop className, so a class on a primitive never reaches the DOM (manifest forwardsClassName); address a primitive by its emitsTag instead; (e) a primitive whose manifest entry has ownsVisibility ALREADY decides when to render — do not gate it again from r3.",
         children: [],
       },
 
@@ -150,6 +151,10 @@ async function scaffold() {
     });
   }
 
+  // Which design nodes appear ONLY in a Flow frame — i.e. in no State family's slice. Derived, not
+  // assumed: the flow briefs and the state briefs are both on disk by now.
+  const flowOnlyIds = await computeFlowOnlyNodeIds(P, blocks);
+
   const planPrimitives = {
     _doc: "PRIMITIVES compose plan (R1 children / R2 context / R3 data). Scaffolded by scripts/scaffold-primitives.mjs; the Planner FILLS the _todo_* fields and never authors this from scratch. Gate: scaffold-primitives.mjs <phaseDir> --lint (exit 0) before the build.",
     layer: "primitives",
@@ -157,6 +162,18 @@ async function scaffold() {
     availability: M.availability,
     generatedFrom: { blocks: "blocks.json", designSpec: spec ? "designSpec.json" : null, manifest: "manifest/velt-primitives.json" },
     surfaces,
+    // FLOW-ONLY CONTENT. `Flows` frames are full-surface ACCEPTANCE screens; they are skipped as
+    // build units because they compose surfaces the State families already cover. Anything drawn
+    // ONLY in a flow frame therefore has no surface entry and is planned NOWHERE — run 5 lost an
+    // entire thread list this way, and the scaffold's console warning was the only trace. A warning
+    // nothing reads is not a gate, so the disposition is now a required field.
+    flowOnly: flowOnlyIds.length
+      ? {
+          nodeCount: flowOnlyIds.length,
+          sampleNodeIds: flowOnlyIds.slice(0, 12),
+          _todo_adoption: "Every cluster of design nodes that appears ONLY in a Flow frame must be dispositioned: [{ what: '<what it is>', decision: 'adopt' | 'defer', into?: '<surface id it is adopted into>', why: '<reason>' }]. `adopt` means you extend that surface's compose tree to cover it in THIS phase. `defer` means it is a later phase's work — say which, so the omission is a decision on the record rather than an oversight. [] is only valid when the flow frames add nothing the State families already cover.",
+        }
+      : null,
   };
 
   // The layer-agnostic projection. Deliberately `slots: []` — a primitives build has no wireframe
@@ -322,16 +339,92 @@ async function scaffold() {
 // -------------------------------------------------------------------------------------- lint ----
 // The PLAN-TIME contract gate. Catching a dead compound trigger here is strictly better than
 // catching it in the built code: nothing has been written yet.
+// Every `note`/`gap` string in a compose tree, own-markup nodes included — `walk` visits primitives
+// only, but a declared absence is just as likely to be written on a plain <button> the planner chose
+// BECAUSE it believed no primitive existed.
+function collectNotes(node, out = []) {
+  if (!node || typeof node !== "object") return out;
+  if (node.note) out.push(node.note);
+  if (node.gap) out.push(String(node.gap));
+  for (const c of node.children || []) collectNotes(c, out);
+  return out;
+}
+
 function walk(node, ancestors, fn) {
   if (!node || typeof node !== "object") return;
   fn(node, ancestors);
   for (const c of node.children || []) walk(c, [...ancestors, node], fn);
 }
 
+
+// Which 611-style design node ids appear ONLY in a Flow frame's spec slice — never in a State
+// family's. Read off the slices on disk so it holds for any design, not just one with a thread list.
+async function computeFlowOnlyNodeIds(P, blocks) {
+  const idsIn = async (file) => {
+    const raw = await fs.readFile(P(file), "utf8").catch(() => null);
+    if (!raw) return new Set();
+    return new Set([...raw.matchAll(/"(\d+:\d+)"/g)].map((m) => m[1]));
+  };
+  const flowIds = new Set();
+  const stateIds = new Set();
+  for (const b of blocks.blocks || []) {
+    const target = b.role === "flow" ? flowIds : stateIds;
+    for (const id of await idsIn(`briefs/${b.id}.spec.json`)) target.add(id);
+  }
+  return [...flowIds].filter((id) => !stateIds.has(id)).sort();
+}
+
+// Rebuild the layer-agnostic PROJECTION from a plan-primitives.json that the Planner has already
+// filled. This exists because the projection used to be frozen at scaffold time, when hostProps is
+// necessarily still [] — the Planner fills them afterwards, and re-running the scaffold to refresh
+// the projection would rebuild `surfaces` from scratch and destroy every fill. verify-host-wiring
+// reads ONLY the projection, so on the primitives path planner-planned host props could never reach
+// the host at all: a page-mode composer would be planned, never wired, and silently never mount.
+async function reproject(P) {
+  const plan = await readJson(P("plan-primitives.json"));
+  const surfaces = plan.surfaces || [];
+  const existing = await readJson(P("plan-structure.json"), null);
+  const projection = {
+    ...(existing || {}),
+    _doc: "PROJECTION of plan-primitives.json — the layer-agnostic fields the shared gates and the STYLE stage read (vcClasses, designTokens, baseStyling, hostProps). `slots` is empty because a primitives build has no wireframe slots. Regenerate with scaffold-primitives.mjs <phaseDir> --reproject after the Planner fills the plan; never hand-edit.",
+    derivedFrom: "plan-primitives.json",
+    layer: "primitives",
+    components: surfaces.filter((s) => s.reachable !== false).map((s) => ({
+      id: s.id, veltComponents: {}, slots: [], hostProps: s.hostProps || [],
+    })),
+    vcClasses: surfaces.map((s) => s.root?.vcClass).filter(Boolean),
+  };
+  await fs.writeFile(P("plan-structure.json"), JSON.stringify(projection, null, 2) + "\n");
+  const hp = projection.components.reduce((n, c) => n + (c.hostProps || []).length, 0);
+  console.log(`\u2713 reprojected plan-structure.json from the filled plan — ${projection.components.length} component(s), ${hp} host prop(s) now visible to verify-host-wiring`);
+
+  // Carry the flow-only DEFERRALS into a machine-readable artifact. verdict-gate-blocks requires a
+  // PASS or an explicit terminal disposition for every block in blocks.json; a deferral recorded
+  // only in the plan reaches it as nothing at all, and the phase reports INCOMPLETE hours later
+  // with no trace of the decision that caused it. This is the paper trail between the two.
+  const deferred = (plan.flowOnly?.adoption || []).filter((d) => d.decision === "defer");
+  if (deferred.length) {
+    const blocks = deferred.flatMap((d) => (d.blocks || []).map((b) => ({
+      blockId: b, what: d.what, deferredTo: d.deferredTo, why: d.why,
+      accountWith: `node scripts/report-block.mjs account ${b} --disposition BLOCKED --evidence <file> --note "deferred to ${d.deferredTo}"`,
+    })));
+    await fs.writeFile(P("flow-coverage.json"), JSON.stringify({
+      _doc: "Blocks this phase deliberately does NOT cover, derived from plan-primitives.json flowOnly.adoption. Each must be accounted with report-block.mjs before verdict-gate-blocks can terminate; an unaccounted block is INCOMPLETE by design.",
+      deferredBlocks: blocks,
+    }, null, 2) + "\n");
+    console.log(`\u2713 flow-coverage.json — ${blocks.length} block(s) deferred and needing explicit accounting before the verdict gate can terminate`);
+  }
+}
+
 async function lint() {
   const plan = await readJson(P("plan-primitives.json"));
+  const blocks = await readJson(P("blocks.json"), { blocks: [] });
   const problems = [];
   const bad = (kind, where, note) => problems.push({ kind, where, note });
+  // Advisory channel. A finding that is TRUE but does not make the plan wrong belongs here: an
+  // error that blocks a build the golden reference ships is a worse defect than the one it reports.
+  const warnings = [];
+  const warn = (kind, where, note) => warnings.push({ kind, where, note });
 
   // 1. no unfilled scaffolding
   const leftovers = [];
@@ -394,6 +487,149 @@ async function lint() {
       bad("unresolved-shadowdom", at, "resolve the effective shadowDom value — with it on, class-based CSS silently stops applying while --velt-* variables keep working");
   }
 
+  // --- P14..P18: the four "renders right, behaves wrong" classes run 5 shipped past every gate ---
+  //
+  // Each is derived from the manifest, so each holds for ANY design rather than for the one that
+  // exposed it. All are ERRORS: every one of them produced a plan that linted clean and was wrong.
+  const apis = M.elementApis;
+  for (const s2 of plan.surfaces || []) {
+    if (s2.reachable === false) continue;
+    const at = s2.id || s2.component;
+    const plannedTags = [];
+    walk(s2.root, [], (node) => { if (node.primitive) plannedTags.push(node); });
+
+    // P14 — a contract class on a primitive whose wrapper drops className can never reach the DOM.
+    // The style stage would then plan selectors against a class that does not exist, which surfaces
+    // three stages later at skeleton-check as "planned class missing everywhere".
+    for (const node of plannedTags) {
+      const meta = M.primitives[node.primitive];
+      if (!meta) continue;
+      if (node.vcClass && meta.forwardsClassName === false)
+        bad("undeliverable-vcclass", `${at} → ${node.primitive}`,
+          `vcClass '${node.vcClass}' is placed on a primitive whose React wrapper destructures its declared props and DROPS className, so this class never reaches the DOM. Put it on your own markup and address the primitive as '${meta.emitsTag || node.primitive}'.`);
+      // Independent of vcClass: the rendered tag differs from the registry name on 762 wrappers, and
+      // anything built from the manifest name (selector, probe, assertion) addresses nothing.
+      if (meta.emitsTag && meta.emitsTag !== node.primitive && node.addressAs !== meta.emitsTag)
+        warn("tag-rename", `${at} → ${node.primitive}`,
+          `the React wrapper renders <${meta.emitsTag}>, not <${node.primitive}> — any selector, probe or snapshot assertion built from the manifest tag addresses an element that is not in the DOM.`);
+    }
+
+    // P15 — re-implementing a gate the primitive already owns. The SDK's condition is the stricter
+    // one (it separates "empty" from "empty under filters"; a row count cannot), so a customer-side
+    // re-derivation can only disagree with it.
+    const reads = new Set(Array.isArray(s2.r3?.reads) ? s2.r3.reads : []);
+    for (const node of plannedTags) {
+      const own = M.primitives[node.primitive]?.ownsVisibility;
+      if (!own?.computesOwnVisibility) continue;
+      const collide = (own.reads || []).filter((f) => reads.has(f));
+      if (!collide.length) continue;
+      // PRECISION vs RECALL, split deliberately. Fields read by the component's OWN shouldShow are
+      // hard evidence — that is a copy of a gate the primitive definitively computes, so it blocks.
+      // Fields reached only through an inherited base helper are a heuristic: the union walks the
+      // whole `extends` chain and a component does not necessarily call every helper it inherits,
+      // so a collision there is a question, not a verdict. Blocking on it would let an over-inclusive
+      // derivation stop a correct plan, which is a worse failure than the one this rule prevents.
+      const msg = `r3.reads ${JSON.stringify(collide)} are fields this primitive's own visibility condition already evaluates. Mount it unconditionally and let it decide; a customer-side copy of an SDK gate can only ever disagree with it.`;
+      if (own.viaBaseClass) warn("maybe-reimplements-own-condition", `${at} → ${node.primitive}`,
+        `${msg} (Derived through an inherited base helper, so confirm the component actually calls it before acting.)`);
+      else bad("reimplements-own-condition", `${at} → ${node.primitive}`, msg);
+    }
+
+    // P16 — a declared ABSENCE that the published facade contradicts. "No method on the element
+    // facade" is not "no public API", and a plan that records a gap here sends the builder to
+    // hand-roll something the SDK ships.
+    if (apis) {
+      const known = new Set([...(apis.methods || []), ...(apis.events || [])]);
+      const claims = JSON.stringify(s2.r3?.gaps || []) +
+                     JSON.stringify(collectNotes(s2.root));
+      // Deliberately narrow: this must fire on "the SDK publishes nothing for this", NOT on the
+      // ordinary design judgement "no primitive needed here". The first is a claim that can be
+      // checked against the facade; the second is a choice and none of this rule's business.
+      const denial = /\bno\s+(?:published\s+|public\s+)?(?:action|api|method|event|getter|stream|field)s?\b/i;
+      if (denial.test(claims)) {
+        const named = [...known].filter((n) => n.length > 6 && new RegExp(`\\b${n}\\b`).test(claims));
+        if (!named.length)
+          bad("unchecked-absence", at,
+            `this surface declares a capability unavailable ("no published …"), but names no element API it checked. The installed facade publishes ${apis.methods.length} methods and ${apis.events.length} events (manifest elementApis) — cite the ones you ruled out, or drop the claim.`);
+      }
+    }
+
+    // P17 — defaultCondition is a DECISION wherever the primitive actually reads it. P10 already
+    // warns about passing it where it is inert; the opposite case had no check at all, so a real
+    // visibility gate could be left unaddressed silently.
+    for (const node of plannedTags) {
+      const meta = M.primitives[node.primitive];
+      if (!meta?.readsDefaultCondition) continue;
+      const attrs = node.ownAttributes || {};
+      const has = "defaultCondition" in attrs || "default-condition" in attrs;
+      const decided = (s2.parentConditions || []).some((d) => d.primitive === node.primitive && /defaultCondition/i.test(JSON.stringify(d)));
+      if (!has && !decided)
+        bad("undecided-defaultcondition", `${at} → ${node.primitive}`,
+          `this primitive CALLS defaultCondition(), so the prop is a live opt-out of a real gate here. Either pass it in ownAttributes (and say which condition you are taking over) or record the decision in parentConditions.`);
+    }
+
+    // P19 — composed OUTSIDE the primitive's built-in parent. The SDK's own templates render the
+    // filter dropdown inside the sidebar header, and the header / composer / list / empty
+    // placeholder inside the sidebar panel. Lifted out, a primitive silently forfeits whatever the
+    // parent supplied — positioning, a local UI state, a popover anchor. Advisory, because a HOST
+    // may legitimately supply the container: acknowledge that with containerProvidedBy on the node.
+    walk(s2.root, [], (node, ancestors) => {
+      const meta = M.primitives[node.primitive];
+      if (!meta?.sdkParents?.length) return;
+      if (node.containerProvidedBy) return;                       // explicitly acknowledged
+      const inTree = ancestors.some((a) => meta.sdkParents.includes(a.primitive));
+      if (inTree) return;
+      const registered = meta.sdkParents.filter((t) => M.primitives[t]?.registered !== false);
+      warn("outside-builtin-container", `${at} → ${node.primitive}`,
+        `the SDK's own templates render this inside ${meta.sdkParents.join(" | ")}, and none of those is an ancestor here. Either place ${registered[0] || meta.sdkParents[0]} in the tree, or set containerProvidedBy on this node to record that the host supplies it.`);
+    });
+  }
+
+  // P20 — "unverified" must carry its own verification plan. Run 5 recorded three unverified items
+  // and shipped the plan; nothing downstream knew how any of them would ever be settled, so they
+  // would have survived to the handoff as prose. An unverified claim with no measurement attached is
+  // indistinguishable from a guess, and the submit path is the case in point: whether a composed
+  // composer can persist a comment depends on which of three runtime modes it lands in, which is not
+  // statically decidable — so it MUST be measured, and the plan must say by what.
+  for (const u of plan.unverified || []) {
+    if (!u?.verifyBy)
+      bad("unverified-without-measurement", `unverified → ${(u?.what || "?").slice(0, 60)}`,
+        "record verifyBy: how this gets settled (a drive + assert on a named block, a gate, a probe). An unverified item with no measurement attached cannot be distinguished from a guess, and nothing downstream will ever close it.");
+  }
+
+  // P18 — flow-only design content must be dispositioned, not silently dropped.
+  const fo = plan.flowOnly;
+  if (fo && fo.nodeCount) {
+    const ad = fo.adoption;
+    if (!Array.isArray(ad))
+      bad("undispositioned-flow-content", "flowOnly",
+        `${fo.nodeCount} design node(s) appear ONLY in Flow frames and belong to no surface. Record an adoption decision for each cluster (adopt into a surface, or defer to a named later phase) — an omission by oversight and an omission by decision must not look the same.`);
+    else
+      for (const d of ad) {
+        if (!d?.decision || !["adopt", "defer"].includes(d.decision))
+          bad("bad-flow-disposition", `flowOnly → ${d?.what || "?"}`, "decision must be 'adopt' or 'defer'");
+        else if (d.decision === "defer" && !d.deferredTo)
+          bad("defer-without-target", `flowOnly → ${d.what}`,
+            "a deferral must name where the work went (deferredTo) — otherwise it is an omission with better manners, and the next run cannot tell the difference.");
+        else if (d.decision === "defer" && !Array.isArray(d.blocks))
+          // verdict-gate-blocks requires a PASS or an explicit terminal disposition for EVERY block
+          // in blocks.json. A deferral that names no blocks therefore leaves them neither measured
+          // nor accounted, and the phase silently reports INCOMPLETE at the very end of the run
+          // instead of at plan time, when it is still cheap to change.
+          bad("defer-without-blocks", `flowOnly → ${d.what}`,
+            "a deferral must list the blockIds it leaves uncovered (blocks: [...]), so they can be accounted with report-block.mjs. Otherwise verdict-gate-blocks sees blocks that are neither measured nor dispositioned and the phase is INCOMPLETE.");
+        else if (d.decision === "defer") {
+          // A blockId that is not in blocks.json accounts for nothing — the real block stays
+          // unmeasured and the deferral only looks like coverage.
+          const known = new Set((blocks.blocks || []).map((b) => b.id));
+          for (const b of d.blocks) if (!known.has(b))
+            bad("defer-names-unknown-block", `flowOnly → ${d.what}`, `blockId '${b}' is not in blocks.json — it accounts for nothing`);
+        }
+        else if (d.decision === "adopt" && !(plan.surfaces || []).some((x) => x.id === d.into))
+          bad("adopt-into-unknown-surface", `flowOnly → ${d.what}`, `'into' must name a surface in this plan; got ${JSON.stringify(d.into)}`);
+      }
+  }
+
   // --- drive contract, mechanically enforced ------------------------------------------------
   // The three rules above are only worth stating if something checks them. Each of these caught a
   // real false pass on the first run, where every other gate stayed green.
@@ -431,13 +667,18 @@ async function lint() {
         `assert '${b.drive.assert}' only proves the surface rendered, not that state '${b.state}' was reached`);
   }
 
-  if (flag("--json")) { console.log(JSON.stringify({ problems, ok: !problems.length }, null, 2)); }
-  else if (problems.length) {
-    for (const p of problems) console.error(`✗ ${p.kind.padEnd(20)} ${p.where}\n    ${p.note}`);
-    console.error(`\n✗ ${problems.length} primitives-plan problem(s) — the build must not start`);
-  } else console.log("✓ primitives plan gate clean (compose tree, triggers, conditions, getters, shadowDom)");
+  if (flag("--json")) { console.log(JSON.stringify({ problems, warnings, ok: !problems.length }, null, 2)); }
+  else {
+    for (const w of warnings) console.error(`⚠ ${w.kind.padEnd(20)} ${w.where}\n    ${w.note}`);
+    if (problems.length) {
+      for (const p of problems) console.error(`✗ ${p.kind.padEnd(20)} ${p.where}\n    ${p.note}`);
+      console.error(`\n✗ ${problems.length} primitives-plan problem(s) — the build must not start`);
+    } else console.log(`✓ primitives plan gate clean (compose tree, triggers, own-conditions, getters, class delivery, flow coverage, shadowDom)${warnings.length ? ` — ${warnings.length} advisory` : ""}`);
+  }
 
   process.exit(problems.length ? 2 : 0);
 }
 
-if (flag("--lint")) await lint(); else await scaffold();
+if (flag("--lint")) await lint();
+else if (flag("--reproject")) await reproject(P);
+else await scaffold();

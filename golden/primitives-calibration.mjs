@@ -81,11 +81,42 @@ export async function calibratePrimitives() {
   ok("P3 blames the element that actually holds the text", badJson.findings.some((f) => f.rule === "P3" && /ThreadCardName/.test(f.message)));
   ok("P8 rejects an unpublished config hook", badJson.findings.some((f) => f.rule === "P8"));
 
+  // The five defect classes the harvey `strictly primitives` run shipped and a human found by hand
+  // (cursor/harvey-primitives-run-4-98f8, 39edf95 + 68214b6). Each renders correctly and is wrong,
+  // so nothing upstream of the lint can catch them — see golden/primitives/bad/StaleFilterRow.tsx.
+  const rule = (r) => badJson.findings.filter((f) => f.rule === r);
+  ok("P9 catches a CONDITIONAL top-level child (the React removeChild crash)", rule("P9").length === 1, `${rule("P9").length} P9`);
+  ok("P9 is an error, not advice", rule("P9").every((f) => f.severity === "error"));
+  ok("P10 flags defaultCondition on every tag whose component never reads it", rule("P10").length === 3, `${rule("P10").length} P10`);
+  ok("P10 stays a WARNING — the readsDefaultCondition derivation is a heuristic", rule("P10").every((f) => f.severity === "warn"));
+  ok("P11 names all three fallback status ids", rule("P11").length === 3, `${rule("P11").length} P11`);
+  ok("P12 catches commentId anchored without commentIndex", rule("P12").length === 1, `${rule("P12").length} P12`);
+  ok("P13 catches an SDK mutation inside a setState updater", rule("P13").length === 1, `${rule("P13").length} P13`);
+
+  // A conditional that spans tags (`{open ? (` … `) : null}`) splits its braces across two text
+  // chunks. Before the fix that fragment survived the expression strip and P3 blamed the primitive
+  // for literal text it never had — a false-positive ERROR on correct code.
+  ok("P3 does not fire on a multi-line conditional child", !badJson.findings.some((f) => f.rule === "P3" && /open \?/.test(f.message)));
+
   const good = run("lint-primitives.mjs", [path.join(ROOT, "golden/primitives/good"), "--json"]);
   const goodJson = JSON.parse(good.out);
   ok("lint PASSES the correctly-composed fixture", good.code === 0, `${goodJson.errors} error(s)`);
   ok("no P1 on the correct composition", !goodJson.findings.some((f) => f.rule === "P1"));
   ok("no P3 false positive on wrapped text", !goodJson.findings.some((f) => f.rule === "P3"));
+  for (const r of ["P9", "P10", "P11", "P12", "P13"])
+    ok(`no ${r} on the corrected composition`, !goodJson.findings.some((f) => f.rule === r));
+
+  // The manifest field P10 reads. Derived from the SDK's own component sources; if the derivation
+  // silently produced nothing, P10 would go quiet and this suite would still pass without it.
+  const dcReaders = Object.values(M.primitives).filter((p) => p.readsDefaultCondition === true).length;
+  const dcInert = Object.values(M.primitives).filter((p) => p.readsDefaultCondition === false).length;
+  ok("manifest records readsDefaultCondition for every primitive", dcReaders + dcInert === Object.keys(M.primitives).length,
+    `${dcReaders} read + ${dcInert} inert of ${Object.keys(M.primitives).length}`);
+  ok("both outcomes are actually represented (the derivation is not stuck)", dcReaders > 50 && dcInert > 50, `${dcReaders}/${dcInert}`);
+  ok("the sidebar-V2 filter-dropdown family is recorded as INERT",
+    M.primitives["velt-comment-sidebar-filter-dropdown-content-list-item-v2"].readsDefaultCondition === false);
+  ok("a primitive that really gates on it is recorded as a READER",
+    M.primitives["velt-comment-dialog-composer"].readsDefaultCondition === true);
 
   // --- 4. the agents are actually REACHABLE ---------------------------------------------------
   // The scripts and agent files can all be perfect and still never run. This pins the dispatch wiring:
@@ -173,11 +204,146 @@ export async function calibratePrimitives() {
   const unreg = run("scaffold-primitives.mjs", [tmp, "--lint", "--json"]);
   ok("plan gate REJECTS a tag that is not a registered custom element", unreg.code === 2 && JSON.parse(unreg.out).problems.some((p) => p.kind === "not-registered"));
 
-  // Correct it: the trigger wraps its leaves.
-  dlg.root.children = [{ primitive: "velt-comment-dialog-status-dropdown", children: [{ primitive: "velt-comment-dialog-status-dropdown-trigger", children: [{ primitive: "velt-comment-dialog-status-dropdown-trigger-icon", children: [] }] }] }];
-  dlg.parentConditions = [{ primitive: "velt-comment-dialog-status-dropdown-trigger", condition: "hasCustomTrigger", decision: "re-express", how: "hide default content when children supplied" }];
+  // Correct it: the trigger wraps its leaves. NOTE the extra obligations that came in with run 5 —
+  // all three of these tags CALL defaultCondition(), so each needs a recorded decision, and none may
+  // carry a vcClass because their wrappers drop className. "Correct" got stricter on purpose.
+  const chain = { primitive: "velt-comment-dialog-status-dropdown", children: [{ primitive: "velt-comment-dialog-status-dropdown-trigger", children: [{ primitive: "velt-comment-dialog-status-dropdown-trigger-icon", children: [] }] }] };
+  const decisions = [
+    { primitive: "velt-comment-dialog-status-dropdown-trigger", condition: "hasCustomTrigger", decision: "re-express", how: "hide default content when children supplied" },
+    // A SECOND, distinct gate on the same tag. hasCustomTrigger and defaultCondition are not the
+    // same decision, so recording one does not discharge the other.
+    { primitive: "velt-comment-dialog-status-dropdown-trigger", condition: "defaultCondition", decision: "accept-divergence", how: "not passed — the trigger's own gate is wanted here" },
+    { primitive: "velt-comment-dialog-status-dropdown", condition: "defaultCondition", decision: "accept-divergence", how: "not passed — the primitive's own gate is the desired behaviour" },
+    { primitive: "velt-comment-dialog-status-dropdown-trigger-icon", condition: "defaultCondition", decision: "accept-divergence", how: "not passed — inherits the trigger's visibility" },
+  ];
+  dlg.root.children = [JSON.parse(JSON.stringify(chain))];
+  dlg.parentConditions = decisions;
   await fs.writeFile(path.join(tmp, "plan-primitives.json"), JSON.stringify(pp, null, 2));
   ok("plan gate PASSES a correct compose tree", run("scaffold-primitives.mjs", [tmp, "--lint"]).code === 0);
+
+  // --- run-5 regressions: four plans that linted CLEAN and were wrong -------------------------
+  const lintJson = async () => { await fs.writeFile(path.join(tmp, "plan-primitives.json"), JSON.stringify(pp, null, 2));
+                                 const r = run("scaffold-primitives.mjs", [tmp, "--lint", "--json"]); return { code: r.code, ...JSON.parse(r.out) }; };
+  const kinds = (r) => new Set(r.problems.map((p) => p.kind));
+
+  // (a) a contract class on a primitive whose wrapper drops className can never reach the DOM.
+  const classed = JSON.parse(JSON.stringify(chain)); classed.vcClass = "vc-status";
+  dlg.root.children = [classed];
+  ok("plan gate REJECTS a vcClass on a className-dropping primitive", kinds(await lintJson()).has("undeliverable-vcclass"));
+
+  // (b) re-deriving a gate the primitive already computes.
+  dlg.root.children = [{ primitive: "velt-comment-sidebar-empty-placeholder-v2", children: [] }];
+  dlg.parentConditions = [{ primitive: "velt-comment-sidebar-empty-placeholder-v2", condition: "defaultCondition", decision: "accept-divergence", how: "not passed" }];
+  dlg.r3 = { getter: "getCommentSidebarConfig", element: "getCommentElement", args: [], reactHook: null, reads: ["uiState.noCommentsFound"] };
+  ok("plan gate REJECTS re-implementing a primitive's own visibility condition", kinds(await lintJson()).has("reimplements-own-condition"));
+
+  // (c) a declared absence that cites nothing, while the facade publishes 229 methods.
+  dlg.r3 = { getter: "getCommentSidebarConfig", element: "getCommentElement", args: [], reactHook: null, reads: [],
+             gaps: [{ need: "clear the composer", why: "there is no published action for this" }] };
+  ok("plan gate REJECTS an unchecked 'no published API' claim", kinds(await lintJson()).has("unchecked-absence"));
+  // ...and ACCEPTS the same claim once it names what it ruled out.
+  dlg.r3.gaps = [{ need: "clear the composer", why: "no published action beyond clearComposer, which needs a targetComposerElementId we do not have" }];
+  ok("plan gate ACCEPTS a declared absence that names the API it checked", !kinds(await lintJson()).has("unchecked-absence"));
+
+  // (d) flow-only design content must be dispositioned rather than silently dropped.
+  dlg.root.children = [JSON.parse(JSON.stringify(chain))]; dlg.parentConditions = decisions;
+  dlg.r3 = { getter: "getCommentSidebarConfig", element: "getCommentElement", args: [], reactHook: null, reads: [] };
+  pp.flowOnly = { nodeCount: 12, sampleNodeIds: ["1:1"] };
+  ok("plan gate REJECTS undispositioned flow-only content", kinds(await lintJson()).has("undispositioned-flow-content"));
+  pp.flowOnly.adoption = [{ what: "thread list", decision: "defer", why: "no State frame this Loop" }];
+  ok("plan gate ACCEPTS flow-only content once dispositioned", !kinds(await lintJson()).has("undispositioned-flow-content"));
+  pp.flowOnly.adoption = [{ what: "thread list", decision: "adopt", into: "nope", why: "x" }];
+  ok("plan gate REJECTS adoption into a surface that does not exist", kinds(await lintJson()).has("adopt-into-unknown-surface"));
+
+  // --- GENERICITY GUARDS -----------------------------------------------------------------------
+  // Every rule added after run 5 was derived from ONE demo's failures. The risk is not that the
+  // rules are wrong, it is that they quietly end up describing that one demo: a deriver that only
+  // matches the shape the comment tree happens to use reports a confident ZERO for every other
+  // family, which reads as "checked, nothing found". Both of these regressed exactly that way once
+  // (element APIs scanned a single facade of 19; self-conditions matched a single declaration style
+  // and reported 0 for NotificationsPanel, ActivityLog and NotificationsTool), so the coverage is
+  // asserted here rather than trusted.
+  const famOf = (t) => M.primitives[t]?.family;
+  const famsWith = (pred) => new Set(Object.entries(M.primitives).filter(([, v]) => pred(v)).map(([t]) => famOf(t)).filter(Boolean));
+
+  ok("ownsVisibility spans many families, not just the one that exposed the rule",
+     famsWith((v) => v.ownsVisibility).size >= 8, `${famsWith((v) => v.ownsVisibility).size} families`);
+  ok("ownsVisibility covers BOTH declaration styles (own computed and inherited base helper)",
+     Object.values(M.primitives).some((v) => v.ownsVisibility && !v.ownsVisibility.viaBaseClass) &&
+     Object.values(M.primitives).some((v) => v.ownsVisibility?.viaBaseClass));
+  ok("sdkParents spans many families", famsWith((v) => v.sdkParents).size >= 8, `${famsWith((v) => v.sdkParents).size} families`);
+  ok("forwardsClassName is resolved (not null) across families", famsWith((v) => v.forwardsClassName !== null).size >= 8);
+  ok("elementApis covers every element facade, not only the comment one",
+     (M.elementApis?.facades || 0) >= 15 && Object.keys(M.elementApis?.byFacade || {}).length >= 15,
+     `${M.elementApis?.facades} facades`);
+  ok("elementApis includes non-comment members (the single-facade regression)",
+     (M.elementApis?.byFacade?.notification || []).length > 0 && (M.elementApis?.byFacade?.recorder || []).length > 0);
+
+  // No rule may name a specific primitive, surface or design. The manifest is the only place tag
+  // names belong; a tag hardcoded in a rule body is a rule that works for one design.
+  const lintSrc = await fs.readFile(path.join(ROOT, "scripts/scaffold-primitives.mjs"), "utf8");
+  const ruleRegion = lintSrc.slice(lintSrc.indexOf("P14..P18"));
+  const hardTags = [...ruleRegion.matchAll(/["'`](velt-[a-z0-9-]{4,})["'`]/g)].map((m) => m[1]);
+  ok("no plan-lint rule hardcodes a primitive tag", hardTags.length === 0, hardTags.join(", "));
+  const designWords = [...ruleRegion.matchAll(/\b(harvey|sidebar|composer|thread ?list|notification)\b/gi)]
+    .map((m) => m[0].toLowerCase()).filter((w) => !ruleRegion.includes(`// ${w}`));
+  ok("no plan-lint rule branches on a surface or design name", !/if\s*\([^)]*\b(harvey|sidebar|composer)\b/i.test(ruleRegion),
+     designWords.slice(0, 4).join(", "));
+
+  // (d2) a deferral that does not say where the work went is an omission with better manners.
+  pp.flowOnly.adoption = [{ what: "thread list", decision: "defer", why: "no State frame this Loop" }];
+  ok("plan gate REJECTS a deferral that names no destination", kinds(await lintJson()).has("defer-without-target"));
+  pp.flowOnly.adoption = [{ what: "thread list", decision: "defer", why: "x", deferredTo: "the 369 variant Loop" }];
+  ok("plan gate ACCEPTS a deferral that names where it went", !kinds(await lintJson()).has("defer-without-target"));
+
+  // (d3) a deferral must name the BLOCKS it uncovers, and they must be real. verdict-gate-blocks
+  // needs a PASS or an explicit terminal disposition for every block; a deferral that names none
+  // leaves them neither measured nor accounted, and the phase reports INCOMPLETE hours later.
+  pp.flowOnly.adoption = [{ what: "thread list", decision: "defer", why: "x", deferredTo: "the 369 Loop" }];
+  ok("plan gate REJECTS a deferral that names no blocks", kinds(await lintJson()).has("defer-without-blocks"));
+  pp.flowOnly.adoption[0].blocks = ["not-a-real-block"];
+  ok("plan gate REJECTS a deferral naming a block that is not in blocks.json", kinds(await lintJson()).has("defer-names-unknown-block"));
+  pp.flowOnly.adoption[0].blocks = ["b1"];
+  ok("plan gate ACCEPTS a deferral that names real blocks", !kinds(await lintJson()).has("defer-without-blocks"));
+
+  // (g) an "unverified" claim with no measurement attached is indistinguishable from a guess.
+  pp.unverified = [{ what: "submit round trip", why: "runtime branch" }];
+  ok("plan gate REJECTS an unverified claim with no verification plan", kinds(await lintJson()).has("unverified-without-measurement"));
+  pp.unverified[0].verifyBy = "smoke check submit-round-trip: assert the list row count increases";
+  ok("plan gate ACCEPTS an unverified claim that says how it gets settled", !kinds(await lintJson()).has("unverified-without-measurement"));
+  delete pp.unverified;
+
+  // (f) composed OUTSIDE the built-in container: advisory, and silenceable by acknowledging it.
+  const parented = M.primitives["velt-comment-sidebar-filter-dropdown-v2"]?.sdkParents || [];
+  ok("the manifest carries the SDK's own containment graph", parented.includes("velt-comment-sidebar-header-v2"));
+  dlg.root.children = [{ primitive: "velt-comment-sidebar-filter-dropdown-v2", children: [] }];
+  dlg.parentConditions = []; dlg.r3 = { getter: "getCommentSidebarConfig", element: "getCommentElement", args: [], reactHook: null, reads: [] };
+  let r = await lintJson();
+  ok("plan gate WARNS when a primitive is composed outside its built-in container",
+     r.warnings.some((w) => w.kind === "outside-builtin-container") && r.code === 0);
+  dlg.root.children = [{ primitive: "velt-comment-sidebar-header-v2", children: [{ primitive: "velt-comment-sidebar-filter-dropdown-v2", children: [] }] }];
+  r = await lintJson();
+  ok("the warning clears once the built-in container is in the tree",
+     !r.warnings.some((w) => w.kind === "outside-builtin-container" && /filter-dropdown/.test(w.where)));
+  dlg.root.children = [{ primitive: "velt-comment-sidebar-filter-dropdown-v2", children: [], containerProvidedBy: "host renders the header" }];
+  r = await lintJson();
+  ok("acknowledging a host-provided container silences the warning",
+     !r.warnings.some((w) => w.kind === "outside-builtin-container"));
+  dlg.root.children = [JSON.parse(JSON.stringify(chain))]; dlg.parentConditions = decisions;
+  pp.flowOnly = null;
+
+  // (e) the projection must carry host props the PLANNER filled — it is scaffolded before they exist.
+  // flowOnly was already cleared by (f) above.
+  dlg.hostProps = [{ prop: "pageMode", value: true, designEvidence: "composer above the list" }];
+  await fs.writeFile(path.join(tmp, "plan-primitives.json"), JSON.stringify(pp, null, 2));
+  const beforeProj = JSON.parse(await fs.readFile(path.join(tmp, "plan-structure.json"), "utf8"));
+  const scaffoldedHostProps = (beforeProj.components || []).reduce((n, c) => n + (c.hostProps || []).length, 0);
+  run("scaffold-primitives.mjs", [tmp, "--reproject"]);
+  const afterProj = JSON.parse(await fs.readFile(path.join(tmp, "plan-structure.json"), "utf8"));
+  const reprojectedHostProps = (afterProj.components || []).reduce((n, c) => n + (c.hostProps || []).length, 0);
+  ok("the scaffolded projection cannot carry planner host props", scaffoldedHostProps === 0);
+  ok("--reproject lifts planner host props into the projection verify-host-wiring reads", reprojectedHostProps === 1);
+
   await fs.rm(tmp, { recursive: true, force: true });
 
   const orch2 = await fs.readFile(path.join(ROOT, "agents/velt-orchestrator.md"), "utf8");

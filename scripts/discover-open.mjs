@@ -55,6 +55,27 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 await page.goto(url, { waitUntil: "networkidle", timeout: 40000 });
 await page.waitForTimeout(2500);
 
+// SIGN IN FIRST, if the app asks. A surface backed by collaboration data does not exist until the
+// SDK has identified someone: before that the sidebar's row collection is empty, so the list renders
+// nothing and no amount of clicking reveals it. `selectUser` is already a drive verb for exactly
+// this, but a drive authored from Figma has no way to know the app gates on it — so the discovery
+// step, which is the one thing that runs live, resolves it and records it for the briefs.
+let signedInAs = null;
+let signedInLabel = null;
+try {
+  const opt = await page.$$eval("select option", (os) =>
+    os.map((o) => ({ v: o.value, t: (o.textContent || "").trim() })).find((o) => o.v) || null);
+  if (opt) {
+    await page.selectOption("select", opt.v);
+    // Record the option's VALUE, not its label: the shared selectUser helper signs in by assigning
+    // select.value, so a human-readable label never sticks and fails as a "hydration race".
+    signedInAs = opt.v;
+    signedInLabel = opt.t || opt.v;
+    await page.waitForTimeout(6000);   // identify + first data fetch
+  }
+} catch { /* no sign-in control — the app identifies on its own */ }
+
+
 const visible = (cls) => page.evaluate((c) => {
   const el = document.querySelector("." + c);
   if (!el) return { present: false, w: 0, h: 0 };
@@ -92,23 +113,46 @@ const candidates = await page.evaluate(() => {
 });
 
 const results = [];
+// Openers already proven for an EARLIER surface. Two rules follow from this, and both were learned
+// the hard way: never click one again while probing (that toggles it back off and hides the surface
+// it just revealed), and never revert it. Surfaces in one app commonly share a container, so the
+// second surface is usually "already visible" purely because the first one's opener is still applied.
+const applied = new Set();
 for (const s of surfaces) {
   const before = await visible(s.cls);
   if (before.present && before.chainW > 40) { results.push({ ...s, status: "already-visible", box: before }); continue; }
   let found = null;
   for (const c of candidates) {
+    if (applied.has(c.selector)) continue;
     try {
       await page.click(c.selector, { timeout: 1500 });
       await page.waitForTimeout(900);
       const after = await visible(s.cls);
-      if (after.present && after.chainW > 40) { found = { ...c, box: after }; break; }
+      if (after.present && after.chainW > 40) {
+        // CAUSALITY CHECK. A surface backed by collaboration data appears when the data arrives,
+        // which can easily land during an unrelated click — the first version of this credited a
+        // filter dropdown for revealing the thread list. So prove the link: undo the click and
+        // require the surface to go away again. If it stays, the click was a coincidence and the
+        // surface simply became ready on its own.
+        await page.click(c.selector, { timeout: 1500 }).catch(() => {});
+        await page.waitForTimeout(900);
+        const reverted = await visible(s.cls);
+        if (reverted.present && reverted.chainW > 40) {
+          found = { self: true, box: reverted };            // not caused by this control
+          break;
+        }
+        await page.click(c.selector, { timeout: 1500 }).catch(() => {});   // re-apply the real opener
+        await page.waitForTimeout(700);
+        found = { ...c, box: after }; applied.add(c.selector); break;
+      }
       await page.click(c.selector, { timeout: 1500 }).catch(() => {});   // revert a toggle we flipped
       await page.waitForTimeout(300);
     } catch { /* not clickable — next candidate */ }
   }
-  results.push(found
-    ? { ...s, status: "opener-found", opener: found.selector, label: found.label, box: found.box }
-    : { ...s, status: "unreachable", triedCandidates: candidates.length });
+  if (found?.selector) applied.add(found.selector);
+  results.push(!found ? { ...s, status: "unreachable", triedCandidates: candidates.length }
+    : found.self ? { ...s, status: "became-ready", box: found.box }
+    : { ...s, status: "opener-found", opener: found.selector, label: found.label, box: found.box });
 }
 await browser.close();
 
@@ -130,7 +174,12 @@ if (flag("--apply")) {
       discoveredBy: "scripts/discover-open.mjs" };
     const steps = b.drive?.steps || [];
     const rest = steps.filter((s2) => !(s2.discoveredBy === "scripts/discover-open.mjs") && !/sidebar-button/.test(s2.js || ""));
-    b.drive.steps = [step, ...rest];
+    // selectUser first: it is idempotent by construction — the shared helper short-circuits once the
+    // app is identified, because the host swaps the sign-in control away after the first use.
+    const pre = signedInAs
+      ? [{ action: "selectUser", text: signedInAs, why: `the app gates its collaboration data behind identification (signs in as ${signedInLabel}); without it the surface has no rows to render`, discoveredBy: "scripts/discover-open.mjs" }]
+      : [];
+    b.drive.steps = [...pre, step, ...rest];
     // Adding steps to a brief that had none would violate the drive contract's "steps without an
     // assert is a false-pass" rule. The open step's own success IS assertable — the surface is
     // present — so supply that rather than leaving the brief in a state our own gate rejects.
@@ -148,9 +197,11 @@ if (flag("--json")) console.log(JSON.stringify({ ok: !unreachable.length, result
 else {
   for (const r of results) {
     if (r.status === "already-visible") console.log(`· ${r.id}: .${r.cls} already visible (${r.box.w}x${r.box.h})`);
+    else if (r.status === "became-ready") console.log(`· ${r.id}: .${r.cls} appeared on its own once its data loaded — no opener needed (${r.box.w}x${r.box.h})`);
     else if (r.status === "opener-found") console.log(`✓ ${r.id}: .${r.cls} revealed by '${r.opener}'${r.label ? ` (${r.label})` : ""}`);
     else console.error(`✗ ${r.id}: .${r.cls} could not be revealed by any of ${r.triedCandidates} candidate control(s) — the planner must supply the opener`);
   }
+  if (signedInAs) console.log(`· signed in as '${signedInAs}'${signedInLabel && signedInLabel !== signedInAs ? ` (${signedInLabel})` : ""} before probing — recorded as a selectUser step`);
   console.log(`\n${unreachable.length ? "✗" : "✓"} discover-open: ${results.length - unreachable.length}/${results.length} surface(s) reachable${flag("--apply") ? ` · ${written} brief(s) updated` : " (dry run — pass --apply)"}`);
 }
 process.exit(unreachable.length ? 2 : 0);

@@ -264,6 +264,12 @@ function scan(src, file) {
     // exactly what a primitives build is expected to carry until the SDK publishes these.
     const before = masked.slice(Math.max(0, h.index - 40), h.index);
     if (/\b(?:function|const|let|var)\s+$/.test(before)) continue;
+    // Imported from the app's OWN module (its R3 shim), not from @veltdev/react. The rule exists to
+    // stop someone inventing an SDK hook name and expecting the SDK to provide it — not to ban an
+    // app's own wrapper around the documented element-method + subscribe pattern, which is exactly
+    // what a primitives build must carry until these getters are published.
+    const origin = imports.get(h[1]);
+    if (origin && !origin.startsWith("@veltdev/")) continue;
     if (!R3_HOOK_NAMES.has(h[1])) add("P8", "error", file, lineAt(h.index), `${h[1]}() is not a published Velt config hook.`, `The only published React config hook is ${[...R3_HOOK_NAMES][0] || "(none)"}. For every other surface use the element method + useEffect/subscribe.`);
   }
 }
@@ -272,7 +278,12 @@ function scan(src, file) {
 function consumeText(chunk, offset, stack, lineAt) {
   const top = stack[stack.length - 1];
   if (!top) return;
-  if (/\{[^}]*\.map\s*\(/.test(chunk)) top.hasMap = true;
+  // Mark the WHOLE open chain, not just the innermost element. A repeating container almost always
+  // needs a wrapper between it and the loop — the "one stable root child" rule requires exactly that,
+  // since the loop's output identity changes as data arrives. Marking only the innermost element put
+  // those two rules in direct opposition: satisfy the stable-child rule and P5 fired, satisfy P5 and
+  // the children could be dropped on re-render. A map anywhere in the subtree IS owning the loop.
+  if (/\{[^}]*\.map\s*\(/.test(chunk)) for (const frame of stack) frame.hasMap = true;
   if (/\{/.test(chunk)) top.sawExpressionChild = true;
   // P9 — a conditional DIRECTLY inside a primitive. Tested on the RAW chunk, before expression
   // containers are stripped, and only when the innermost open element is the primitive itself:

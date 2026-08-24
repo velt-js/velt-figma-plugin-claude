@@ -392,7 +392,33 @@ async function reproject(P) {
     components: surfaces.filter((s) => s.reachable !== false).map((s) => ({
       id: s.id, veltComponents: {}, slots: [], hostProps: s.hostProps || [],
     })),
-    vcClasses: surfaces.map((s) => s.root?.vcClass).filter(Boolean),
+    // EVERY class the plan commits to, not just the surface roots. skeleton-check tests this list
+    // for presence AND a real box, so a shallow list means a shallow check: with only the 4 roots in
+    // it the gate passed while 40-odd planned classes went untested, including ones rendering at
+    // zero size. The plan promises them; the projection has to carry them.
+    vcClasses: (() => {
+      const out = new Set();
+      const walk = (n) => {
+        if (!n || typeof n !== "object") return;
+        for (const c of String(n.vcClass || "").split(/\s+/).filter(Boolean)) out.add(c);
+        for (const c of n.children || []) walk(c);
+      };
+      for (const s2 of surfaces) walk(s2.root);
+      return [...out];
+    })(),
+    // The primitives the plan places. A primitive is not a class, so the vcClass sweep cannot see
+    // it — and a control that renders at zero size everywhere is exactly the "looks fine, does
+    // nothing" defect this pipeline exists to catch (measured: 16 Reply controls, 0 with a box).
+    plannedPrimitives: (() => {
+      const out = new Set();
+      const walk = (n) => {
+        if (!n || typeof n !== "object") return;
+        if (n.primitive) out.add(n.primitive);
+        for (const c of n.children || []) walk(c);
+      };
+      for (const s2 of surfaces) walk(s2.root);
+      return [...out];
+    })(),
   };
   await fs.writeFile(P("plan-structure.json"), JSON.stringify(projection, null, 2) + "\n");
   const hp = projection.components.reduce((n, c) => n + (c.hostProps || []).length, 0);

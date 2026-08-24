@@ -103,6 +103,11 @@ export function SNAPSHOT_FN(surfaceSelector, maxDepth) {
       tag: el.tagName.toLowerCase(),
       ...(el.id ? { id: el.id } : {}),
       classes: [...el.classList],
+      // The SDK's "declined to render" signal. Without it a consumer cannot tell a primitive that
+      // is correctly parked (the empty placeholder on a populated document) from one that is
+      // broken — both are simply zero-size — so any zero-size check either misses real defects or
+      // reports the SDK working as one.
+      ...(el.getAttribute?.("data-velt-hidden") ? { veltHidden: el.getAttribute("data-velt-hidden") } : {}),
       box,
       visible: visibleOf(el, cs, box),
       paints: paintsOf(el, cs),

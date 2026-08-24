@@ -83,6 +83,11 @@ export function renderedOrientation(node) {
 
 export function skeletonProblems(plan, snapshots, specNodesById, { presenceOnly = false } = {}) {
   const problems = [];
+  // PRIMITIVES too. A primitive carries no class of ours, so the vcClass sweep above is blind to
+  // it — yet a placed control that renders at zero size EVERYWHERE is the headline defect class of
+  // this whole pipeline: it exists in the markup, every lint passes, and the user sees nothing.
+  // Measured: 16 Reply controls placed, 0 of them with a box, and every gate green.
+  const plannedPrims = plan.plannedPrimitives || [];
   const classes = plannedClasses(plan);
   const presence = classPresence(snapshots, classes);
   // A. presence
@@ -91,6 +96,27 @@ export function skeletonProblems(plan, snapshots, specNodesById, { presenceOnly 
     if (!p) problems.push({ kind: "missing-class", class: cls, slot: meta.slot, msg: `planned class '.${cls}'${meta.slot ? ` (slot ${meta.slot})` : " (own markup)"} exists NOWHERE in the rendered DOM — never built` });
     else if (!p.visible) problems.push({ kind: "zero-size-class", class: cls, slot: meta.slot, msg: `planned class '.${cls}'${meta.slot ? ` (slot ${meta.slot})` : ""} renders ZERO-SIZE everywhere (bound only to a hidden twin / wrong mount level?)` });
   }
+  // A1b. PLACED PRIMITIVES. Same test, applied to the tags the plan places. A primitive carries no
+  //      class of ours, so the sweep above cannot see it — and a control that renders at zero size
+  //      everywhere looks perfect in the markup while doing nothing on screen.
+  for (const tag of plannedPrims) {
+    let seen = false, sized = false, declined = false;
+    const visit = (n) => {
+      if (n.tag === tag) {
+        seen = true;
+        if (hasRealBox(n)) sized = true;
+        // The SDK's own "I declined to render" signal. A primitive it has parked is CORRECTLY
+        // zero-size — the empty placeholder on a populated document, the skeleton after loading —
+        // and flagging that would report the SDK working as a defect.
+        if (n.veltHidden === "true") declined = true;
+      }
+      for (const c of n.children || []) visit(c);
+    };
+    for (const s2 of snapshots) if (s2.tree) visit(s2.tree);
+    if (!seen) problems.push({ kind: "missing-primitive", class: tag, msg: `planned primitive <${tag}> exists NOWHERE in the rendered DOM — never built` });
+    else if (!sized && !declined) problems.push({ kind: "zero-size-primitive", class: tag, msg: `planned primitive <${tag}> renders ZERO-SIZE in every state — it is in the markup and invisible to the user. A primitive that draws nothing on its own needs your markup (and the design's glyph) inside it.` });
+  }
+
   // A2. HOLLOW COMPOSITES (v4 empty-composer class): a planned CONTAINER slot whose live element
   //     has a real box but contains NO visible content (no text, no visible children anywhere in
   //     its subtree) renders as an empty shell — present, sized, and useless. Presence alone

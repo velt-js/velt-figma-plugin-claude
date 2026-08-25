@@ -49,7 +49,10 @@ async function loadPlaywright() {
 export const EXEC = `(function(INPUT){
   ${parseColor.toString()}
   const assertions = INPUT.assertions || [];
-  function vis(el){ if(!el||!el.getBoundingClientRect) return false; const r=el.getBoundingClientRect(); const cs=getComputedStyle(el); return r.width>1 && r.height>1 && cs.display!=='none' && cs.visibility!=='hidden'; }
+  // A HAIRLINE IS NOT ABSENT. Requiring >1px in both axes rejected exactly the
+  // elements a design defines as 1px -- rules, dividers, the thread rail -- so a
+  // correctly built 1px connector was reported as "(element missing)".
+  function vis(el){ if(!el||!el.getBoundingClientRect) return false; const r=el.getBoundingClientRect(); const cs=getComputedStyle(el); return r.width>0.5 && r.height>0.5 && cs.display!=='none' && cs.visibility!=='hidden'; }
   const panel = [...document.querySelectorAll('app-comment-sidebar-panel, .vc-panel, .hw-rail-inner, .hw-rail')].filter(vis)[0] || document.body;
   function q(sel, root){ try { return [...(root||panel).querySelectorAll(sel)].filter(vis); } catch(e){ return []; } }
   // Planned vc-classes the builder may not have adopted verbatim have known LIVE TWINS
@@ -207,7 +210,20 @@ export const EXEC = `(function(INPUT){
         results.push(res); continue;
       }
       if (a.kind==='rect-size'){
-        const r = el0.getBoundingClientRect();
+        // measure:"geometry" -> the union of the drawable shapes inside, so an icon is
+        // judged by the glyph the designer drew, not by the box it happens to sit in.
+        let r = el0.getBoundingClientRect();
+        if (a.measure==='geometry'){
+          const shapes = el0.matches('path,line,polyline,circle,rect,ellipse,polygon')
+            ? [el0] : Array.from(el0.querySelectorAll('path,line,polyline,circle,rect,ellipse,polygon'));
+          let x1=Infinity,y1=Infinity,x2=-Infinity,y2=-Infinity;
+          for (const sh of shapes){
+            const b = sh.getBoundingClientRect();
+            if (b.width<=0 || b.height<=0) continue;
+            x1=Math.min(x1,b.left); y1=Math.min(y1,b.top); x2=Math.max(x2,b.right); y2=Math.max(y2,b.bottom);
+          }
+          if (Number.isFinite(x1)) r = { width:x2-x1, height:y2-y1 };
+        }
         const v = a.dim==='w' ? r.width : a.dim==='h' ? r.height : Math.max(r.width,r.height);
         res.measured = Math.round(v*10)/10;
         const d = v - a.expected;
@@ -443,7 +459,7 @@ async function main() {
         const el = document.querySelector(sel);
         if (!el) return false;
         const r = el.getBoundingClientRect();
-        if (!(r.width > 1 && r.height > 1)) return false;
+        if (!(r.width > 0.5 && r.height > 0.5)) return false;   // hairlines are real elements
         for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
           const cs = getComputedStyle(a);
           if (cs.display === "none" || cs.visibility === "hidden") return false;

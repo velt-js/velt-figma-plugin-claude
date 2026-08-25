@@ -520,6 +520,63 @@ export function stylePlanAuthorshipProblems(planStyle, blocksDoc = null) {
     problems.push({ kind: "assumed", note: "style plan marked assumed — HALT and re-plan style; --assume-remaining is forbidden for --stage style" });
   }
   const rules = planStyle.rules || [];
+
+  // DOUBLE-APPLIED BOX MODEL. One design node often needs two elements in the live
+  // markup (a primitive that wraps our own div, a track that holds a row). Giving
+  // BOTH the node's padding/margin/gap applies it twice: the child indents inside an
+  // already-indented parent and every measurement downstream is short by exactly one
+  // helping. Seen twice on this design -- a sidebar whose panel padding also hit each
+  // child, and a reply row indented 28px inside a track already indented 28px.
+  // Only ONE selector per design node may carry the box model; the rest are structure.
+  {
+    const BOX = ["padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
+                 "margin", "margin-top", "margin-right", "margin-bottom", "margin-left", "gap"];
+    const byNode = new Map();
+    for (const r of rules) {
+      if (!r?.specNodeId || !r.selector) continue;
+      const hasBox = Object.entries(r.decls || {}).some(([k, v]) =>
+        BOX.includes(k) && String(v).trim() !== "0" && String(v).trim() !== "0px");
+      if (!hasBox) continue;
+      if (!byNode.has(r.specNodeId)) byNode.set(r.specNodeId, []);
+      byNode.get(r.specNodeId).push(r.selector);
+    }
+    for (const [nodeId, sels] of byNode) {
+      if (sels.length < 2) continue;
+      problems.push({
+        kind: "box-model-applied-twice",
+        specNodeId: nodeId,
+        selectors: sels,
+        attribution: "plan-error(style)",
+        note: `design node ${nodeId} gives padding/margin/gap to ${sels.length} selectors (${sels.join(", ")}) — ` +
+          "if any is an ancestor of another the spacing applies twice. Keep the box model on ONE selector; " +
+          "the others get structure only (display/flex-direction/align-*).",
+      });
+    }
+  }
+
+  // A selector list that matches a container AND its own children ("X, X > *") applies
+  // the container's padding to every child as well -- the same defect written in CSS.
+  for (const r of rules) {
+    const sel = String(r.selector || "");
+    if (!/,/.test(sel)) continue;
+    const parts = sel.split(",").map((x) => x.trim()).filter(Boolean);
+    const hasBox = Object.entries(r.decls || {}).some(([k]) => /^(padding|margin|gap)/.test(k));
+    if (!hasBox) continue;
+    for (const a of parts) {
+      for (const b of parts) {
+        if (a === b) continue;
+        if (b.startsWith(a + " ")) {
+          problems.push({
+            kind: "box-model-selector-covers-descendants",
+            selector: sel, specNodeId: r.specNodeId || null,
+            attribution: "plan-error(style)",
+            note: `"${b}" is a descendant of "${a}" in the same rule, so its padding/margin/gap applies at both levels — split the rule`,
+          });
+        }
+      }
+    }
+  }
+
   const blockN = (blocksDoc?.blocks || []).length || 0;
   const minRules = Math.max(12, blockN * 3);
   if (rules.length && rules.length < minRules) {

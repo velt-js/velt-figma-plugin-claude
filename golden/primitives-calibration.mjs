@@ -14,6 +14,7 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
@@ -554,6 +555,55 @@ export async function calibratePrimitives() {
     const srcR = await fs.readFile(path.join(ROOT, "scripts", "run-compiled-assertions.mjs"), "utf8");
     ok("readiness walks the ancestor chain for clipping", /clips && \(ar\.width < 1 \|\| ar\.height < 1\)/.test(srcR));
     ok("a collapsed surface is named as such, not reported as defects", /COLLAPSED/.test(srcR));
+  }
+
+  // ---- one design node must not pay its padding twice ----
+  // Both real double-spacing defects on this design had the same shape: a node's
+  // box model handed to two elements in one nesting chain.
+  {
+    const t5 = await fs.mkdtemp(path.join(os.tmpdir(), "velt-box-"));
+    await fs.writeFile(path.join(t5, "blocks.json"), JSON.stringify({ blocks: [{ id: "b1", role: "flow" }] }));
+    // the style lint only reaches the rule checks once a snapshot exists
+    await fs.mkdir(path.join(t5, "dom-snapshot"), { recursive: true });
+    await fs.writeFile(path.join(t5, "dom-snapshot", "b1.json"), JSON.stringify({
+      blockId: "b1",
+      tree: { tag: "div", classes: ["track"], children: [
+        { tag: "div", classes: ["row"], children: [] },
+        { tag: "div", classes: ["panel"], children: [{ tag: "div", classes: ["a", "b"], children: [] }] },
+      ] },
+    }));
+    const write = (rules) => fs.writeFile(path.join(t5, "plan-style.json"),
+      JSON.stringify({ generatedBy: "velt-planner-style", rules }));
+    // --lint-style reports as text, not JSON
+    const lint = () => run("brief-scaffold.mjs", [t5, "--lint-style"]).out;
+
+    await write([
+      { selector: ".track", specNodeId: "n:1", decls: { padding: "0 0 0 28px", display: "flex" } },
+      { selector: ".row", specNodeId: "n:1", decls: { padding: "0 0 0 28px", display: "flex" } },
+    ]);
+    let ps = lint();
+    ok("a node whose padding is given to two selectors is flagged",
+      /gives padding\/margin\/gap to 2 selectors/.test(ps));
+
+    await write([
+      { selector: ".track", specNodeId: "n:1", decls: { display: "flex" } },
+      { selector: ".row", specNodeId: "n:1", decls: { padding: "0 0 0 28px", display: "flex" } },
+    ]);
+    ps = lint();
+    ok("the corrected split (box model on ONE selector) is clean",
+      !/gives padding\/margin\/gap to/.test(ps));
+
+    await write([{ selector: ".panel, .panel > div", specNodeId: "n:2", decls: { padding: "12px 16px" } }]);
+    ps = lint();
+    ok("a selector list covering its own descendants is flagged",
+      /is a descendant of .* in the same rule/.test(ps));
+
+    await write([{ selector: ".a, .b", specNodeId: "n:3", decls: { padding: "8px" } }]);
+    ps = lint();
+    ok("unrelated selectors sharing a rule are NOT flagged",
+      !/is a descendant of/.test(ps));
+
+    await fs.rm(t5, { recursive: true, force: true });
   }
 
   for (const d of [t2, t3, t4]) await fs.rm(d, { recursive: true, force: true });

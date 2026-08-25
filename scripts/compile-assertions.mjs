@@ -474,6 +474,10 @@ export function compileIconSizes(designSpec, slots) {
       dim: "max",
       cmp: "eq",
       property: "icon-size",
+      // Measure the DRAWN GLYPH, not its frame: the design node is a VECTOR, and an
+      // <svg> is usually a larger icon slot around it (a 12x10 arrow in a 16x16 box).
+      // Comparing the vector's size to the slot's reports every correct icon as wrong.
+      measure: "geometry",
       expected: dim,
       tolerance: 1,
       state: "default",

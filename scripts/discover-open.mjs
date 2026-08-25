@@ -48,6 +48,22 @@ const surfaces = (plan.surfaces || [])
   .map((s) => ({ id: s.id, cls: (s.root?.vcClass || "").split(/\s+/)[0] }))
   .filter((s) => s.cls);
 
+// Which class repeats INSIDE each surface — the plan marks it with `repeat`, so a member selector
+// can be built without knowing anything about this design.
+const repeatedChildClasses = {};
+for (const s2 of plan.surfaces || []) {
+  const rootCls = (s2.root?.vcClass || "").split(/\s+/)[0];
+  if (!rootCls) continue;
+  const kids = [];
+  const walkR = (n) => {
+    if (!n || typeof n !== "object") return;
+    if (n.repeat && n.vcClass) kids.push(String(n.vcClass).split(/\s+/)[0]);
+    for (const c of n.children || []) walkR(c);
+  };
+  walkR(s2.root);
+  if (kids.length) repeatedChildClasses[rootCls] = kids;
+}
+
 const chromium = await loadChromium();
 const connect = val("--connect", null);
 const browser = await acquireBrowser(chromium, connect, { requireConnect: !!connect });
@@ -76,7 +92,10 @@ try {
 } catch { /* no sign-in control — the app identifies on its own */ }
 
 
-const visible = (cls) => page.evaluate((c) => {
+// READY, not merely present. For a surface that repeats a row, an empty container still has a box —
+// measured 321x24 — so a width test calls it visible, no data wait gets recorded, and every later
+// capture happens against an empty list. Readiness for such a surface means at least one ROW.
+const visible = (cls, memberCls) => page.evaluate(([c, m]) => {
   const el = document.querySelector("." + c);
   if (!el) return { present: false, w: 0, h: 0 };
   const r = el.getBoundingClientRect();
@@ -84,8 +103,9 @@ const visible = (cls) => page.evaluate((c) => {
   // narrow before the style stage, so the container chain is what decides reachability.
   let n = el, minW = r.width;
   for (let i = 0; i < 6 && n; i++, n = n.parentElement) minW = Math.min(minW, n.getBoundingClientRect().width);
-  return { present: true, w: Math.round(r.width), h: Math.round(r.height), chainW: Math.round(minW) };
-}, cls);
+  const members = m ? el.querySelectorAll("." + m).length : null;
+  return { present: true, w: Math.round(r.width), h: Math.round(r.height), chainW: Math.round(minW), members };
+}, [cls, memberCls || null]);
 
 // Every plausible opener, ranked by how likely it is to be a disclosure control. No app-specific
 // names: aria state first (a toggle usually announces itself), then ordinary buttons.
@@ -119,16 +139,18 @@ const results = [];
 // second surface is usually "already visible" purely because the first one's opener is still applied.
 const applied = new Set();
 for (const s of surfaces) {
-  const before = await visible(s.cls);
-  if (before.present && before.chainW > 40) { results.push({ ...s, status: "already-visible", box: before }); continue; }
+  const memberCls = (repeatedChildClasses[s.cls] || [])[0] || null;
+  const ready = (v) => v.present && v.chainW > 40 && (memberCls ? (v.members || 0) > 0 : true);
+  const before = await visible(s.cls, memberCls);
+  if (ready(before)) { results.push({ ...s, status: "already-visible", box: before }); continue; }
   let found = null;
   for (const c of candidates) {
     if (applied.has(c.selector)) continue;
     try {
       await page.click(c.selector, { timeout: 1500 });
       await page.waitForTimeout(900);
-      const after = await visible(s.cls);
-      if (after.present && after.chainW > 40) {
+      const after = await visible(s.cls, memberCls);
+      if (ready(after)) {
         // CAUSALITY CHECK. A surface backed by collaboration data appears when the data arrives,
         // which can easily land during an unrelated click — the first version of this credited a
         // filter dropdown for revealing the thread list. So prove the link: undo the click and
@@ -136,8 +158,8 @@ for (const s of surfaces) {
         // surface simply became ready on its own.
         await page.click(c.selector, { timeout: 1500 }).catch(() => {});
         await page.waitForTimeout(900);
-        const reverted = await visible(s.cls);
-        if (reverted.present && reverted.chainW > 40) {
+        const reverted = await visible(s.cls, memberCls);
+        if (ready(reverted)) {
           found = { self: true, box: reverted };            // not caused by this control
           break;
         }
@@ -160,6 +182,11 @@ for (const s of surfaces) {
 // then captures one surface and calls it the whole screen. Measured: flow and flow-2 both rooted at
 // the header, so the composer and the thread list were absent from the very snapshots the style
 // stage treats as the full picture. Live, the container is simply the nearest common ancestor.
+const memberOf = (cls) => {
+  const kids = repeatedChildClasses[cls];
+  return kids && kids.length ? `.${cls} .${kids[0]}` : `.${cls}`;
+};
+
 const commonRoot = await page.evaluate((clsList) => {
   const els = clsList.map((c) => document.querySelector("." + c)).filter(Boolean);
   if (els.length < 2) return null;
@@ -193,13 +220,26 @@ if (flag("--apply")) {
       b.liveSelector = commonRoot;
       if (b.browser) b.browser.surfaceSelector = commonRoot;
       b.selectorProvenance = `discover-open: nearest live ancestor containing every planned surface (${surfaces.map((s3) => "." + s3.cls).join(", ")}) — an acceptance block must capture the whole screen, not one surface`;
+      // An acceptance block captures the whole screen, so it needs every surface's OPENER as well as
+      // every data wait — and the waits must target a ROW, not a container that is laid out before
+      // any row arrives. Building this list without the openers left the drive unable to open the
+      // rail at all, and waiting on containers captured 129 nodes with zero rows.
+      const openers = results.filter((r) => r.status === "opener-found").map((r) => ({
+        action: "eval",
+        js: `{const el=document.querySelector('.${r.cls}');if(!el||el.getBoundingClientRect().width<=40){document.querySelector('${r.opener}')?.click();}}`,
+        why: `idempotent open for .${r.cls} — discovered live as '${r.opener}'`,
+        discoveredBy: "scripts/discover-open.mjs" }));
       const dataWaits = results.filter((r) => r.status === "became-ready")
-        .map((r) => ({ action: "waitFor", selector: `.${r.cls}`,
+        .map((r) => ({ action: "waitFor", selector: memberOf(r.cls),
           why: `an acceptance block captures the whole screen, so it must wait for every data-backed surface on it — otherwise the screenshot is of a half-loaded page`,
           discoveredBy: "scripts/discover-open.mjs" }));
-      const keep = (b.drive?.steps || []).filter((s4) => s4.discoveredBy !== "scripts/discover-open.mjs");
+      // Keep a previously discovered OPENER. Discovery reflects the browser state it happened to
+      // find: probing a page whose sidebar is already open records no opener, and dropping the old
+      // one leaves the drive unable to open anything on a fresh load.
+      const prior = (b.drive?.steps || []).filter((s4) => s4.discoveredBy === "scripts/discover-open.mjs" && /click\(\)/.test(s4.js || ""));
+      const keep = [...(b.drive?.steps || []).filter((s4) => s4.discoveredBy !== "scripts/discover-open.mjs"), ...prior];
       b.drive = b.drive || {};
-      b.drive.steps = [...(signedInAs ? [{ action: "selectUser", text: signedInAs, why: "identify before measuring", discoveredBy: "scripts/discover-open.mjs" }] : []), ...keep, ...dataWaits];
+      b.drive.steps = [...(signedInAs ? [{ action: "selectUser", text: signedInAs, why: "identify before measuring", discoveredBy: "scripts/discover-open.mjs" }] : []), ...openers, ...keep, ...dataWaits];
       if (!b.drive.assert && dataWaits.length) b.drive.assert = dataWaits[0].selector;
       await fs.writeFile(path.join(briefDir, f), JSON.stringify(b, null, 2) + "\n");
       written++;
@@ -224,8 +264,13 @@ if (flag("--apply")) {
     // hand moments later. waitFor is the right verb because it waits for VISIBILITY, and an element
     // with no content has no box — so "visible" is exactly "has content".
     const dataBacked = results.filter((r) => r.status === "became-ready");
-    const post = dataBacked.map((r) => ({ action: "waitFor", selector: `.${r.cls}`,
-      why: `${r.cls} is data-backed — it exists before its content arrives, so presence alone would capture it empty`,
+    // Wait for a MEMBER of the collection, not its container. A list container is visible the moment
+    // it is laid out — it has a box whether or not any row has arrived — so waiting on it passes
+    // instantly and the capture records an empty surface. Measured: every snapshot in this phase
+    // held 129 nodes and ZERO thread cards, which made skeleton-check swing between 2 and 10
+    // defects on the same build and left real classes missing from the selector corpus.
+    const post = dataBacked.map((r) => ({ action: "waitFor", selector: memberOf(r.cls),
+      why: `${r.cls} is data-backed. Waiting on the container passes instantly — it has a box before any row arrives — so this waits for a ROW.`,
       discoveredBy: "scripts/discover-open.mjs" }));
     b.drive.steps = [...pre, step, ...rest, ...post];
     // Adding steps to a brief that had none would violate the drive contract's "steps without an

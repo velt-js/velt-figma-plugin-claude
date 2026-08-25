@@ -557,6 +557,13 @@ export async function calibratePrimitives() {
     ok("a collapsed surface is named as such, not reported as defects", /COLLAPSED/.test(srcR));
   }
 
+  // ---- a scrollport's overflow edge is not padding ----
+  {
+    const srcR = await fs.readFile(path.join(ROOT, "scripts", "run-compiled-assertions.mjs"), "utf8");
+    ok("inset drops the far edge on a scrolling container", /delete inset\.bottom/.test(srcR) && /scrollHeight > el0\.clientHeight/.test(srcR));
+    ok("a dropped side is skipped, not compared as undefined", /!\(side in inset\)\) continue/.test(srcR));
+  }
+
   // ---- a glyph the plan hides must not be asserted ----
   {
     const CA = await import(path.join(ROOT, "scripts", "compile-assertions.mjs"));

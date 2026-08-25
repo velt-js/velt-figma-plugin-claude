@@ -238,9 +238,19 @@ export const EXEC = `(function(INPUT){
         const bl=parseFloat(cs.borderLeftWidth)||0, bt=parseFloat(cs.borderTopWidth)||0, br=parseFloat(cs.borderRightWidth)||0, bb=parseFloat(cs.borderBottomWidth)||0;
         const kr=kids.map(k=>k.getBoundingClientRect());
         const inset={ left: Math.min(...kr.map(k=>k.left)) - (r.left+bl), top: Math.min(...kr.map(k=>k.top)) - (r.top+bt), right: (r.right-br) - Math.max(...kr.map(k=>k.right)), bottom: (r.bottom-bb) - Math.max(...kr.map(k=>k.bottom)) };
+        // On a SCROLLPORT the far edge is not padding, it is overflow: the content runs
+        // past the box by design, so "bottom" comes back as a large negative number and
+        // the element's real padding is reported as a defect (measured -2770 on a list
+        // 4000px tall). Only the near edges are meaningful once content scrolls.
+        const csEl = getComputedStyle(el0);
+        const scrollsY = (csEl.overflowY==='auto'||csEl.overflowY==='scroll') && el0.scrollHeight > el0.clientHeight + 1;
+        const scrollsX = (csEl.overflowX==='auto'||csEl.overflowX==='scroll') && el0.scrollWidth > el0.clientWidth + 1;
+        if (scrollsY) { delete inset.bottom; res.scrollport='y'; }
+        if (scrollsX) { delete inset.right; res.scrollport = res.scrollport ? 'xy' : 'x'; }
         res.measured = Object.fromEntries(Object.entries(inset).map(([k,v])=>[k,Math.round(v*10)/10]));
         let ok=true; const off=[];
         for (const [side,exp] of Object.entries(a.expected)){
+          if (!(side in inset)) continue;   // dropped above: overflow edge of a scrollport
           if (Math.abs(inset[side]-exp)>a.tolerance){ ok=false; off.push(side+' '+Math.round(inset[side])+' vs '+exp); }
         }
         res.status = ok?'pass':'fail'; if(!ok) res.note=off.join(', ');

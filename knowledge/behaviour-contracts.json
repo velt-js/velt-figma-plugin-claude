@@ -1,0 +1,83 @@
+{
+  "_doc": "BEHAVIOUR CONTRACTS — what a Velt control must still DO after you customize it. A pixel diff proves a control LOOKS right; nothing proved it still works, and the whole premise of primitives is that your markup keeps the SDK's behaviour. These are keyed to the PRIMITIVE FAMILY, never to a design: the SDK's behaviour is invariant across customizations, so one contract covers every build that places those primitives.",
+  "howItRuns": "scripts/behaviour-check.mjs resolves which contracts apply from the primitives the PLAN places, then drives each against the live app and asserts an OBSERVABLE outcome. Selectors come from probe-selectors.json + the plan's own vcClasses, so nothing here hardcodes a design.",
+  "whyEachCarriesAMutation": "A check that cannot fail is worse than no check — it reads as evidence. Every contract names a mutation that MUST trip it, so mutation-drill can score the suite's recall the same way it scores the visual detectors.",
+  "contracts": [
+    {
+      "id": "composer-accepts-text",
+      "family": "CommentDialogPrimitive",
+      "requires": ["velt-comment-dialog-composer-input"],
+      "why": "The input must render Velt's own contenteditable. If your markup replaced it, typing goes nowhere and every downstream composer behaviour is dead.",
+      "steps": [
+        { "action": "click", "target": "composerInput" },
+        { "action": "type", "target": "composerInput", "text": "behaviour probe" }
+      ],
+      "assert": { "kind": "composerText", "contains": "behaviour probe" },
+      "mutation": "remove the contenteditable inside the composer input"
+    },
+    {
+      "id": "composer-text-stream-fires",
+      "family": "CommentDialogPrimitive",
+      "requires": ["velt-comment-dialog-composer"],
+      "why": "composerTextChange is the published signal a customization reads to drive its own states. If it does not fire, every state a design keys on content is dead.",
+      "steps": [
+        { "action": "subscribe", "event": "composerTextChange" },
+        { "action": "click", "target": "composerInput" },
+        { "action": "type", "target": "composerInput", "text": "stream probe" }
+      ],
+      "assert": { "kind": "eventFired", "event": "composerTextChange" },
+      "mutation": "drop targetComposerElementId so the stream cannot be addressed"
+    },
+    {
+      "id": "composer-clears-on-api",
+      "family": "CommentDialogPrimitive",
+      "requires": ["velt-comment-dialog-composer"],
+      "why": "clearComposer is how a customized Cancel empties the field. If it no-ops the design's Cancel is decorative.",
+      "steps": [
+        { "action": "click", "target": "composerInput" },
+        { "action": "type", "target": "composerInput", "text": "clear probe" },
+        { "action": "api", "method": "clearComposer" }
+      ],
+      "assert": { "kind": "composerText", "equals": "" },
+      "mutation": "register the composer under a different targetComposerElementId"
+    },
+    {
+      "id": "submit-creates-a-thread",
+      "family": "CommentDialogPrimitive",
+      "requires": ["velt-comment-dialog-composer-action-button"],
+      "why": "The headline promise of a composed composer. A silent no-op is indistinguishable from success without counting the collection before and after — which is why this is measured, not eyeballed.",
+      "steps": [
+        { "action": "countRows", "as": "before" },
+        { "action": "click", "target": "composerInput" },
+        { "action": "type", "target": "composerInput", "text": "submit probe" },
+        { "action": "api", "method": "submitComment" },
+        { "action": "sleep", "ms": 2500 }
+      ],
+      "assert": { "kind": "rowsIncreased", "from": "before" },
+      "mutation": "point submitComment at an unknown composer id",
+      "mutates": true
+    },
+    {
+      "id": "placed-controls-are-hittable",
+      "family": "*",
+      "requires": [],
+      "why": "A control that renders but is not the top element at its own centre is unclickable — a transparent overlay, a zero-size host, a sibling stealing the point. It looks perfect and does nothing, and this is the cheapest way to catch it.",
+      "steps": [{ "action": "hitTestPlacedControls" }],
+      "assert": { "kind": "allControlsHittable" },
+      "mutation": "cover a control with a transparent overlay"
+    },
+    {
+      "id": "filter-trigger-toggles-its-menu",
+      "family": "SidebarV2",
+      "requires": ["velt-comment-sidebar-filter-dropdown-trigger-v2"],
+      "why": "The trigger owns the click. A chip composed from the leaves alone renders pixel-perfect and never opens anything — the dead-compound-trigger class.",
+      "steps": [
+        { "action": "measure", "target": "filterContent", "as": "closed" },
+        { "action": "click", "target": "filterTrigger" },
+        { "action": "sleep", "ms": 600 }
+      ],
+      "assert": { "kind": "grewFrom", "target": "filterContent", "from": "closed" },
+      "mutation": "place the trigger's leaves without the trigger ancestor"
+    }
+  ]
+}

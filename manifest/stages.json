@@ -889,6 +889,28 @@
       ],
       "gates": [
         {
+          "id": "behaviour-check",
+          "cmd": [
+            "node",
+            "scripts/behaviour-check.mjs",
+            "<phaseDir>",
+            "--url",
+            "<appUrl>",
+            "--connect",
+            "<browserWs>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a composed control no longer DOES what the SDK's control does",
+            "3": "environment"
+          },
+          "lens": "functional",
+          "why": "the pixel half of this stage proves a control LOOKS right and nothing proved it still WORKS \u2014 every 'renders correctly, behaves wrongly' class is invisible to a diff. Keyed to the primitive family, so it is reusable across designs; runs in ~20s."
+        },
+        {
           "id": "judge2-chromatic",
           "cmd": [
             "node",
@@ -947,6 +969,7 @@
           "judge2/chrome-probes.json"
         ],
         "functional": [
+          "behaviour-check",
           "judge2/chrome-probes.json"
         ],
         "code": [

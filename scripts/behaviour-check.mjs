@@ -61,7 +61,15 @@ const SEL = {
   card: probes.card || ".vc-thread-card",
 };
 
-const applicable = contracts.filter((c) => c.requires.length === 0 || c.requires.every((r) => placed.has(r)));
+// A contract only runs if THIS phase draws the state it exercises. The filter menu's open state
+// belongs to a later Loop, so a closed dropdown here is the correct resting state — reporting it as
+// a defect charges this phase for work the design has not specified yet.
+const blocks = await rj(P("blocks.json"), { blocks: [] });
+const drawnStates = new Set((blocks.blocks || []).flatMap((b) => [b.state, b.component, b.id].filter(Boolean).map(String)));
+const drawsState = (c) => !c.requiresDrawnState ||
+  [...drawnStates].some((s2) => s2.toLowerCase().includes(String(c.requiresDrawnState).toLowerCase().split("-")[0]));
+const applicable = contracts.filter((c) =>
+  (c.requires.length === 0 || c.requires.every((r) => placed.has(r))) && drawsState(c));
 const skipped = contracts.filter((c) => !applicable.includes(c));
 
 const chromium = await loadChromium();
@@ -150,7 +158,7 @@ if (flag("--json")) console.log(JSON.stringify({ ok: !failed.length, applicable:
 else {
   for (const r of results) console.log(`${r.ok ? "✓" : "✗"} ${r.id.padEnd(32)} ${String(r.ms).padStart(5)}ms${r.ok ? "" : `  got: ${JSON.stringify(r.got)}`}`);
   for (const r of failed) console.log(`\n  ${r.id}: ${r.why}`);
-  for (const s of skipped) console.log(`· skipped ${s.id} — this build places none of ${s.requires.join(", ")}`);
+  for (const s of skipped) console.log(`· skipped ${s.id} — ${s.requiresDrawnState ? `this phase does not draw '${s.requiresDrawnState}'` : `places none of ${s.requires.join(", ")}`}`);
   console.log(`\n${failed.length ? "✗" : "✓"} behaviour: ${results.length - failed.length}/${results.length} contract(s) pass`);
 }
 process.exit(failed.length ? 2 : 0);

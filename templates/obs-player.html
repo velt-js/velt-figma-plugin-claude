@@ -200,10 +200,21 @@
       <span class="sep"></span>
       <label style="color:var(--fg-dim);font-size:12px"><input type="checkbox" id="showLogs"> heartbeat lines</label>
       <label style="color:var(--fg-dim);font-size:12px"><input type="checkbox" id="onlyIssues"> issues only</label>
+      <span class="sep"></span>
+      <span id="lensChips" title="A run breaks in three ways. Filter to the one you care about.">
+        <button class="lens on" data-lens="ui">UI</button><button class="lens on" data-lens="functional">Functional</button><button class="lens on" data-lens="code">Code</button>
+      </span>
       <input type="text" id="q" placeholder="filter text…" style="width:150px">
       <span style="margin-left:auto;color:var(--fg-faint);font-size:11px"><kbd>←</kbd><kbd>→</kbd> step · <kbd>space</kbd> play</span>
     </div>
-    <div id="tl"><canvas id="tlc"></canvas></div>
+    <style>
+  #lensChips button.lens{background:transparent;border:1px solid var(--line,#334);color:var(--fg-faint,#889);
+    font:inherit;font-size:11px;padding:2px 8px;margin-right:3px;border-radius:10px;cursor:pointer}
+  #lensChips button.lens.on{background:#2b3550;border-color:#4a6;color:#dfe7ff}
+  #lensChips button.lens[data-lens="functional"].on{border-color:#c94;background:#3a2f22}
+  #lensChips button.lens[data-lens="code"].on{border-color:#96c;background:#2e2740}
+</style>
+<div id="tl"><canvas id="tlc"></canvas></div>
     <div id="strip"></div>
   </div>
   <div id="tltip"></div>
@@ -272,8 +283,12 @@ let playing = false, playTimer = null;
 let blockFilter = null;       // blockId or null
 let fitMode = true;
 
+const lensOff = new Set();     // lenses the viewer has switched off
 function visible(e) {
   if (e.type === "log" && !$("#showLogs").checked) return false;
+  // An event with no lens is never hidden by a lens filter -- filtering on an
+  // unknown would quietly drop the very events nobody has classified yet.
+  if (e.lens && lensOff.has(e.lens)) return false;
   if ($("#onlyIssues").checked && !["bad", "warn"].includes(sevOf(e))) return false;
   if (blockFilter && e.blockId && e.blockId !== blockFilter) return false;
   if (blockFilter && !e.blockId && !["run.start", "verdict", "handoff"].includes(e.type)) return false;
@@ -715,6 +730,14 @@ $("#vtabs").querySelectorAll("[data-tab]").forEach((b) => b.onclick = () => {
 });
 $("#fitBtn").onclick = () => { fitMode = !fitMode; renderViewer(); };
 for (const id of ["showLogs", "onlyIssues"]) $("#" + id).onchange = renderAll;
+for (const btn of document.querySelectorAll("#lensChips button.lens")) {
+  btn.onclick = () => {
+    const l = btn.dataset.lens;
+    if (lensOff.has(l)) { lensOff.delete(l); btn.classList.add("on"); }
+    else { lensOff.add(l); btn.classList.remove("on"); }
+    renderAll();
+  };
+}
 $("#q").oninput = renderAll;
 window.addEventListener("resize", drawTimeline);
 

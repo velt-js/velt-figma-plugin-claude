@@ -56,10 +56,46 @@ const nowIso = () => new Date().toISOString();
 // obsEvent — append one structured event. SYNC + FAIL-SAFE by contract: pipeline scripts call this
 // inline on their hot paths (including right before process.exit), so it must never throw, never
 // block, and never alter behavior. Returns the event written, or null when disabled/failed.
+/**
+ * Which of the three review lenses an event belongs to, so the replay can answer
+ * "what is functionally broken" and "what is wrong with the code" -- not only
+ * "what looks wrong". Gates carry a declared lens in manifest/stages.json; for
+ * everything else the source names it. Unknown stays null rather than guessing
+ * a lens and filtering an event out of the view that should have shown it.
+ */
+const LENS_BY_SRC = {
+  "console-health": "functional",
+  "behaviour-check": "functional",
+  "drive-repair": "functional",
+  "lint-primitives": "code",
+  "lint-customization": "code",
+  "lint-style": "code",
+  "skeleton-check": "code",
+  "plan-fidelity": "code",
+  "scaffold-primitives": "code",
+  "brief-scaffold": "code",
+  "code-review": "code",
+  "dom-snapshot": "ui",
+  "measure-block": "ui",
+  "report-block": "ui",
+  "run-compiled-assertions": "ui",
+  "compile-assertions": "ui",
+  "trials": "ui",
+};
+export function lensOf(evt = {}) {
+  if (evt.lens) return evt.lens;
+  if (evt.data && evt.data.lens) return evt.data.lens;
+  if (evt.src && LENS_BY_SRC[evt.src]) return LENS_BY_SRC[evt.src];
+  if (evt.type && LENS_BY_SRC[evt.type]) return LENS_BY_SRC[evt.type];
+  return null;
+}
+
 export function obsEvent(phaseDir, evt) {
   if (!enabled() || !phaseDir) return null;
   try {
     const e = { t: nowIso(), ...evt };
+    const lens = lensOf(e);
+    if (lens) e.lens = lens;
     // SHOT ARCHIVING (phase-filmstrip fix): live/diff shot paths often point at files the pipeline
     // OVERWRITES on every capture (dom-snapshot/<id>.png) — every gallery card then shows the
     // LATEST pixels and the stage-by-stage visual history is destroyed. Archive a per-event copy
@@ -172,7 +208,13 @@ export function assembleRun(phaseDir) {
   try {
     for (const line of readFileSync(eventsPath(phaseDir), "utf8").split("\n")) {
       if (!line.trim()) continue;
-      try { events.push(JSON.parse(line)); } catch { /* skip a torn/corrupt line */ }
+      try {
+        const ev = JSON.parse(line);
+        // Backfill for events recorded before lenses existed, so the player's
+        // UI / Functional / Code filters work on a run's whole history.
+        if (!ev.lens) { const l = lensOf(ev); if (l) ev.lens = l; }
+        events.push(ev);
+      } catch { /* skip a torn/corrupt line */ }
     }
   } catch { /* no events yet — the player renders an empty-state hint */ }
 

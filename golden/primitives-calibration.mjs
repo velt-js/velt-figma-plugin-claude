@@ -557,6 +557,27 @@ export async function calibratePrimitives() {
     ok("a collapsed surface is named as such, not reported as defects", /COLLAPSED/.test(srcR));
   }
 
+  // ---- a knowledge entry must not be silently invisible ----
+  // gotchas() keeps only confidence === "confirmed". An entry written with any other
+  // word is dropped without a warning, so a lesson paid for on a real run reaches
+  // nobody -- which is exactly what happened to the two recorded this run.
+  {
+    const KN = await import(path.join(ROOT, "scripts", "knowledge.mjs"));
+    const raw = JSON.parse(await fs.readFile(path.join(ROOT, "knowledge", "sdk-gotchas.json"), "utf8"));
+    const visible = await KN.gotchas();
+    const unknown = (raw.gotchas || []).filter((g) => !KN.CONFIDENCE_TIERS.includes(g.confidence));
+    ok("no gotcha carries a confidence outside the known tiers",
+      unknown.length === 0, unknown.map((g) => `${g.id}:${g.confidence}`).join(", "));
+    const confirmed = (raw.gotchas || []).filter((g) => g.confidence === "confirmed");
+    ok("every confirmed gotcha reaches the builder",
+      visible.length === confirmed.length, `${visible.length}/${confirmed.length}`);
+    const withTentative = await KN.gotchas({ includeTentative: true });
+    ok("tentative gotchas are held back by default but reachable on request",
+      withTentative.length > visible.length, `${withTentative.length} vs ${visible.length}`);
+    ok("every gotcha carries an id and a symptom",
+      (raw.gotchas || []).every((g) => g.id && g.symptom));
+  }
+
   // ---- a scrollport's overflow edge is not padding ----
   {
     const srcR = await fs.readFile(path.join(ROOT, "scripts", "run-compiled-assertions.mjs"), "utf8");

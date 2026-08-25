@@ -21,10 +21,23 @@ function versionMatches(entryVer, targetVer) {
   if (!entryVer || String(entryVer).startsWith("n/a") || !targetVer) return true;
   return String(targetVer).startsWith(String(entryVer).split(".")[0]);
 }
-export async function gotchas({ cssOnly = false, version = null } = {}) {
+// The confidence tiers a gotcha may carry. "confirmed" is applied by default;
+// "tentative" is held back until asked for. Anything ELSE is a typo, and a typo used
+// to mean the entry vanished without a word -- a lesson paid for on a real run reaching
+// nobody. Unknown tiers are now loud.
+export const CONFIDENCE_TIERS = ["confirmed", "tentative"];
+export async function gotchas({ cssOnly = false, version = null, includeTentative = false } = {}) {
   const k = await loadJson("sdk-gotchas.json"); if (!k) return [];
-  return (k.gotchas || []).filter((g) =>
-    g.confidence === "confirmed" && versionMatches(g.veltVersion, version) &&
+  const all = k.gotchas || [];
+  const unknown = all.filter((g) => !CONFIDENCE_TIERS.includes(g.confidence));
+  if (unknown.length) {
+    console.error(`✗ knowledge: ${unknown.length} gotcha(s) carry an unrecognised confidence and would be IGNORED: ` +
+      unknown.map((g) => `${g.id} ("${g.confidence}")`).join(", ") +
+      `\n  Use one of: ${CONFIDENCE_TIERS.join(", ")}. A silently dropped gotcha is worse than no gotcha.`);
+  }
+  const wanted = includeTentative ? CONFIDENCE_TIERS : ["confirmed"];
+  return all.filter((g) =>
+    wanted.includes(g.confidence) && versionMatches(g.veltVersion, version) &&
     (!cssOnly || (g.kind === "css-fix" && g.cssFix)));
 }
 export async function cssFixBlock(version = null) {

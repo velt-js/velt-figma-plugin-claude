@@ -685,8 +685,8 @@
     {
       "id": "sizing-a-primitive-does-not-size-the-sdk-chain-inside-it",
       "veltVersion": "6.0.0-beta.15",
-      "component": "all",
-      "kind": "layout",
+      "component": "primitives",
+      "kind": "css-fix",
       "selectorHints": [
         "velt-comment-dialog-thread-card-avatar div.velt-user-avatar",
         "velt-comment-dialog-thread-card-avatar div.velt-user-avatar--initial-container"
@@ -694,14 +694,16 @@
       "symptom": "A primitive sized to the design (and clipping with overflow:hidden + a radius) still renders wrong: a cropped square, an off-centre glyph, content bleeding past a round window. Measuring the primitive says it is correct.",
       "fix": "The primitive and its immediate registry element take the size, but the SDK renders its OWN wrapper chain inside them, and those keep their default box (32x32 on the avatar). A larger block behind a smaller clip shows as a crop. Size the internal chain too, in PERCENTAGES so it tracks whatever the owner is sized to rather than hardcoding the design number at every level -- the same primitive is used at different sizes (thread card vs composer).",
       "cssFix": "<owner> div.velt-user-avatar, <owner> div.velt-user-avatar--initial-container { width:100% !important; height:100% !important; border-radius:inherit !important; display:flex !important; align-items:center !important; justify-content:center !important; }",
-      "confidence": "verified-live",
-      "seenOn": "harvey run-5 (avatar rendered as a cropped 32px square through a 20px round window; every assertion on the primitive itself passed)"
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey run-5 (avatar rendered as a cropped 32px square through a 20px round window; every assertion on the primitive itself passed)"
+      ]
     },
     {
       "id": "data-velt-hidden-sits-inside-your-wrapper-so-the-wrapper-stays-in-flow",
       "veltVersion": "6.0.0-beta.15",
-      "component": "all",
-      "kind": "layout",
+      "component": "primitives",
+      "kind": "css-fix",
       "selectorHints": [
         ".vc-thread-list:has(> velt-comment-sidebar-list-v2[data-velt-hidden=\"true\"])",
         ".vc-sidebar-empty-state:has(> velt-comment-sidebar-empty-placeholder-v2[data-velt-hidden=\"true\"])"
@@ -709,8 +711,10 @@
       "symptom": "A gap between two siblings measures as an exact MULTIPLE of the container's gap (48 where the design says 24), or an empty band appears where a mutually-exclusive surface would be. The surface itself is correctly hidden and every assertion on it passes.",
       "fix": "Velt marks the inactive one of a mutually-exclusive pair with data-velt-hidden=\"true\", but that attribute is on the SDK element, one level INSIDE the wrapper you placed it in. Your wrapper is still a flex ITEM at zero height, so the parent's gap is charged on BOTH sides of it. Collapse the wrapper together with its hidden SDK child using :has().",
       "cssFix": "<your-wrapper>:has(> <velt-primitive>[data-velt-hidden=\"true\"]) { display: none !important; }",
-      "confidence": "verified-live",
-      "seenOn": "harvey run-5 (empty-state wrapper 321x0 between composer and list; composer->list gap measured 48 against a design value of 24)"
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey run-5 (empty-state wrapper 321x0 between composer and list; composer->list gap measured 48 against a design value of 24)"
+      ]
     }
   ]
 }

@@ -644,6 +644,43 @@
       "seenOn": [
         "harvey (primitives run 5, judge stage, 2026-08-24)"
       ]
+    },
+    {
+      "id": "unstyled-base-strips-the-placeholder-painter",
+      "veltVersion": "1.x",
+      "component": "primitives",
+      "kind": "behavior",
+      "cssFix": ".velt-composer-input--message:empty::before { content: attr(placeholder) !important; }",
+      "symptom": "The composer renders an empty box: the placeholder string is set, the prop is accepted, and no text appears.",
+      "fix": "Velt paints the placeholder with CSS content on an ::before, and the unstyled base strips that painter — exactly like the avatar-initial trap. The text lives on the element's `placeholder` attribute, so restore the CONTENT with content:attr(placeholder); the TYPE comes from the design node as a normal rule. Checking the DOM for text finds nothing, which is why this reads as 'the prop did not work'.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, style stage, 2026-08-25)"
+      ]
+    },
+    {
+      "id": "a-fixed-width-from-the-design-overflows-its-container",
+      "veltVersion": "n/a",
+      "component": "all",
+      "kind": "behavior",
+      "symptom": "Cards or rows are clipped at the right edge of the panel.",
+      "fix": "A Figma frame's width is the width it had IN THAT FRAME — 322px inside a 354px rail. Copied verbatim into a container that also carries padding, it overflows by exactly the padding. The reference build sets align-self:stretch on the row instead and lets the container decide, keeping the design's width as the outcome rather than the input.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, style stage, 2026-08-25)"
+      ]
+    },
+    {
+      "id": "a-row-that-fills-needs-its-text-child-to-flex",
+      "veltVersion": "n/a",
+      "component": "all",
+      "kind": "behavior",
+      "symptom": "A composed control (icon + label) sits centred or right-shifted in a row the design draws left-aligned.",
+      "fix": "The design's frame is centred because its CONTENT fills it. Copy the frame's justify-content verbatim and the group shrink-wraps to the middle instead. The reference build gives the TEXT child flex:1 1 0 so it fills the row after the fixed-size glyph — the label then measures the design's box exactly and the group reads left-aligned.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "harvey (primitives run 5, style stage, 2026-08-25)"
+      ]
     }
   ]
 }

@@ -805,7 +805,19 @@ function renderGallery() {
 }
 $("#galleryBtn").onclick = () => { galleryMode = !galleryMode; renderGallery(); };
 
-function renderAll() { renderRail(); renderViewer(); renderDetails(); drawTimeline(); renderStrip(); renderGallery(); }
+function renderAll() {
+  // Changing a filter must MOVE you, not just redraw behind you. Keep the selection
+  // inside the filtered set and always refresh the counter -- a filter that cuts 259
+  // events down to 19 while the bar still reads "event 6/259" and the detail pane
+  // still shows the old event reads as "the filter does nothing".
+  const ids = visibleIdx();
+  if (ids.length && !ids.includes(sel)) sel = ids[0];
+  renderRail(); renderViewer(); renderDetails(); drawTimeline(); renderStrip(); renderGallery();
+  const e = EVENTS[sel];
+  $("#poslbl").textContent = !ids.length
+    ? "no events match this filter"
+    : (e ? `event ${ids.indexOf(sel) + 1}/${ids.length} · ${fmtT(e.t)}` : `0/${ids.length}`);
+}
 
 // initial selection: first bad event if any (the "pinpoint where it broke" default), else first event
 (function init() {

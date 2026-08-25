@@ -798,6 +798,19 @@ async function main() {
       const covGaps = styleCoverageGaps(rules, snaps, planStyle.defaultOk || []);
       for (const g of covGaps.slice(0, 15)) { console.log(`✗ style-coverage: visible ${g.hasText ? "TEXT" : "painted"} element '${g.selector}' is claimed by NO rule (and not defaultOk) — renders RAW on the unstyled base`); bad++; }
       if (covGaps.length > 15) { console.log(`✗ style-coverage: … and ${covGaps.length - 15} more uncovered element(s)`); }
+      // EVERY DRAWN STATE MUST CONTRIBUTE STATE RULES. A family with several state blocks draws
+      // different values per state; planned as one `default` set they collapse into the resting one
+      // and the other states never differ. Measured: a reference build of this Loop carries ~40
+      // state rules, a first attempt carried 4, and the three composer states rendered identically.
+      {
+        const stateBlocks = (blocks.blocks || []).filter((b) => b.state && !/^(default|state)$/.test(b.state));
+        const ruled = new Set(rules.filter((r) => r.purpose === "state-rule").flatMap((r) => r.blockIds || []));
+        const naked = stateBlocks.filter((b) => !ruled.has(b.id));
+        for (const b of naked.slice(0, 8))
+          console.log(`✗ state-rules: block '${b.id}' draws state '${b.state}' but NO state-rule cites it — its values collapse into the resting state and it will render identically.`);
+        bad += naked.length;
+      }
+
       // PROVENANCE — every rule must be assertable, or say why it is not. compile-assertions turns
       // plan rules into measured checks and refuses any value with no design node (R-B), so a single
       // rule missing one takes the WHOLE suite down: nothing compiles, nothing runs, and the Judge

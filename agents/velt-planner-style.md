@@ -36,6 +36,34 @@ You are the **style brain** — the second of TWO planners, dispatched AFTER the
 3. **Fill the style briefs** (the `_todo`s in `briefs/*.probes.json` + `styleRows`): element selector fills (from the vcClasses contract / snapshot), relations/gaps, layer specs, **wrapperRows dispositions** (neutralize vs style, from step 1a), **spacingRows dispositions** (zero vs adopt, from step 1a2 — every listed spacing default gets a decision), **suppressionRows keep-decisions** (which glyph is the design's, citing the exported SVG), **clipRows**, **focusRows** (expected outline/box-shadow decls verbatim from the spec — or the explicit `outline: none` suppression when the design draws no ring). These rows are exactly the loop1 blind-spot classes (D1/D3 wrapper gaps/boxes, overlapping glyphs, clipped hairline, focus ring) — now asserted mechanically. **Exit criterion: `node scripts/brief-scaffold.mjs <phaseDir> --lint-style` exits 0** (every selector token exists in the snapshot corpus; zero `_todo` leftovers).
 4. **Time-box + heartbeat** — identical discipline to the structure planner. Depth = every VISIBLE element of every state placed, not perfection; the judge + strict-fix own convergence.
 
+## Calibration — what a COMPLETE plan for one Loop looks like
+
+A reference build of a single Loop carries roughly **230 rules over 120 design nodes**, in this mix:
+
+| purpose | share | what it means |
+|---|---|---|
+| `style` | ~140 | the design's values |
+| `neutralize-wrapper` | ~45 | the SDK boxes between your markup and its content |
+| `state-rule` | ~40 | per-state values, scoped on your own state attribute |
+| `suppress-default` | ~11 | default glyphs the design replaces |
+
+A first attempt produced **52 rules over 41 nodes** — a quarter of the design — and every gate then
+measured conformance to that quarter. 170 of 180 assertions passed while the surface looked nothing
+like the design, because the metric and the goal had come apart. If your rule count is far below
+this shape, the plan is not finished, whatever the gates say.
+
+Four habits account for most of the gap:
+
+1. **One design node maps to MANY selectors.** The reference build maps `611:31500` onto
+   `.vc-sidebar-empty-state`, `.vc-empty` AND `.vc-empty-inner`; an avatar node onto both the avatar
+   and its image. A 1:1 node→selector assumption leaves most of the design unexpressed.
+2. **Reach INTO the SDK's internals.** `.vc-composer-input div.velt-composer-input--message`,
+   `.vc-composer-send button.velt-composer--submit-button`. The element that actually paints is
+   often Velt's, not yours — a rule that stops at your own class styles a wrapper around the thing.
+3. **Every drawn state gets rules.** ~40 state rules, not 4. Three composer frames planned as one
+   `default` set collapse into the resting state.
+4. **Glyph leaves get their own rules** — `… svg` and `… svg path`, not just the span around them.
+
 ## Plan the surface ROOT's box, not only its leaves
 
 Every surface root is a flex CHILD of the SDK's panel. Given no width or `align-self` of its own it

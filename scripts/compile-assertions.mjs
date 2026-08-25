@@ -82,6 +82,78 @@ export function extractSlots(planFills) {
   return out;
 }
 
+/**
+ * Pseudo-slots for the PRIMITIVES path, where plan-fills has no wireframe slots.
+ *
+ * Design-agnostic: the plan tells us which design node each selector builds
+ * (rule.specNodeId), designSpec tells us that node's box. Nesting is recovered
+ * geometrically -- a node's parent is the smallest OTHER mapped node whose box
+ * strictly contains it -- so the sibling/relation compilers see the same shape
+ * they would get from wireframe slots, on any design.
+ */
+export function slotsFromDesign(planStyle, designSpec) {
+  const nodes = designSpec?.nodes || [];
+  if (!nodes.length) return [];
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+
+  // specNodeId -> selector. Prefer a base rule; state rules restyle the same box.
+  const sel = new Map();
+  for (const r of planStyle?.rules || []) {
+    if (!r?.specNodeId || !r.selector) continue;
+    if (r.notAssertable || r.purpose === "suppress-default") continue;
+    const isBase = !r.state || r.state === "base" || r.state === "default";
+    if (!sel.has(r.specNodeId) || (isBase && sel.get(r.specNodeId).stateOnly)) {
+      sel.set(r.specNodeId, { selector: r.selector, stateOnly: !isBase });
+    }
+  }
+
+  const mapped = [];
+  for (const [id, v] of sel) {
+    const n = byId.get(id);
+    if (!n?.box || typeof n.box.w !== "number") continue;
+    if (n.box.w <= 0 || n.box.h <= 0) continue;
+    mapped.push({ id, selector: v.selector, box: n.box, name: n.name || id, frameId: n.frameId || null });
+  }
+  if (mapped.length < 2) return [];
+
+  const area = (b) => b.w * b.h;
+  const contains = (o, i) =>
+    o.box.x <= i.box.x + 0.5 && o.box.y <= i.box.y + 0.5 &&
+    o.box.x + o.box.w >= i.box.x + i.box.w - 0.5 &&
+    o.box.y + o.box.h >= i.box.y + i.box.h - 0.5 &&
+    area(o.box) > area(i.box);
+
+  // parent = smallest strict container among the mapped nodes
+  for (const m of mapped) {
+    let best = null;
+    for (const o of mapped) {
+      if (o === m || !contains(o, m)) continue;
+      if (!best || area(o.box) < area(best.box)) best = o;
+    }
+    m.parent = best || null;
+  }
+
+  // dotted slot paths; roots get a synthetic top segment so every real
+  // container ends up with a dotted parent (the relation compiler needs one).
+  const pathOf = (m, guard = 0) => {
+    if (m._path) return m._path;
+    if (guard > 32) return (m._path = `design.${m.id.replace(/[:;]/g, "_")}`);
+    const seg = m.id.replace(/[:;]/g, "_");
+    m._path = m.parent ? `${pathOf(m.parent, guard + 1)}.${seg}` : `design.${seg}`;
+    return m._path;
+  };
+
+  return mapped.map((m) => ({
+    slot: pathOf(m),
+    vcClass: m.selector,
+    box: m.box,
+    specNodeId: m.id,
+    parentSelector: m.parent ? m.parent.selector : null,
+    frameId: m.frameId || null,
+    designPath: `designSpec.nodes[${m.id}]`,
+  }));
+}
+
 /** Family membership for designSpec nodes: containment inside a family frame's box. */
 export function familyNodes(designSpec, familyRegex) {
   const nodes = designSpec?.nodes || [];
@@ -257,14 +329,19 @@ export function compileSlotSizes(slots, styleAssertions) {
   for (const a of styleAssertions) {
     if (a.kind === "rect-size") covered.set(`${a.selector}|${a.dim}`, a);
   }
+  const containerPaths = new Set(
+    slots.map((s) => s.slot).filter(Boolean)
+      .map((p) => p.split(".").slice(0, -1).join("."))
+      .filter(Boolean)
+  );
   for (const s of slots) {
     for (const dim of ["w", "h"]) {
       const v = s.box[dim];
       if (!Number.isFinite(v) || v <= 0) continue;
-      // containers stretch with content — only assert atomic/leaf boxes and the card shell
-      // height (.vc-dialogcontainer excluded: its fills box is the flow-context multi-reply
-      // thread, which would false-fail the single-comment states)
-      const atomic = v <= 40 || (dim === "h" && /(^|\b)(vc-card|vc-body|vc-composer)\b/i.test(s.vcClass.replace(/^\./, "")));
+      // Containers stretch with content; leaves don't. Decide that STRUCTURALLY --
+      // a slot nobody nests inside is a leaf -- rather than by recognising class
+      // names, which only ever worked for the one design they were written for.
+      const atomic = v <= 40 || !containerPaths.has(s.slot);
       if (!atomic) continue;
       const prior = covered.get(`${s.vcClass}|${dim}`);
       if (prior) {
@@ -292,6 +369,68 @@ export function compileSlotSizes(slots, styleAssertions) {
     }
   }
   return { assertions, conflicts };
+}
+
+/** A host whose selector already targets SVG geometry IS the glyph — don't nest another svg. */
+function glyphSelector(hostSel) {
+  return /(^|[\s>])(svg|path|g|line|polyline|circle|rect|ellipse|polygon)\s*$/.test(hostSel)
+    ? hostSel : `${hostSel} svg`;
+}
+
+/**
+ * Glyph paint mode from designSpec VECTOR nodes (R-B: expectation comes from the design).
+ *
+ * Figma exports a stroked vector as `border: <w>px solid <color>` and a filled one as
+ * `fill: <color>`. A glyph drawn with the wrong mode looks wrong at every size, and no
+ * size/colour assertion catches it -- an outline icon shipped as a solid silhouette
+ * measures perfectly. Design-agnostic: reads the mode off the design, never a hardcoded
+ * icon list.
+ */
+export function compileGlyphPaint(designSpec, slots) {
+  const nodes = designSpec?.nodes || [];
+  const out = [];
+  const perHost = new Map();
+  for (const n of nodes) {
+    if (n.type !== "VECTOR" || !n.box) continue;
+    const d = n.cssDecls || {};
+    const stroked = typeof d.border === "string" && /solid/.test(d.border);
+    const filled = typeof d.fill === "string" && d.fill !== "none";
+    if (stroked === filled) continue; // both or neither -> mode is not decidable from the design
+    let host = null, hostArea = Infinity;
+    for (const s2 of slots) {
+      const b = s2.box;
+      if (!b) continue;
+      const inside = b.x <= n.box.x + 0.5 && b.y <= n.box.y + 0.5 &&
+        b.x + b.w >= n.box.x + n.box.w - 0.5 && b.y + b.h >= n.box.y + n.box.h - 0.5;
+      const area = b.w * b.h;
+      if (inside && area < hostArea && area <= 48 * 48) { host = s2; hostArea = area; }
+    }
+    if (!host) continue;
+    const mode = stroked ? "stroke" : "fill";
+    const prev = perHost.get(host.vcClass);
+    if (prev && prev.mode !== mode) { perHost.set(host.vcClass, { ...prev, mixed: true }); continue; }
+    if (prev) continue;
+    perHost.set(host.vcClass, { host, mode, nodeId: n.id, decl: stroked ? d.border : d.fill });
+  }
+  for (const g of perHost.values()) {
+    if (g.mixed) continue;
+    out.push({
+      id: `${slugify(g.host.vcClass)}.glyph-paint`,
+      kind: "glyph-paint",
+      selector: glyphSelector(g.host.vcClass),
+      parentSelector: g.host.vcClass,
+      property: "glyph-paint-mode",
+      expected: g.mode,
+      tolerance: 0,
+      state: "default",
+      requiresState: false,
+      expectedSource: "designSpec.json",
+      designPath: `nodes[${g.nodeId}].cssDecls.${g.mode === "stroke" ? "border" : "fill"} = ${g.decl}`,
+      specNodeId: g.nodeId,
+      blockIds: [],
+    });
+  }
+  return out;
 }
 
 /**
@@ -329,7 +468,9 @@ export function compileIconSizes(designSpec, slots) {
     assertions.push({
       id: `${slugify(g.host.vcClass)}.icon-size`,
       kind: "rect-size",
-      selector: `${g.host.vcClass} svg`,
+      selector: glyphSelector(g.host.vcClass),
+      // the glyph's host is its container: host absent => that state isn't drawn
+      parentSelector: g.host.vcClass,
       dim: "max",
       cmp: "eq",
       property: "icon-size",
@@ -352,7 +493,7 @@ export function compileIconSizes(designSpec, slots) {
  * to a state assertion on the card shell — the interim channel for hover-bg until the plan
  * closes the decl hole (Phase 5). expectedSource=designSpec.json keeps R-B provenance.
  */
-export function compileStateFramePaint(frames, cardSelector = ".vc-body") {
+export function compileStateFramePaint(frames, cardSelector) {
   const resting = frames.find((f) => !/hover|selected/i.test(f.name || ""));
   if (!resting) return [];
   const out = [];
@@ -463,6 +604,33 @@ export async function compileAssertions(input, opts = {}) {
   const blockRegex = new RegExp(opts.blocks || "single-comment-dialog|selected-state|flow|sidebar-header", "i");
 
   const slots = extractSlots(planFillsRaw || {});
+  // Primitives path: no wireframe slots. Recover the same shape from the design
+  // tree so the relation/size/icon/coverage compilers are not silently starved.
+  if (designSpec) {
+    const have = new Set(slots.map((s) => s.specNodeId).filter(Boolean));
+    for (const s of slotsFromDesign(planStyle, designSpec)) {
+      if (!have.has(s.specNodeId)) slots.push(s);
+    }
+  }
+  // Drive targets for state-driven assertions come from the plan's own structure:
+  // the containers that nest the most slots are this design's rows/cards, whatever
+  // they happen to be called. Briefs' explicit `drive` contracts still override this.
+  const childCount = new Map();
+  for (const s2 of slots) {
+    if (!s2.slot) continue;
+    const par = s2.slot.split(".").slice(0, -1).join(".");
+    if (par) childCount.set(par, (childCount.get(par) || 0) + 1);
+  }
+  const pathToSel = new Map(slots.filter((s2) => s2.slot).map((s2) => [s2.slot, s2.vcClass]));
+  const driveTarget = [...childCount.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([pth]) => pathToSel.get(pth))
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(", ") || "[data-velt-comment-dialog], [class*='card']";
+  // Anything a user can type into marks the "selected/active" state, in any design.
+  const EDITABLE_GUARD = "[contenteditable='true'], textarea, input[type='text']";
+
   const { frames, members } = designSpec ? familyNodes(designSpec, familyRegex) : { frames: [], members: [] };
 
   const assertions = [];
@@ -489,10 +657,47 @@ export async function compileAssertions(input, opts = {}) {
   const { assertions: sizeAsserts, conflicts } = compileSlotSizes(slots, assertions);
   // C. designSpec icon glyph sizes (all slot-mapped hosts — icons live outside the family frames too)
   const iconAsserts = designSpec ? compileIconSizes(designSpec, slots) : [];
+  const glyphPaint = designSpec ? compileGlyphPaint(designSpec, slots) : [];
   // D. state-frame paint deltas (hover-bg et al) from designSpec, until the plan closes the hole
-  const statePaint = compileStateFramePaint(frames);
+  const statePaint = compileStateFramePaint(frames, driveTarget.split(",")[0].trim());
 
-  const all = [...assertions, ...relGaps, ...sizeAsserts, ...iconAsserts, ...statePaint];
+  const all = [...assertions, ...relGaps, ...sizeAsserts, ...iconAsserts, ...glyphPaint, ...statePaint];
+
+  // Precision: carry each element's design-tree parent so the executor can tell
+  // "missing because this whole state isn't drawn" (blocked) from "missing while
+  // its container is right there" (a real defect). Design-agnostic: the parent
+  // comes from box containment, not from any hand-written state label.
+  const parentBySpec = new Map();
+  for (const s2 of slots) {
+    if (s2.specNodeId && s2.parentSelector) parentBySpec.set(s2.specNodeId, s2.parentSelector);
+  }
+  const frameBySpec = new Map();
+  const cohortByFrame = new Map();
+  const framesBySelector = new Map();
+  for (const s2 of slots) {
+    if (!s2.specNodeId || !s2.frameId) continue;
+    frameBySpec.set(s2.specNodeId, s2.frameId);
+    if (!cohortByFrame.has(s2.frameId)) cohortByFrame.set(s2.frameId, []);
+    cohortByFrame.get(s2.frameId).push(s2.vcClass);
+    if (!framesBySelector.has(s2.vcClass)) framesBySelector.set(s2.vcClass, new Set());
+    framesBySelector.get(s2.vcClass).add(s2.frameId);
+  }
+  for (const a of all) {
+    if (!a.specNodeId) continue;
+    if (!a.parentSelector) {
+      const psel = parentBySpec.get(a.specNodeId);
+      if (psel && psel !== a.selector) a.parentSelector = psel;
+    }
+    const fid = frameBySpec.get(a.specNodeId);
+    // Only selectors drawn in THIS frame and nowhere else are evidence that the
+    // frame's state is on screen. A selector reused across frames (a composer the
+    // empty-state artboard also depicts) resolves against the other state's copy
+    // and would wrongly prove this one is drawn.
+    const cohort = fid
+      ? (cohortByFrame.get(fid) || []).filter((c) => c !== a.selector && (framesBySelector.get(c)?.size || 0) === 1)
+      : [];
+    if (cohort.length) a.frameCohort = cohort.slice(0, 12);
+  }
 
   // dedupe by id (first wins — plan-style before fills before spec)
   const byId = new Map();
@@ -519,8 +724,8 @@ export async function compileAssertions(input, opts = {}) {
     } : { inline: true },
     resultVocabulary: ["pass", "fail", "blocked"],
     stateGuards: {
-      hover: { drive: "hover", driveTarget: ".vc-body, .vc-card, velt-comment-dialog-thread-card-internal", guard: ":hover-on-target" },
-      selected: { drive: "click", driveTarget: ".vc-body, .vc-card", guard: ".vc-composer [contenteditable], [class*='reply'] [contenteditable], .velt-composer-input--message" },
+      hover: { drive: "hover", driveTarget: driveTarget, guard: ":hover-on-target" },
+      selected: { drive: "click", driveTarget: driveTarget, guard: EDITABLE_GUARD },
     },
     assertions: suite,
     unsupported,

@@ -154,6 +154,23 @@ export const EXEC = `(function(INPUT){
         // (INPUT.stateConfirmed is true for default, and true for driven states whose guard
         // passed — assertions of unconfirmed states never reach this executor at all.)
         // This is the machine-named form of "resolve button absent on hover".
+        // Its design-tree parent is absent too -> this whole surface/state simply
+        // isn't drawn right now (e.g. the empty state while the list has rows).
+        // Not a defect; not measurable. Missing while the parent IS on screen is
+        // a genuine mount defect and still fails below.
+        // Nothing else from this element's design frame is on screen either --
+        // the frame is a whole drawn state (Figma puts each state on its own
+        // artboard), so this state isn't showing right now.
+        if (a.frameCohort && a.frameCohort.length && !a.frameCohort.some((c)=>resolve(c))){
+          res.status='blocked';
+          res.reason='no element of this design frame is drawn in the current state — nothing to measure';
+          results.push(res); continue;
+        }
+        if (a.parentSelector && !resolve(a.parentSelector)){
+          res.status='blocked';
+          res.reason='container '+a.parentSelector+' not drawn in this state — nothing to measure';
+          results.push(res); continue;
+        }
         if (a.expectedSource==='plan-style.json' || INPUT.stateConfirmed){
           res.status='fail'; res.measured='(element missing'+(a.state!=='default'?' in '+a.state+' state':'')+')';
           res.note='planned selector matches nothing on the live DOM'+(a.state!=='default'?' with state \\''+a.state+'\\' confirmed active (reveal/mount defect)':' (adoption/mount defect)');
@@ -161,6 +178,24 @@ export const EXEC = `(function(INPUT){
         results.push(res); continue;
       }
       if (el0.__resolvedVia) res.resolvedVia = el0.__resolvedVia;
+      if (a.kind==='glyph-paint'){
+        // Decide the mode the way a viewer sees it: which channel actually paints.
+        const paths = el0.matches('path,line,polyline,circle,rect,ellipse,polygon')
+          ? [el0] : Array.from(el0.querySelectorAll('path,line,polyline,circle,rect,ellipse,polygon'));
+        if (!paths.length){ res.status='blocked'; res.reason='no drawable geometry inside '+a.selector; results.push(res); continue; }
+        const on = (v)=> v && v!=='none' && v!=='transparent' && !/^rgba\(.*,\s*0\)$/.test(v);
+        let strokes=0, fills=0;
+        for (const pth of paths){
+          const cs = getComputedStyle(pth);
+          const sw = parseFloat(cs.strokeWidth||'0')||0;
+          if (on(cs.stroke) && sw>0) strokes++;
+          if (on(cs.fill)) fills++;
+        }
+        res.measured = strokes&&!fills ? 'stroke' : fills&&!strokes ? 'fill' : strokes&&fills ? 'both' : 'none';
+        res.status = res.measured===a.expected ? 'pass' : 'fail';
+        if (res.status==='fail') res.note='design paints this glyph with '+a.expected+', markup paints '+res.measured+' ('+paths.length+' path(s))';
+        results.push(res); continue;
+      }
       if (a.kind==='rect-gap'){
         const g = gapsOf(el0, a.axis||'auto');
         if (!g){ res.status='blocked'; res.reason='fewer than 2 visible children'; results.push(res); continue; }

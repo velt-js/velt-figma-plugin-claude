@@ -416,6 +416,51 @@ export async function calibratePrimitives() {
   ok("drive contract catches a state block measuring the generic surface", out.problems.some((p) => p.kind === "state-block-measures-generic-surface"));
   ok("drive contract catches an assert that only proves the surface", out.problems.some((p) => p.kind === "assert-proves-surface-not-state"));
 
+  // ---- relation/geometry compilers must not be starved on the primitives path ----
+  // Regression net for the class of defect nothing used to see: gaps, overlaps and
+  // glyph paint mode. The wireframe path fed these from plan-fills slots; a primitives
+  // build has none, so every relation assertion silently vanished.
+  {
+    const CA = await import(path.join(ROOT, "scripts", "compile-assertions.mjs"));
+    // Two siblings 10px apart inside a parent, plus a stroked glyph in the right one.
+    const designSpec = { nodes: [
+      { id: "n:root", name: "Root", type: "FRAME", frameId: "f1", box: { x: 0, y: 0, w: 200, h: 100 }, cssDecls: {} },
+      { id: "n:a", name: "A", type: "FRAME", frameId: "f1", box: { x: 10, y: 10, w: 40, h: 20 }, cssDecls: {} },
+      { id: "n:b", name: "B", type: "FRAME", frameId: "f1", box: { x: 60, y: 10, w: 40, h: 20 }, cssDecls: {} },
+      { id: "n:g", name: "Glyph", type: "VECTOR", frameId: "f1", box: { x: 64, y: 14, w: 12, h: 12 }, cssDecls: { border: "1px solid #000" } },
+    ] };
+    const planStyle = { rules: [
+      { selector: ".root", specNodeId: "n:root", decls: {} },
+      { selector: ".a", specNodeId: "n:a", decls: {} },
+      { selector: ".b", specNodeId: "n:b", decls: {} },
+    ] };
+    const slots = CA.slotsFromDesign(planStyle, designSpec);
+    ok("design tree yields pseudo-slots when plan-fills has none", slots.length === 3, `${slots.length}`);
+    const kid = slots.find((x) => x.vcClass === ".a");
+    ok("containment recovers the parent from boxes alone", kid?.parentSelector === ".root", String(kid?.parentSelector));
+
+    const rel = CA.compileSlotRelations(slots);
+    const ab = rel.find((r) => r.a?.selector === ".a" && r.b?.selector === ".b");
+    ok("sibling gap is compiled from the design boxes", !!ab && ab.expected === 10, `${ab && ab.expected}`);
+    ok("sibling gap is a rect-rel-gap on the x axis", ab?.kind === "rect-rel-gap" && ab?.axis === "x");
+
+    const glyph = CA.compileGlyphPaint(designSpec, slots);
+    ok("a Figma `border` vector compiles to an expected STROKE glyph",
+      glyph.length === 1 && glyph[0].expected === "stroke", JSON.stringify(glyph.map((g) => g.expected)));
+    ok("glyph paint assertion keeps design provenance", /designSpec/.test(glyph[0]?.expectedSource || ""));
+
+    // A filled vector must compile to `fill` — the mode is READ, never assumed.
+    const filledSpec = { nodes: [...designSpec.nodes.slice(0, 3),
+      { id: "n:g2", name: "G2", type: "VECTOR", frameId: "f1", box: { x: 64, y: 14, w: 12, h: 12 }, cssDecls: { fill: "#111" } }] };
+    const glyph2 = CA.compileGlyphPaint(filledSpec, CA.slotsFromDesign(planStyle, filledSpec));
+    ok("a Figma `fill` vector compiles to an expected FILL glyph", glyph2[0]?.expected === "fill", String(glyph2[0]?.expected));
+
+    // Genericity: nothing above may hardcode a selector or icon name from any one design.
+    const srcCA = await fs.readFile(path.join(ROOT, "scripts", "compile-assertions.mjs"), "utf8");
+    ok("relation/glyph compilers name no design-specific class",
+      !/\bvc-(composer|thread|sidebar|empty)[a-z-]*\b/.test(srcCA));
+  }
+
   for (const d of [t2, t3, t4]) await fs.rm(d, { recursive: true, force: true });
 
   const failed = checks.filter((c) => !c.pass);

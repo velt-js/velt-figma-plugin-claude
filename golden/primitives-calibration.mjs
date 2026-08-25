@@ -530,6 +530,15 @@ export async function calibratePrimitives() {
       unknown.category === "uncertain" && unknown.requiredMode === "replan");
   }
 
+  // ---- a data driver must never act on an unsettled collection ----
+  {
+    const srcR = await fs.readFile(path.join(ROOT, "scripts", "run-compiled-assertions.mjs"), "utf8");
+    ok("capture settles before it is trusted", /stable >= 2 && n > 0/.test(srcR));
+    ok("a zero/unsettled read REFUSES to drive rather than clearing", /refusing to drive/.test(srcR));
+    ok("restore is verified against a reloaded page, not the in-memory store",
+      /page\.reload\(/.test(srcR) && srcR.indexOf("page.reload(") < srcR.indexOf("return { restored: n, liveCount: live }"));
+  }
+
   for (const d of [t2, t3, t4]) await fs.rm(d, { recursive: true, force: true });
 
   const failed = checks.filter((c) => !c.pass);

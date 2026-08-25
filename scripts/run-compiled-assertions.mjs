@@ -322,11 +322,27 @@ const FIRST_VALUE = `(async function(thing, ms){
  * fails to lay out is a defect and is reported as one.
  */
 async function driveDataState(page, drv) {
+  // Capture only once the collection has SETTLED. Reading it while it is still
+  // loading returns [] (or worse, a partial list): the driver would then clear a
+  // subset, "restore" that subset, and destroy the rest. Poll until the count is
+  // stable across consecutive reads, and refuse to drive on a count of 0, which is
+  // indistinguishable from "not loaded yet".
   const backup = await page.evaluate(`(async () => {
     const el = window.Velt && window.Velt.${drv.elementGetter} && window.Velt.${drv.elementGetter}();
     if (!el || typeof el.${drv.capture} !== 'function') return { ok:false, reason:'${drv.capture} unavailable on ${drv.elementGetter}()' };
-    const items = await ${FIRST_VALUE}(el.${drv.capture}(), 8000);
-    return { ok: Array.isArray(items), items: Array.isArray(items) ? items : [], reason: Array.isArray(items) ? null : 'capture returned no array' };
+    let last = -1, stable = 0, items = [];
+    for (let i = 0; i < 20; i++) {
+      const v = await ${FIRST_VALUE}(el.${drv.capture}(), 8000);
+      const n = Array.isArray(v) ? v.length : -1;
+      if (n >= 0 && n === last) stable++; else stable = 0;
+      if (Array.isArray(v)) items = v;
+      last = n;
+      if (stable >= 2 && n > 0) return { ok: true, items, settledAt: n };
+      await new Promise((r) => setTimeout(r, 750));
+    }
+    return { ok: false, reason: last === 0
+      ? 'collection read as empty after settle window — cannot tell "no data" from "not loaded", refusing to drive'
+      : 'collection never settled to a stable count — refusing to drive' };
   })()`);
   if (!backup.ok) return { ok: false, reason: backup.reason };
 
@@ -349,10 +365,23 @@ async function restoreDataState(page, drv, items) {
     return n;
   })(${JSON.stringify(items)})`);
   await page.waitForTimeout(drv.settleMs || 4000);
+  // Verify against a RELOADED page: the in-memory store echoes an add back before the
+  // backend has it, so re-reading it in place can report a restore that did not persist.
+  await page.reload({ waitUntil: "domcontentloaded", timeout: 60000 }).catch(() => {});
+  await page.waitForTimeout(Math.max(drv.settleMs || 4000, 8000));
   const live = await page.evaluate(`(async () => {
-    const el = window.Velt.${drv.elementGetter}();
-    const items = await ${FIRST_VALUE}(el.${drv.capture}(), 8000);
-    return Array.isArray(items) ? items.length : null;
+    const el = window.Velt && window.Velt.${drv.elementGetter} && window.Velt.${drv.elementGetter}();
+    if (!el) return null;
+    let last = -1, stable = 0;
+    for (let i = 0; i < 16; i++) {
+      const v = await ${FIRST_VALUE}(el.${drv.capture}(), 8000);
+      const c = Array.isArray(v) ? v.length : -1;
+      if (c >= 0 && c === last) stable++; else stable = 0;
+      last = c;
+      if (stable >= 2) return c;
+      await new Promise((r) => setTimeout(r, 750));
+    }
+    return last;
   })()`);
   return { restored: n, liveCount: live };
 }

@@ -401,7 +401,18 @@ async function main() {
   const chromium = await loadPlaywright();
   const browser = await chromium.connectOverCDP(ws);
   const context = browser.contexts()[0];
-  let page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
+  // Pick the tab the APP is actually mounted in, not merely one whose URL matches.
+  // A dead or half-loaded tab on the same URL measures as "every element missing" and
+  // turns a healthy build into a wall of false failures.
+  let page = null;
+  for (const cand of context.pages()) {
+    if (!/localhost|127\.0\.0\.1/.test(cand.url())) continue;
+    const alive = await cand.evaluate(() => !!(window.Velt) && document.body && document.body.children.length > 0)
+      .catch(() => false);
+    if (alive) { page = cand; break; }
+    if (!page) page = cand; // remember a fallback, keep looking for a live one
+  }
+  page = page || context.pages()[0];
   if (!page) { console.error("✗ no page in connected browser"); process.exit(1); }
   if (url && !page.url().includes(new URL(url).host)) await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
   await page.waitForTimeout(500);
@@ -413,6 +424,40 @@ async function main() {
       if (tog) { tog.click(); await new Promise((r) => setTimeout(r, 500)); }
     }
   });
+
+  // ---- refuse to measure an app that is not ready ----
+  // A page caught mid-reload (or mid-HMR-recompile) resolves almost nothing, and the
+  // suite then reports EVERY assertion as "(element missing)" -- a wall of false
+  // defects indistinguishable from a genuinely broken build. Measuring nothing is not
+  // the same as measuring zero: wait for the planned landmarks, then refuse if they
+  // never arrive.
+  const landmarks = [...new Set(suite.assertions.map((a) => a.selector).filter(Boolean))];
+  if (landmarks.length) {
+    const resolvedCount = async () => page.evaluate((sels) => sels.filter((sel) => {
+      try {
+        const el = document.querySelector(sel);
+        if (!el) return false;
+        const r = el.getBoundingClientRect();
+        return r.width > 1 && r.height > 1;
+      } catch { return false; }
+    }).length, landmarks);
+    let best = 0, stable = 0, prev = -1;
+    for (let i = 0; i < 40; i++) {
+      const n = await resolvedCount();
+      best = Math.max(best, n);
+      stable = n === prev && n > 0 ? stable + 1 : 0;
+      prev = n;
+      if (stable >= 2 && n >= Math.ceil(landmarks.length * 0.25)) break;
+      await page.waitForTimeout(750);
+    }
+    const ready = best >= Math.ceil(landmarks.length * 0.25);
+    if (!ready) {
+      console.error(`✗ app not ready on ${page.url()} — only ${best}/${landmarks.length} planned landmarks resolved after 30s.`);
+      console.error("  Refusing to measure: a page caught mid-reload reports every assertion as a defect.");
+      console.error("  Check the dev server finished rebuilding, then re-run this gate.");
+      process.exit(3);
+    }
+  }
 
   const byState = new Map();
   for (const a of suite.assertions) {

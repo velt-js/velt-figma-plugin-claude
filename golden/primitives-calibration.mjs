@@ -539,6 +539,16 @@ export async function calibratePrimitives() {
       /page\.reload\(/.test(srcR) && srcR.indexOf("page.reload(") < srcR.indexOf("return { restored: n, liveCount: live }"));
   }
 
+  // ---- measuring NOTHING must never read as measuring FAILURE ----
+  {
+    const srcR = await fs.readFile(path.join(ROOT, "scripts", "run-compiled-assertions.mjs"), "utf8");
+    ok("the runner waits for planned landmarks before measuring", /planned landmarks resolved/.test(srcR));
+    ok("an unready app aborts instead of reporting defects", /Refusing to measure/.test(srcR));
+    ok("readiness is checked BEFORE the assertion pass", srcR.indexOf("Refusing to measure") < srcR.indexOf("const byState = new Map()"));
+    ok("the runner picks the tab the app is live in, not the first URL match",
+      /remember a fallback, keep looking for a live one/.test(srcR));
+  }
+
   for (const d of [t2, t3, t4]) await fs.rm(d, { recursive: true, force: true });
 
   const failed = checks.filter((c) => !c.pass);

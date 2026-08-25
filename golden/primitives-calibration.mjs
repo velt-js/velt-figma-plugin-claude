@@ -500,6 +500,36 @@ export async function calibratePrimitives() {
     ok("losing data during a drive is reported as DATA LOSS", /DATA LOSS/.test(srcR));
   }
 
+  // ---- a MEASURED defect must never be routed as an unknown ----
+  {
+    const DC = await import(path.join(ROOT, "scripts", "defect-contract.mjs"));
+    const geom = DC.classifyDefect({
+      source: "compiled-assertion", assertionKind: "rect-rel-gap",
+      element: ".x", property: "rect-gap(.x→.y)", spec: 24, rendered: 96,
+    });
+    ok("a measured geometry miss routes to layout/style, not replan",
+      geom.category === "layout" && geom.requiredMode === "style", `${geom.category}/${geom.requiredMode}`);
+    ok("a measured defect is HIGH confidence", geom.confidence === "high");
+    ok("its root cause states design vs rendered", /24/.test(geom.rootCause) && /96/.test(geom.rootCause));
+
+    const missing = DC.classifyDefect({
+      source: "compiled-assertion", assertionKind: "rect-size",
+      element: ".x", property: "height", spec: 24, rendered: "(element missing)",
+    });
+    ok("an element that never rendered is STRUCTURE, not CSS",
+      missing.category === "structure" && missing.requiredMode === "structure",
+      `${missing.category}/${missing.requiredMode}`);
+
+    const glyph = DC.classifyDefect({ source: "compiled-assertion", assertionKind: "glyph-paint",
+      element: ".i", property: "glyph-paint-mode", spec: "stroke", rendered: "fill" });
+    ok("wrong glyph paint mode is markup (structure), not CSS", glyph.requiredMode === "structure");
+
+    // an unrelated row still falls through to the safe default
+    const unknown = DC.classifyDefect({ source: "visual-diff", element: "(composed)" });
+    ok("a genuinely unknown row still defaults to replan, never CSS",
+      unknown.category === "uncertain" && unknown.requiredMode === "replan");
+  }
+
   for (const d of [t2, t3, t4]) await fs.rm(d, { recursive: true, force: true });
 
   const failed = checks.filter((c) => !c.pass);

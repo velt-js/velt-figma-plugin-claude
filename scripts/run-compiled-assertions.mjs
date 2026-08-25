@@ -505,9 +505,19 @@ async function main() {
     const kept = (prev.unresolved || []).filter((u) => u && u.source !== "compiled-assertion");
     const rows = fails.map((r) => ({
       id: r.id,
+      // Name the element and the property AT ROW LEVEL. A compiled assertion is not a
+      // visual glance: it knows which element, which property, what the design says and
+      // what the app rendered. Burying that in `evidence` made downstream classify it
+      // "uncertain -> replan" and hand the Builder 50 anonymous "(composed)" tickets.
+      selector: r.selector || (r.property || "").replace(/^rect-gap\((.*)→.*$/, "$1") || null,
+      element: r.selector || null,
+      property: r.property || r.kind,
+      spec: r.expected,
+      rendered: r.measured,
+      assertionKind: r.kind,
       issue: `${r.property} ${JSON.stringify(r.measured)} vs design ${JSON.stringify(r.expected)}±${r.tolerance ?? 0} (${r.expectedSource})`,
       summary: `compiled assertion fail: ${r.id}`,
-      kind: r.state === "hover" ? "hover" : "pixel",
+      kind: r.state === "hover" ? "hover" : "measurement",
       evidence: { expected: r.expected, measured: r.measured, designPath: r.designPath, specNodeId: r.specNodeId, selector: r.selector, state: r.state },
       source: "compiled-assertion",
     }));

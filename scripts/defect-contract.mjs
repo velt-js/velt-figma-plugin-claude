@@ -114,6 +114,31 @@ export function classifyDefect(row = {}) {
       rootCause: row.rootCause || "interaction reveal missing — drive hover/selected and fix event/state or reveal host",
     };
   }
+  // A COMPILED ASSERTION is the most certain defect this system can produce: a named
+  // element, a design-sourced expectation and a live measurement. It must never fall
+  // through to "uncertain -> replan". Route it by what was actually measured.
+  if (row.source === "compiled-assertion") {
+    const k = String(row.assertionKind || "");
+    const absent = /element missing/i.test(JSON.stringify(row.rendered ?? ""));
+    // An element that did not render cannot be fixed with CSS -- it is structure.
+    const category = absent ? "structure"
+      : k === "glyph-paint" ? "structure"
+      : /^rect-(size|gap|rel-gap|inset)$/.test(k) ? "layout"
+      : "style";
+    const requiredMode = category === "structure" ? "structure" : "style";
+    return {
+      category,
+      detector: detectorFromSource(row.source, "measurement"),
+      evidence: row.evidence ?? null,
+      affectedComponent: affectedFromSlug(slug, null),
+      requiredMode,
+      confidence: "high",
+      rootCause: row.rootCause || (absent
+        ? `${row.element || "element"} is planned but renders nothing — mount it (or the state that reveals it) before styling`
+        : `${row.element || "element"} ${row.property}: design says ${JSON.stringify(row.spec)}, app renders ${JSON.stringify(row.rendered)}`),
+    };
+  }
+
   for (const rule of RULES) {
     if (rule.match.some((re) => re.test(hay) || re.test(slug))) {
       return {

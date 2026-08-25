@@ -565,10 +565,14 @@ async function main() {
       const key = `composed.${b.id}.${slug}`;
       const row = {
         block: b.id,
-        element: uObj.selector || uObj.region || "(composed)",
-        property: "composed-vision",
-        spec: "matches mock/Figma chrome",
-        rendered: uObj.issue || uObj.summary || "unresolved appearance miss",
+        element: uObj.element || uObj.selector || uObj.region || "(composed)",
+        // Keep a measured assertion's own property/expectation; only a genuine visual
+        // glance gets the "matches mock/Figma chrome" placeholder.
+        property: uObj.property || "composed-vision",
+        spec: uObj.spec !== undefined ? uObj.spec : "matches mock/Figma chrome",
+        rendered: uObj.rendered !== undefined ? uObj.rendered
+          : (uObj.issue || uObj.summary || "unresolved appearance miss"),
+        assertionKind: uObj.assertionKind || null,
         KIND: uObj.kind || "pixel",
         attribution: "builder-error",
         issueKey: key,

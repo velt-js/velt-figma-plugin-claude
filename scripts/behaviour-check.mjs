@@ -76,12 +76,27 @@ const skipped = contracts.filter((c) => !applicable.includes(c));
 const chromium = await loadChromium();
 const connect = val("--connect", null);
 const browser = await acquireBrowser(chromium, connect, { requireConnect: !!connect });
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
-await page.waitForTimeout(6000);
+// --reuse-tab: measure the page AS IT STANDS instead of opening a fresh one. The mutation
+// drill injects a defect into a live tab, and any navigation would wash it away — the
+// contracts would then be scored against a healthy app and every mutation would read as
+// "not detected", which is precisely the blind spot the drill exists to expose.
+const reuseTab = process.argv.includes("--reuse-tab");
+let page;
+if (reuseTab) {
+  const ctx = browser.contexts()[0];
+  const pages = ctx ? ctx.pages() : [];
+  page = pages.find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || pages[0];
+  if (!page) { console.error("✗ --reuse-tab: no open page to measure"); process.exit(3); }
+} else {
+  page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
+  await page.waitForTimeout(6000);
+}
 // identify + reveal, the same two preconditions every measurement stage needs
 try { const o = await page.$$eval("select option", (os) => os.map((x) => x.value).find(Boolean)); if (o) { await page.selectOption("select", o); await page.waitForTimeout(6000); } } catch {}
-await page.click(".hw-sidebar-toggle").catch(() => {});
+if (!reuseTab) await page.click(".hw-sidebar-toggle").catch(() => {});
+else { const w = await page.evaluate(() => { const r = document.querySelector(".hw-rail"); return r ? r.getBoundingClientRect().width : 0; }).catch(() => 0);
+       if (w < 50) await page.click(".hw-sidebar-toggle").catch(() => {}); }
 
 // WAIT FOR THE DATA, not just the surface. A contract that counts a collection has to run after
 // that collection exists, or it measures an empty page and reports a working feature as broken —
@@ -152,7 +167,9 @@ for (const c of applicable) {
     results.push({ id: c.id, ok: false, blocked: true, got: String(e).split("\n")[0].slice(0, 90), ms: Date.now() - t0, why: c.why });
   }
 }
-await browser.close();
+// With --reuse-tab the browser belongs to whoever spawned us (the mutation drill); closing
+// it would kill their session mid-run. Only close what we opened ourselves.
+if (!reuseTab) await browser.close();
 
 const failed = results.filter((r) => !r.ok);
 if (flag("--json")) console.log(JSON.stringify({ ok: !failed.length, applicable: applicable.length, skipped: skipped.map((s) => s.id), results }, null, 2));

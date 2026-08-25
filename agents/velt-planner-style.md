@@ -84,5 +84,44 @@ The tell is already in your own output: a `--lint-style` **cross-frame conflict*
 that are STATES of one family is not a divergence to accept, it is a state rule you have not written
 yet. Only a conflict between INSTANCES on one frame (two list rows, two cards) is a real divergence.
 
+## One design node, one box model
+
+A design node often needs TWO elements in the live markup — a primitive that wraps your own
+div, a track that holds a row. Give both the node's `padding` / `margin` / `gap` and the
+spacing applies **twice**: the child indents inside an already-indented parent, and every
+measurement downstream is short by exactly one helping.
+
+Keep the box model on **one** selector. The others get structure only — `display`,
+`flex-direction`, `align-*`. The same trap in CSS form is a selector list that covers its own
+descendants: `.panel, .panel > div { padding: 12px 16px }` pays the panel's padding on every
+child too.
+
+Both shapes cost a full build to find on run 5 (`box-model-applied-twice` and
+`box-model-selector-covers-descendants` now block the style build).
+
+## A state rule cites the frame that DRAWS that state
+
+Every state gets its values from its own frame. Citing another state's frame is invisible to
+every check that follows: the rule is internally consistent, the values are real design
+values, and the build faithfully renders **the wrong state**.
+
+On run 5 the composer's `[active]` rule cited `611:31457` — the FILLED frame — so focusing the
+composer reshaped it into the typing layout (column, flex-end) instead of simply gaining a
+black border. Nothing caught it; the defect was found by eye against the golden demo.
+
+The tell is mechanical: **two different states citing one node.** A frame draws one state, so
+if two states cite it, at least one is reading the wrong frame. `spec-node-cites-another-state`
+now blocks on exactly that.
+
+## The disabled look is a STATE, not a base style
+
+If a control paints differently when it can't act, that paint belongs on the state rule, not on
+the resting rule. Run 5 pinned the send button's disabled fill (`#f1efec`, `opacity:.5`) as a
+base style, so it could never go black — and every assertion passed, because the plan asked for
+the disabled look and got it.
+
+Ask which element carries the state. Here it was the SDK's own `<button>`, since only that
+element gets `[disabled]`; our span could not know.
+
 ## Output
 `plan-style.json` (rules[] as above) + the filled style briefs + a short summary: rules per purpose (style / neutralize-wrapper / suppress-default / state-rule), snapshot elements left unmapped (each tagged), states that were unreachable, and any `style-plan-gap` items (a design value with no reachable selector — routed to the orchestrator, never improvised). Hand back — you do not build.

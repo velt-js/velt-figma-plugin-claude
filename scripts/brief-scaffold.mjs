@@ -506,7 +506,8 @@ export function enrichBriefForStyle(brief, block, sliceNodes, snapshot, comp = n
 // "spec-join" plan-style.json with a thin rule set and proceeded. That cannot produce a
 // golden-class demo. Fail closed: refuse deterministic/assumed authorship; require a floor
 // of rules relative to block count.
-export function stylePlanAuthorshipProblems(planStyle, blocksDoc = null) {
+export function stylePlanAuthorshipProblems(planStyle, blocksDoc = null, designSpec = null) {
+  const specById = new Map((designSpec?.nodes || []).map((n) => [n.id, n]));
   const problems = [];
   if (!planStyle) { problems.push({ kind: "missing", note: "plan-style.json missing" }); return problems; }
   const gen = String(planStyle.generatedBy || planStyle.authorship || "");
@@ -550,6 +551,39 @@ export function stylePlanAuthorshipProblems(planStyle, blocksDoc = null) {
         note: `design node ${nodeId} gives padding/margin/gap to ${sels.length} selectors (${sels.join(", ")}) — ` +
           "if any is an ancestor of another the spacing applies twice. Keep the box model on ONE selector; " +
           "the others get structure only (display/flex-direction/align-*).",
+      });
+    }
+  }
+
+  // MIS-CITED SPEC NODE. Two DIFFERENT states cannot both take their values from one
+  // design frame: a frame draws exactly one state, so if two states cite it, one of them
+  // is reading the wrong frame. This is invisible downstream -- the rule is internally
+  // consistent and the values are real design values, so the build faithfully renders the
+  // wrong state. Seen live: the composer's [active] rule cited 611:31457, the FILLED
+  // frame, so focusing the composer reshaped it into the typing layout instead of just
+  // gaining a border. Comparing state NAMES cannot find this ("filled" and
+  // "typing-content-added-state" are the same state under two vocabularies); comparing
+  // which states share a node needs no vocabulary at all.
+  {
+    const RESTING = new Set(["default", "base", "resting", ""]);
+    const byNode = new Map();
+    for (const r of rules) {
+      const st = String(r.state || "").toLowerCase();
+      if (!r.specNodeId || RESTING.has(st)) continue;
+      if (!byNode.has(r.specNodeId)) byNode.set(r.specNodeId, new Map());
+      byNode.get(r.specNodeId).set(st, r.selector);
+    }
+    for (const [nodeId, states] of byNode) {
+      if (states.size < 2) continue;
+      problems.push({
+        kind: "spec-node-cites-another-state",
+        specNodeId: nodeId,
+        states: [...states.keys()],
+        attribution: "plan-error(style)",
+        note: `design node ${nodeId} is cited by ${states.size} DIFFERENT states (` +
+          [...states.entries()].map(([st, sel]) => `'${st}' via ${sel}`).join("; ") +
+          `). A frame draws one state, so at most one of these can be reading the right ` +
+          `frame — the others render that state's look whenever theirs is active.`,
       });
     }
   }
@@ -828,7 +862,8 @@ async function main() {
     else if (!snaps.length) { console.log("✗ no dom-snapshot/*.json with a tree — run dom-snapshot.mjs after the structure build"); bad++; }
     else {
       const blocksDoc = await loadJson(path.join(phaseDir, "blocks.json")).catch(() => null);
-      for (const p of stylePlanAuthorshipProblems(planStyle, blocksDoc)) {
+      const specDoc = await loadJson(path.join(phaseDir, "designSpec.json")).catch(() => null);
+      for (const p of stylePlanAuthorshipProblems(planStyle, blocksDoc, specDoc)) {
         console.log(`✗ plan-style authorship: ${p.note}`);
         bad++;
       }
@@ -890,13 +925,63 @@ async function main() {
         const cited = new Set(rules.map((r) => r.specNodeId).filter(Boolean));
         const waived = new Set((planStyle.unmappedNodes || []).map((u) => (typeof u === "string" ? u : u.specNodeId)));
         const LAYOUT_PROPS = /^(display|flex-direction|gap|row-gap|column-gap|padding|margin|width|height|border-radius|border|background|box-shadow|color|font-size|font-weight|line-height)$/;
+        // A design file draws the same component on several artboards (one per state or
+        // flow), so the SAME element appears many times with different ids. A CSS rule is
+        // not per-instance -- styling one instance styles every identical one -- so a node
+        // whose name, size and declarations already match a cited node is covered, not
+        // missing. Without this the gate reported 105 "uncovered" nodes of which 44 were
+        // second depictions of elements the plan already styles, burying the real holes.
+        const identity = (n) => JSON.stringify([
+          n.name || "?", n.box?.w, n.box?.h,
+          Object.entries(n.cssDecls || n.decls || n.expected || {}).sort(),
+        ]);
+        const citedIdentities = new Set();
+        for (const id of cited) { const n = specById.get(id); if (n) citedIdentities.add(identity(n)); }
+
+        // You do not BUILD the artboard your component sits on. A node whose box strictly
+        // contains the whole surface being styled is Figma's organisation -- the canvas,
+        // the flow group, the "Composer States" board holding three variants side by side.
+        // Its width/background belong to the page the designer laid out, not to the product.
+        let surface = null;
+        for (const id of cited) {
+          const n = specById.get(id); if (!n?.box) continue;
+          if (!surface || n.box.w * n.box.h > surface.box.w * surface.box.h) surface = n;
+        }
+        const blockFrames = new Set((blocksDoc?.blocks || []).map((b) => b.figmaNodeId).filter(Boolean));
+        const blockFrameBoxes = [...blockFrames].map((id) => specById.get(id)?.box).filter(Boolean);
+        const holdsBlockFrames = (n) => {
+          if (!n.box || blockFrames.has(n.id)) return false;
+          const inside = blockFrameBoxes.filter((b) =>
+            n.box.x <= b.x + 0.5 && n.box.y <= b.y + 0.5 &&
+            n.box.x + n.box.w >= b.x + b.w - 0.5 && n.box.y + n.box.h >= b.y + b.h - 0.5 &&
+            n.box.w * n.box.h > b.w * b.h);
+          return inside.length >= 2;   // a board holding several state variants
+        };
+        const containsSurface = (n) => {
+          if (!surface || !n.box) return false;
+          const s2 = surface.box, b = n.box;
+          return b.x <= s2.x + 0.5 && b.y <= s2.y + 0.5 &&
+                 b.x + b.w >= s2.x + s2.w - 0.5 && b.y + b.h >= s2.y + s2.h - 0.5 &&
+                 b.w * b.h > s2.w * s2.h;
+        };
+
         const missed = [];
+        let dupCovered = 0, scaffold = 0;
         for (const [nid, node] of specById) {
           if (cited.has(nid) || waived.has(nid)) continue;
           const decls = node.cssDecls || node.decls || node.expected || {};
           const props = Object.keys(decls).filter((k) => LAYOUT_PROPS.test(k));
-          if (props.length >= 2) missed.push({ nid, name: node.name || "?", props: props.slice(0, 4) });
+          if (props.length < 2) continue;
+          if (citedIdentities.has(identity(node))) { dupCovered++; continue; }
+          if (containsSurface(node)) { scaffold++; continue; }
+          // A BLOCK'S OWN FRAME is the thing we build INTO, not an element to style, and
+          // neither is a group that merely holds several such frames side by side on the
+          // canvas ("Composer States"). Their content is what carries the design.
+          if (blockFrames.has(nid) || holdsBlockFrames(node)) { scaffold++; continue; }
+          missed.push({ nid, name: node.name || "?", props: props.slice(0, 4) });
         }
+        if (dupCovered) console.log(`· design-coverage: ${dupCovered} node(s) are repeat depictions of elements the plan already styles — covered by the same selector`);
+        if (scaffold) console.log(`· design-coverage: ${scaffold} node(s) are artboards/groups CONTAINING the surface — Figma's layout of the page, not elements to build`);
         for (const m of missed.slice(0, 12))
           console.log(`✗ design-coverage: node ${m.nid} ('${m.name}', ${m.props.join("/")}) is cited by NO rule — its values reach nothing. Map it, or waive it in plan-style.unmappedNodes[] with a reason.`);
         if (missed.length > 12) console.log(`✗ design-coverage: … and ${missed.length - 12} more unmapped design node(s)`);

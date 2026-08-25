@@ -999,6 +999,26 @@
           ],
           "lens": "code",
           "why": "auto-runs judge2-to-workorder; refuse an empty workOrderP0 while report.json or the probes still show breakage"
+        },
+        {
+          "id": "mutation-drill",
+          "cmd": [
+            "node",
+            "scripts/mutation-drill.mjs",
+            "<phaseDir>",
+            "--url",
+            "<appUrl>",
+            "--connect",
+            "<browserWs>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a detector category scored below its recall/precision target \u2014 a detector that cannot fail is not evidence"
+          },
+          "lens": "code"
         }
       ],
       "review": {

@@ -1,25 +1,197 @@
 {
-  "description": "Phase-6 mutation drill set — known defects injected into the live demo to score DETECTOR recall/precision (never published into the Judge's context). css mutations inject an override stylesheet after styles.css; dom mutations run a reversible page operation (reload restores). expectDetect are regexes over failing assertion/contract ids.",
+  "description": "Phase-6 mutation drill set \u2014 known defects injected into the live demo to score DETECTOR recall/precision (never published into the Judge's context). css mutations inject an override stylesheet after styles.css; dom mutations run a reversible page operation (reload restores). expectDetect are regexes over failing assertion/contract ids.",
   "targets": {
-    "style": { "recall": 0.90, "precision": 0.95 },
-    "layout": { "recall": 0.85, "precision": 0.90 },
-    "typography": { "recall": 0.95, "precision": 0.95 },
-    "structure": { "recall": 0.80, "precision": 0.90 },
-    "state": { "recall": 0.85, "precision": 0.90 },
-    "vision-only": { "recall": 0.60, "precision": 0.80 }
+    "style": {
+      "recall": 0.9,
+      "precision": 0.95
+    },
+    "layout": {
+      "recall": 0.85,
+      "precision": 0.9
+    },
+    "typography": {
+      "recall": 0.95,
+      "precision": 0.95
+    },
+    "structure": {
+      "recall": 0.8,
+      "precision": 0.9
+    },
+    "state": {
+      "recall": 0.85,
+      "precision": 0.9
+    },
+    "vision-only": {
+      "recall": 0.6,
+      "precision": 0.8
+    },
+    "behaviour": {
+      "recall": 0.9,
+      "precision": 0.9
+    }
   },
   "mutations": [
-    { "id": "M1", "category": "style", "description": "card ring recolored", "apply": { "css": ".vc-body{box-shadow:0 0 0 1px #ff00ff !important}" }, "expectDetect": ["vc-body\\.box-shadow"] },
-    { "id": "M2", "category": "style", "description": "panel border wrong token", "apply": { "css": ".vc-panel{border-color:#e8e6e1 !important}" }, "expectDetect": ["vc-panel\\.border"] },
-    { "id": "M3", "category": "layout", "description": "list gap doubled", "apply": { "css": "app-comment-sidebar-list, .vc-list{gap:32px !important}" }, "expectDetect": ["vc-list\\.gap", "rect-gap"] },
-    { "id": "M4", "category": "layout", "description": "card internal gap bloated", "apply": { "css": ".vc-body{gap:12px !important}" }, "expectDetect": ["vc-body\\.gap"] },
-    { "id": "M5", "category": "typography", "description": "name weight dropped", "apply": { "css": ".vc-name{font-weight:400 !important}" }, "expectDetect": ["vc-name\\.font-weight"] },
-    { "id": "M6", "category": "typography", "description": "panel falls back to serif", "apply": { "css": ".vc-panel, .vc-panel *{font-family:'Times New Roman', serif !important}" }, "expectDetect": ["font-family", "font-face"] },
-    { "id": "M7", "category": "state", "description": "resolve suppressed on hover", "apply": { "css": ".vc-resolvebutton, [class*='resolve-button']{display:none !important}" }, "expectDetect": ["vc-resolvebutton\\.hover", "hover-reveal-resolve"] },
-    { "id": "M8", "category": "layout", "description": "avatar→name gap widened", "apply": { "css": ".vc-name{margin-left:8px !important}" }, "expectDetect": ["vc-avatar--vc-name\\.rect-gap"] },
-    { "id": "M9", "category": "style", "description": "composer elevation removed", "apply": { "css": "app-comment-sidebar-page-mode-composer, .vc-pagemodecomposer, [class*='page-mode-composer']{box-shadow:none !important}" }, "expectDetect": ["vc-pagemodecomposer\\.box-shadow", "paint-composer-shadow"] },
-    { "id": "M10", "category": "structure", "description": "Reply reparented outside the card, pixels compensated", "apply": { "dom": "const r=document.querySelector('.vc-togglereply, .vc-reply, [class*=\"toggle-reply\"]'); const card=r&&r.closest('.vc-body, velt-comment-dialog-thread-card-internal'); if(r&&card&&card.parentElement){const rect=r.getBoundingClientRect(); card.parentElement.insertBefore(r, card.nextSibling); r.style.position='relative'; r.style.top=(rect.top-r.getBoundingClientRect().top)+'px';}" }, "expectDetect": ["contract\\.reply-inside-card"] },
-    { "id": "M11", "category": "structure", "description": "timestamp reordered before name", "apply": { "dom": "const t=document.querySelector('.vc-time, [class*=\"time\"]'); const n=document.querySelector('.vc-name, [class*=\"name\"]'); if(t&&n&&n.parentElement===t.parentElement){n.parentElement.insertBefore(t,n);}" }, "expectDetect": ["contract\\.header-order"] },
-    { "id": "M12", "category": "state", "description": "kebab removed entirely", "apply": { "dom": "document.querySelectorAll('.vc-options, .vc-options-trigger, [class*=\"options-dropdown\"]').forEach(e=>e.remove());" }, "expectDetect": ["vc-options", "hover-reveal-options", "contract\\.options-owns-pointer"] }
+    {
+      "id": "M1",
+      "category": "style",
+      "description": "card ring recolored",
+      "apply": {
+        "css": ".vc-body{box-shadow:0 0 0 1px #ff00ff !important}"
+      },
+      "expectDetect": [
+        "vc-body\\.box-shadow"
+      ]
+    },
+    {
+      "id": "M2",
+      "category": "style",
+      "description": "panel border wrong token",
+      "apply": {
+        "css": ".vc-panel{border-color:#e8e6e1 !important}"
+      },
+      "expectDetect": [
+        "vc-panel\\.border"
+      ]
+    },
+    {
+      "id": "M3",
+      "category": "layout",
+      "description": "list gap doubled",
+      "apply": {
+        "css": "app-comment-sidebar-list, .vc-list{gap:32px !important}"
+      },
+      "expectDetect": [
+        "vc-list\\.gap",
+        "rect-gap"
+      ]
+    },
+    {
+      "id": "M4",
+      "category": "layout",
+      "description": "card internal gap bloated",
+      "apply": {
+        "css": ".vc-body{gap:12px !important}"
+      },
+      "expectDetect": [
+        "vc-body\\.gap"
+      ]
+    },
+    {
+      "id": "M5",
+      "category": "typography",
+      "description": "name weight dropped",
+      "apply": {
+        "css": ".vc-name{font-weight:400 !important}"
+      },
+      "expectDetect": [
+        "vc-name\\.font-weight"
+      ]
+    },
+    {
+      "id": "M6",
+      "category": "typography",
+      "description": "panel falls back to serif",
+      "apply": {
+        "css": ".vc-panel, .vc-panel *{font-family:'Times New Roman', serif !important}"
+      },
+      "expectDetect": [
+        "font-family",
+        "font-face"
+      ]
+    },
+    {
+      "id": "M7",
+      "category": "state",
+      "description": "resolve suppressed on hover",
+      "apply": {
+        "css": ".vc-resolvebutton, [class*='resolve-button']{display:none !important}"
+      },
+      "expectDetect": [
+        "vc-resolvebutton\\.hover",
+        "hover-reveal-resolve"
+      ]
+    },
+    {
+      "id": "M8",
+      "category": "layout",
+      "description": "avatar\u2192name gap widened",
+      "apply": {
+        "css": ".vc-name{margin-left:8px !important}"
+      },
+      "expectDetect": [
+        "vc-avatar--vc-name\\.rect-gap"
+      ]
+    },
+    {
+      "id": "M9",
+      "category": "style",
+      "description": "composer elevation removed",
+      "apply": {
+        "css": "app-comment-sidebar-page-mode-composer, .vc-pagemodecomposer, [class*='page-mode-composer']{box-shadow:none !important}"
+      },
+      "expectDetect": [
+        "vc-pagemodecomposer\\.box-shadow",
+        "paint-composer-shadow"
+      ]
+    },
+    {
+      "id": "M10",
+      "category": "structure",
+      "description": "Reply reparented outside the card, pixels compensated",
+      "apply": {
+        "dom": "const r=document.querySelector('.vc-togglereply, .vc-reply, [class*=\"toggle-reply\"]'); const card=r&&r.closest('.vc-body, velt-comment-dialog-thread-card-internal'); if(r&&card&&card.parentElement){const rect=r.getBoundingClientRect(); card.parentElement.insertBefore(r, card.nextSibling); r.style.position='relative'; r.style.top=(rect.top-r.getBoundingClientRect().top)+'px';}"
+      },
+      "expectDetect": [
+        "contract\\.reply-inside-card"
+      ]
+    },
+    {
+      "id": "M11",
+      "category": "structure",
+      "description": "timestamp reordered before name",
+      "apply": {
+        "dom": "const t=document.querySelector('.vc-time, [class*=\"time\"]'); const n=document.querySelector('.vc-name, [class*=\"name\"]'); if(t&&n&&n.parentElement===t.parentElement){n.parentElement.insertBefore(t,n);}"
+      },
+      "expectDetect": [
+        "contract\\.header-order"
+      ]
+    },
+    {
+      "id": "M12",
+      "category": "state",
+      "description": "kebab removed entirely",
+      "apply": {
+        "dom": "document.querySelectorAll('.vc-options, .vc-options-trigger, [class*=\"options-dropdown\"]').forEach(e=>e.remove());"
+      },
+      "expectDetect": [
+        "vc-options",
+        "hover-reveal-options",
+        "contract\\.options-owns-pointer"
+      ]
+    },
+    {
+      "id": "B1",
+      "category": "behaviour",
+      "description": "composer input made unclickable \u2014 every composer interaction must stop working",
+      "apply": {
+        "css": ".vc-composer-input, .vc-composer-input * { pointer-events: none !important; }"
+      },
+      "expectDetect": [
+        "^composer-",
+        "submit-creates-a-thread",
+        "placed-controls-are-hittable"
+      ]
+    },
+    {
+      "id": "B2",
+      "category": "behaviour",
+      "description": "send control covered by a transparent overlay \u2014 hit-testing must notice",
+      "apply": {
+        "css": ".vc-composer-send { position: relative !important; } .vc-composer-send::after { content:\"\" !important; position:absolute !important; inset:-4px !important; z-index:2147483647 !important; }"
+      },
+      "expectDetect": [
+        "placed-controls-are-hittable"
+      ]
+    }
   ]
 }

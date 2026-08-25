@@ -557,6 +557,26 @@ export async function calibratePrimitives() {
     ok("a collapsed surface is named as such, not reported as defects", /COLLAPSED/.test(srcR));
   }
 
+  // ---- the functional detector must be inside the drill, and the drill inside a stage ----
+  {
+    const drill = await fs.readFile(path.join(ROOT, "scripts", "mutation-drill.mjs"), "utf8");
+    ok("the drill exercises the FUNCTIONAL detector, not only the geometry ones",
+      /behaviour-check\.mjs/.test(drill));
+    ok("the functional detector runs LAST (its contracts type and submit)",
+      drill.indexOf("runBehaviourDetector(behaviour.phaseDir") > drill.indexOf("const results = await page.evaluate"));
+    const muts = JSON.parse(await fs.readFile(path.join(ROOT, "mutations", "manifest.json"), "utf8"));
+    const beh = (muts.mutations || []).filter((m) => m.category === "behaviour");
+    ok("behaviour mutations exist for the drill to run", beh.length >= 2, `${beh.length}`);
+    ok("every behaviour mutation names what it expects to trip",
+      beh.every((m) => (m.expectDetect || []).length));
+    const stages = JSON.parse(await fs.readFile(path.join(ROOT, "manifest", "stages.json"), "utf8"));
+    const judge = stages.stages.find((s) => s.id === "judge");
+    const g = (judge?.gates || []).find((x) => x.id === "mutation-drill");
+    ok("the drill is a BLOCKING gate, not a thing to remember to run", !!g && g.blocking === true);
+    const bc = await fs.readFile(path.join(ROOT, "scripts", "behaviour-check.mjs"), "utf8");
+    ok("a borrowed browser is not closed by the detector", /if \(!reuseTab\) await browser\.close\(\)/.test(bc));
+  }
+
   // ---- a knowledge entry must not be silently invisible ----
   // gotchas() keeps only confidence === "confirmed". An entry written with any other
   // word is dropped without a warning, so a lesson paid for on a real run reaches

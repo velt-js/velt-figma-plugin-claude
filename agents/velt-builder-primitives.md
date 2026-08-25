@@ -14,6 +14,33 @@ You build a **primitives** surface from `plan-primitives.json`. You are the prim
 - `guide/reference/primitives-capabilities.md` — R1/R2/R3, the composition hazards, the two lifecycle windows, and the two "declined to render" signals.
 - `node scripts/knowledge.mjs gotchas` — everything with `"component": "primitives"` is a defect class already paid for on a previous run. They are all of the *renders correctly, behaves wrongly* kind, so no pixel diff will catch you repeating one.
 
+## Sizing a primitive does not size the SDK's chain inside it
+
+You set the primitive to the design's box and it still renders wrong — a cropped square, an
+off-centre glyph, a control bleeding past its rounded corner — while every assertion on the
+primitive PASSES. The SDK renders its own wrapper chain inside your element, and those wrappers
+keep their defaults (32x32 on the avatar, 38x38 on the composer's action button). A larger block
+behind a smaller clip shows as a crop, and measuring the outer element cannot see it.
+
+Size the internal chain too, in **percentages** — the same primitive is used at different sizes
+(thread card vs composer), so a hardcoded 20px is wrong somewhere else.
+
+Watch for siblings: if the SDK's control and your own glyph are both children of the same box,
+sizing both to 100% makes them SPLIT the width (12+12 across a 24px control). Decide which one
+paints and which one is the click target, and overlay rather than stack.
+
+## A gap that is an exact multiple is a wrapper still in flow
+
+Velt hides the inactive half of a mutually-exclusive pair with `data-velt-hidden="true"` — but
+that attribute is on the SDK element, one level INSIDE the wrapper you placed it in. Your
+wrapper is still a flex ITEM at zero height, so the parent's gap is charged on both sides of it.
+Run 5 measured a 48px gap where the design said 24. Collapse the wrapper with its hidden child:
+
+    <your-wrapper>:has(> <velt-primitive>[data-velt-hidden="true"]) { display: none !important; }
+
+Nothing about the hidden surface looks wrong — every assertion on it passes while it silently
+steals a gap.
+
 ## Step 0 — FREE-DRAW the mock first (a deliverable, not a warm-up)
 
 Before you place a single primitive, write each block as a plain HTML/CSS mock straight from its

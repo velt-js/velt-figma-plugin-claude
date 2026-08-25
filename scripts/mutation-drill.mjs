@@ -20,7 +20,9 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { spawn } from "node:child_process";
 import { pathToFileURL, fileURLToPath } from "node:url";
+const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
 import { createRequire } from "node:module";
 import { evaluateStructuralContract, OBSERVE } from "./structural-contract-validate.mjs";
 import { EXEC } from "./run-compiled-assertions.mjs";
@@ -123,7 +125,30 @@ export function scoreDrill(runs, targets) {
 }
 
 // -------- live drill --------
-async function runDetectors(page, suite, contractDoc) {
+/**
+ * Run the FUNCTIONAL detector (behaviour-check) as its own process and report which
+ * contracts failed. The drill exists so a detector cannot quietly stop detecting; leaving
+ * behaviour-check out meant its 6 contracts named a mutation each and none was ever run.
+ * It is a CLI with no exports, so it is spawned rather than imported — a copy of its logic
+ * here is exactly the drift the drill is supposed to prevent.
+ */
+async function runBehaviourDetector(phaseDir, { url, connect }) {
+  const args = [path.join(SCRIPTS, "behaviour-check.mjs"), phaseDir, "--json", "--reuse-tab"];
+  if (url) args.push("--url", url);
+  if (connect) args.push("--connect", connect);
+  const out = await new Promise((resolve) => {
+    const cp = spawn(process.execPath, args, { stdio: ["ignore", "pipe", "ignore"] });
+    let buf = ""; cp.stdout.on("data", (d) => (buf += d));
+    cp.on("close", () => resolve(buf));
+    cp.on("error", () => resolve(""));
+  });
+  try {
+    const doc = JSON.parse(out.slice(out.indexOf("{")));
+    return new Set((doc.results || []).filter((r) => r.ok === false || r.status === "fail").map((r) => r.id));
+  } catch { return new Set(); }
+}
+
+async function runDetectors(page, suite, contractDoc, behaviour = null) {
   const failIds = new Set();
   // compiled assertions (default state only — mutations are visible at rest; hover states
   // are exercised by the state-capture channel, not re-driven per mutation). The drill runs
@@ -135,6 +160,11 @@ async function runDetectors(page, suite, contractDoc) {
     const observed = await page.evaluate(`(${OBSERVE})(${JSON.stringify(contractDoc)})`);
     for (const r of evaluateStructuralContract(contractDoc, observed)) if (r.status === "fail") failIds.add(r.id);
   }
+  // The functional detector runs LAST and on purpose: its contracts type into the composer
+  // and submit, which legitimately changes the surface. Running it before the geometry pass
+  // scored every state-dependent assertion against a composer someone had just typed into --
+  // 17 false alarms on a single mutation.
+  if (behaviour) for (const id of await runBehaviourDetector(behaviour.phaseDir, behaviour)) failIds.add(id);
   return failIds;
 }
 
@@ -165,6 +195,9 @@ async function main() {
 
   // CONTROL: baseline fails (twice — flaky detectors are a drill failure themselves)
   await reload();
+  // The control baseline covers the GEOMETRY detectors only. behaviour-check types and
+  // submits by design, so including it here changed the page between the two control runs
+  // and the drill (correctly) called its own baseline flaky.
   const control1 = await runDetectors(page, suite, contractDoc);
   const control2 = await runDetectors(page, suite, contractDoc);
   const flaky = [...control2].filter((id) => !control1.has(id)).concat([...control1].filter((id) => !control2.has(id)));
@@ -180,7 +213,8 @@ async function main() {
     if (m.apply.css) await page.addStyleTag({ content: m.apply.css });
     if (m.apply.dom) await page.evaluate(m.apply.dom);
     await page.waitForTimeout(400);
-    const fails = await runDetectors(page, suite, contractDoc);
+    const fails = await runDetectors(page, suite, contractDoc,
+      m.category === "behaviour" ? { phaseDir, url, connect: ws } : null);
     const newFails = [...fails].filter((id) => !control1.has(id));
     const expected = m.expectDetect.map((p) => new RegExp(p, "i"));
     const expectedHits = newFails.filter((id) => expected.some((re) => re.test(id))).length;

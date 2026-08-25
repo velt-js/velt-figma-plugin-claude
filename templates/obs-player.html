@@ -375,7 +375,7 @@ async function refreshRunsList() {
       x.events ? `${x.events}ev` : null,
       x.blocks ? `${x.blocks}blk` : null,
     ].filter(Boolean).join(" · ");
-    return `<option value="${esc(x.id)}">${esc(x.id)}${bits ? "  —  " + bits : ""}</option>`;
+    return `<option value="${esc(x.id)}">${esc(x.label || x.id)}${bits ? "  —  " + bits : ""}</option>`;
   }).join("");
   if (keep && runs.some((x) => x.id === keep)) selEl.value = keep;
   return runs;

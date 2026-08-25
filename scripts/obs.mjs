@@ -295,16 +295,26 @@ export function isRunDir(d) {
     .some((f) => existsSync(path.join(d, f)));
 }
 export function listRuns(root) {
+  const out = [];
+  // The root is itself a run when it holds obs/events.jsonl. Scanning only
+  // CHILDREN made the phase's own run structurally invisible: serving a phase
+  // dir showed a stray scratch run and hid the 259-event run you came to see.
+  try { if (isRunDir(root)) out.push("."); } catch { /* not a run */ }
   try {
-    return readdirSync(root).filter((name) => {
+    for (const name of readdirSync(root).sort()) {
       const d = path.join(root, name);
-      try { return statSync(d).isDirectory() && isRunDir(d); } catch { return false; }
-    }).sort();
-  } catch { return []; }
+      try { if (statSync(d).isDirectory() && isRunDir(d)) out.push(name); } catch { /* skip */ }
+    }
+  } catch { /* unreadable root */ }
+  return out;
+}
+/** Resolve a run id to its directory; "." is the served root itself. */
+export function runDir(root, id) {
+  return id === "." ? path.resolve(root) : path.resolve(root, id);
 }
 // cheap per-run summary for the switcher: id, when, verdict, counts, stage progress
 export function runSummary(root, id) {
-  const d = path.join(root, id);
+  const d = runDir(root, id);
   let events = 0, lastEventAt = null, verdict = null, screenshots = 0;
   try {
     for (const line of readFileSync(path.join(d, "obs", "events.jsonl"), "utf8").split("\n")) {
@@ -326,7 +336,9 @@ export function runSummary(root, id) {
   } catch { /* none */ }
   let mtime = 0;
   try { mtime = statSync(d).mtimeMs; } catch { /* gone */ }
-  return { id, events, screenshots, lastEventAt, verdict, blocks, stages, mtime };
+  // "." is the served phase itself — label it by its folder, not a bare dot.
+  const label = id === "." ? path.basename(path.resolve(root)) : id;
+  return { id, label, events, screenshots, lastEventAt, verdict, blocks, stages, mtime };
 }
 
 function serveMulti(root, port) {
@@ -350,8 +362,9 @@ function serveMulti(root, port) {
       }
       if (urlPath === "/run.json") {
         const id = u.searchParams.get("run") || "";
-        const d = path.resolve(root, id);
-        if (!id || !d.startsWith(path.resolve(root) + path.sep) || !existsSync(d) || !isRunDir(d)) {
+        const d = runDir(root, id);
+        const inside = id === "." || d.startsWith(path.resolve(root) + path.sep);
+        if (!id || !inside || !existsSync(d) || !isRunDir(d)) {
           res.writeHead(404); res.end("unknown run"); return;
         }
         const run = assembleRun(d);

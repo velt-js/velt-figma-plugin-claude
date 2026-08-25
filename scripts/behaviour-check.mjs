@@ -21,6 +21,7 @@
 // EXIT   0 all applicable contracts pass · 2 a contract FAILED · 3 environment/blocked
 
 import { promises as fs } from "node:fs";
+import { obsEvent } from "./obs.mjs";   // session-replay record (fail-safe)
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadChromium, acquireBrowser } from "./measure-block.mjs";
@@ -160,5 +161,11 @@ else {
   for (const r of failed) console.log(`\n  ${r.id}: ${r.why}`);
   for (const s of skipped) console.log(`· skipped ${s.id} — ${s.requiresDrawnState ? `this phase does not draw '${s.requiresDrawnState}'` : `places none of ${s.requires.join(", ")}`}`);
   console.log(`\n${failed.length ? "✗" : "✓"} behaviour: ${results.length - failed.length}/${results.length} contract(s) pass`);
+  obsEvent(phaseDir, {
+    type: "measure", src: "behaviour-check", stage: "judge", ok: failed.length === 0,
+    summary: `behaviour — ${results.length - failed.length}/${results.length} contract(s) pass` +
+      (skipped.length ? ` (${skipped.length} not drawn in this phase)` : ""),
+    data: { failed: failed.map((r) => ({ id: r.id, why: r.why })), skipped: skipped.map((s) => s.id) },
+  });
 }
 process.exit(failed.length ? 2 : 0);

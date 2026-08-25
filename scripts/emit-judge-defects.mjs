@@ -29,6 +29,7 @@
 // Exit 2 = vision record stale/invalid — re-glance required (no emit performed).
 
 import { promises as fs } from "node:fs";
+import { obsEvent } from "./obs.mjs";   // session-replay record (fail-safe)
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { pathToFileURL, fileURLToPath } from "node:url";
@@ -916,6 +917,18 @@ async function main() {
     await fs.writeFile(path.join(phaseDir, "judge-defects.json"), JSON.stringify(doc, null, 2) + "\n");
     await fs.writeFile(unionPath, JSON.stringify(unionDoc, null, 2) + "\n"); // Phase 7: the union only grows; resolutions carry evidence
     console.log(`✓ wrote ${path.join(phaseDir, "judge-defects.json")}`);
+    // Session replay: what the Judge is actually handing the Builder, and how it routed.
+    const modes = {};
+    for (const r of workOrder) { const m = r.requiredMode || "unrouted"; modes[m] = (modes[m] || 0) + 1; }
+    obsEvent(phaseDir, {
+      type: "handoff", src: "emit-judge-defects", stage: "judge",
+      ok: workOrder.length === 0,
+      summary: `work order — ${workOrder.length} ticket(s): ` +
+        Object.entries(modes).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${v} ${k}`).join(", "),
+      data: { byMode: modes, top: workOrder.slice(0, 12).map((r) => ({
+        element: r.element, property: r.property, spec: r.spec, rendered: r.rendered, mode: r.requiredMode })) },
+      artifacts: { defects: "judge-defects.json" },
+    });
     if (plannerTickets.length) {
       await fs.writeFile(path.join(phaseDir, "planner-tickets.json"), JSON.stringify({
         generatedAt: doc.generatedAt, run: doc.run, tickets: plannerTickets,

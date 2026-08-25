@@ -22,6 +22,7 @@ import path from "node:path";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { parseColor } from "./delta-compare.mjs";
+import { obsEvent } from "./obs.mjs";   // session-replay record (fail-safe, VELT_OBS=0 disables)
 
 const require = createRequire(import.meta.url);
 
@@ -503,6 +504,38 @@ async function main() {
     await page.waitForTimeout(250);
   }
 
+  // Capture the replay frame NOW, while the surface is still in the state we just
+  // measured. The data-state pass restores by RELOADING, which resets the host UI
+  // (a drawer springs shut), so a frame taken afterwards shows a screen nobody judged.
+  let shotRel = null;
+  try {
+    const stamp = new Date().toISOString().replace(/[-:TZ.]/g, "").slice(4, 15);
+    const dir = path.join(phaseDir, "obs", "shots");
+    await fs.mkdir(dir, { recursive: true });
+    const abs = path.join(dir, `judge-${stamp}.png`);
+    // Frame the SURFACE, not the first landmark that happens to match: take the
+    // union of every planned element's rect, so the replay shows the whole thing
+    // that was judged.
+    const clip = await page.evaluate((sels) => {
+      let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+      for (const sel of sels) {
+        let el; try { el = document.querySelector(sel); } catch { continue; }
+        if (!el) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width < 2 || r.height < 2) continue;
+        x1 = Math.min(x1, r.x); y1 = Math.min(y1, r.y);
+        x2 = Math.max(x2, r.x + r.width); y2 = Math.max(y2, r.y + r.height);
+      }
+      if (!Number.isFinite(x1)) return null;
+      const x = Math.max(0, x1), y = Math.max(0, y1);
+      const width = Math.min(x2 - x, innerWidth - x), height = Math.min(y2 - y, innerHeight - y);
+      return width > 20 && height > 20 ? { x, y, width, height } : null;
+    }, [...new Set(suite.assertions.map((a) => a.selector).filter(Boolean))]);
+    await page.screenshot(clip ? { path: abs, clip } : { path: abs });
+    shotRel = path.join("obs", "shots", path.basename(abs));
+  } catch { /* a missing frame must never fail the gate */ }
+
+
   // ---- second pass: states whose CONDITIONS the judge can create itself ----
   const driveReport = { attempted: [], skipped: null };
   const undrawn = results.filter((r) => r.status === "blocked" && /not drawn|nothing to measure/i.test(r.reason || ""));
@@ -575,6 +608,20 @@ async function main() {
     results,
   };
   await fs.writeFile(path.join(phaseDir, "compiled-results.json"), JSON.stringify(doc, null, 2) + "\n");
+
+  // Session replay: the judge is the stage people most need to SEE. Record the verdict
+  // with a frame of the surface it judged, so the replay shows what was on screen when
+  // each number was taken -- not just the number.
+  const worst = results.filter((r) => r.status === "fail").slice(0, 12)
+    .map((r) => `${r.selector || r.property}: ${JSON.stringify(r.expected)} → ${JSON.stringify(r.measured)}`);
+  obsEvent(phaseDir, {
+    type: "measure", src: "run-compiled-assertions", stage: "judge",
+    ok: summary.fail === 0,
+    summary: `compiled assertions — ${summary.pass} pass · ${summary.fail} fail · ${summary.blocked} blocked`,
+    data: { ...summary, url: page.url(), topFailures: worst, dataStates: driveReport },
+    shots: shotRel ? { live: shotRel } : undefined,
+    artifacts: { results: "compiled-results.json", suite: path.basename(suitePath) },
+  });
   for (const at of driveReport.attempted) {
     console.log(at.ok
       ? `  ↻ drove ${at.driver}: cleared ${at.cleared}/${at.captured}, restored ${at.restored} (${at.restoreClean ? "clean" : "DRIFT — see " + at.backup})`

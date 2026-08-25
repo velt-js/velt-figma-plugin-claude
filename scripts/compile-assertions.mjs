@@ -665,7 +665,17 @@ export async function compileAssertions(input, opts = {}) {
   // D. state-frame paint deltas (hover-bg et al) from designSpec, until the plan closes the hole
   const statePaint = compileStateFramePaint(frames, driveTarget.split(",")[0].trim());
 
-  const all = [...assertions, ...relGaps, ...sizeAsserts, ...iconAsserts, ...glyphPaint, ...statePaint];
+  // Never assert a glyph the plan deliberately HIDES. Icon/paint assertions are derived
+  // from design vectors inside a host, so a primitive whose default artwork we suppress
+  // (drawing the design's own glyph instead) would otherwise be judged on artwork that
+  // is display:none by intent -- reported forever as "(element missing)".
+  const suppressed = (planStyle?.rules || [])
+    .filter((r) => r?.selector && (r.purpose === "suppress-default" || String(r.decls?.display) === "none"))
+    .map((r) => r.selector);
+  const isSuppressed = (sel) => !!sel && suppressed.some((sup) => sel === sup || sel.startsWith(sup + " "));
+  const visibleGlyphs = [...iconAsserts, ...glyphPaint].filter((a) => !isSuppressed(a.selector));
+
+  const all = [...assertions, ...relGaps, ...sizeAsserts, ...visibleGlyphs, ...statePaint];
 
   // Precision: carry each element's design-tree parent so the executor can tell
   // "missing because this whole state isn't drawn" (blocked) from "missing while

@@ -557,6 +557,32 @@ export async function calibratePrimitives() {
     ok("a collapsed surface is named as such, not reported as defects", /COLLAPSED/.test(srcR));
   }
 
+  // ---- a glyph the plan hides must not be asserted ----
+  {
+    const CA = await import(path.join(ROOT, "scripts", "compile-assertions.mjs"));
+    const designSpec = { nodes: [
+      { id: "n:root", name: "Row", type: "FRAME", frameId: "f1", box: { x: 0, y: 0, w: 200, h: 40 }, cssDecls: {} },
+      { id: "n:host", name: "Btn", type: "FRAME", frameId: "f1", box: { x: 8, y: 8, w: 24, h: 24 }, cssDecls: {} },
+      { id: "n:g", name: "Arrow", type: "VECTOR", frameId: "f1", box: { x: 14, y: 14, w: 12, h: 12 }, cssDecls: { fill: "#111" } },
+    ] };
+    const planVisible = { rules: [
+      { selector: ".row", specNodeId: "n:root", decls: { display: "flex" } },
+      { selector: ".send", specNodeId: "n:host", decls: { width: "24px" } },
+    ] };
+    const res1 = await CA.compileAssertions({ planStyle: planVisible, designSpec, planFills: {} });
+    const glyphs1 = (res1.doc.assertions || []).filter((a) => a.kind === "glyph-paint" || a.property === "icon-size");
+    ok("a visible glyph IS asserted", glyphs1.length >= 1, `${glyphs1.length}`);
+
+    const planHidden = { rules: [
+      { selector: ".row", specNodeId: "n:root", decls: { display: "flex" } },
+      { selector: ".send", specNodeId: "n:host", decls: { width: "24px" } },
+      { selector: ".send svg", purpose: "suppress-default", decls: { display: "none" } },
+    ] };
+    const res2 = await CA.compileAssertions({ planStyle: planHidden, designSpec, planFills: {} });
+    const glyphs2 = (res2.doc.assertions || []).filter((a) => a.kind === "glyph-paint" || a.property === "icon-size");
+    ok("a glyph the plan suppresses is NOT asserted", glyphs2.length === 0, `${glyphs2.length}`);
+  }
+
   // ---- one design node must not pay its padding twice ----
   // Both real double-spacing defects on this design had the same shape: a node's
   // box model handed to two elements in one nesting chain.

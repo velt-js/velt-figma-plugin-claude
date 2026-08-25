@@ -470,6 +470,10 @@ export async function compileAssertions(input, opts = {}) {
 
   // A. plan-style rules → assertions
   for (const [i, rule] of planStyle.rules.entries()) {
+    // A SUPPRESSION has no design node by nature — the design draws NOTHING there, which is the
+    // whole point of the rule. It is the one legitimate value with no provenance, so it is excluded
+    // from the suite rather than failing R-B and taking the entire compile down with it.
+    if (rule.purpose === "suppress-default" || rule.notAssertable) continue;
     const inScope = !rule.blockIds?.length || rule.blockIds.some((b) => blockRegex.test(b));
     if (!inScope) continue;
     for (const [prop, value] of Object.entries(rule.decls || {})) {

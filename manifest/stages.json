@@ -889,6 +889,45 @@
       ],
       "gates": [
         {
+          "id": "compile-assertions",
+          "cmd": [
+            "node",
+            "scripts/compile-assertions.mjs",
+            "<phaseDir>",
+            "--write"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a plan rule carries no design provenance, so it cannot be asserted"
+          },
+          "lens": "code",
+          "why": "compiles the DESIGN into per-element assertions. Without it the Judge is pixel-only: it localises a mismatch to a region but never names it, and 'chrome mismatch @ 0,0 350x140' is not actionable."
+        },
+        {
+          "id": "run-compiled-assertions",
+          "cmd": [
+            "node",
+            "scripts/run-compiled-assertions.mjs",
+            "<phaseDir>",
+            "--url",
+            "<appUrl>",
+            "--connect",
+            "<browserWs>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a compiled design assertion FAILED \u2014 a named, measured defect"
+          },
+          "lens": "ui",
+          "why": "the half of the Judge that NAMES defects: 'vc-thread-rail.width expected 1 got (element missing)' instead of a pixel region. Measured on run 5: 141 pass / 26 fail, and those 26 were exactly what a human saw in a screenshot and no gate had said."
+        },
+        {
           "id": "behaviour-check",
           "cmd": [
             "node",
@@ -964,9 +1003,10 @@
       ],
       "review": {
         "ui": [
-          "judge2/report.json",
+          "compiled-results.json",
           "judge2/blocks/*/diff.png",
-          "judge2/chrome-probes.json"
+          "judge2/chrome-probes.json",
+          "judge2/report.json"
         ],
         "functional": [
           "behaviour-check",

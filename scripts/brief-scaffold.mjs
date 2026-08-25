@@ -798,6 +798,17 @@ async function main() {
       const covGaps = styleCoverageGaps(rules, snaps, planStyle.defaultOk || []);
       for (const g of covGaps.slice(0, 15)) { console.log(`✗ style-coverage: visible ${g.hasText ? "TEXT" : "painted"} element '${g.selector}' is claimed by NO rule (and not defaultOk) — renders RAW on the unstyled base`); bad++; }
       if (covGaps.length > 15) { console.log(`✗ style-coverage: … and ${covGaps.length - 15} more uncovered element(s)`); }
+      // PROVENANCE — every rule must be assertable, or say why it is not. compile-assertions turns
+      // plan rules into measured checks and refuses any value with no design node (R-B), so a single
+      // rule missing one takes the WHOLE suite down: nothing compiles, nothing runs, and the Judge
+      // silently degrades to pixel-only. Measured on run 5 — four invented root rules and one
+      // suppression kept the assertion half of the Judge from ever executing.
+      for (const [i, r] of rules.entries()) {
+        if (r.specNodeId || r.purpose === "suppress-default" || r.notAssertable) continue;
+        console.log(`✗ plan-style rules[${i}] '${r.selector}': no specNodeId — it cannot be compiled into an assertion, and one such rule blocks the entire suite. Cite the design node, or set notAssertable with a reason.`);
+        bad++;
+      }
+
       // DESIGN-NODE COVERAGE — the other direction, and the one that was missing. The check above
       // asks "is every live element claimed by a rule". It cannot notice a DESIGN node that was
       // never mapped, because an unmapped node has no live element to go unclaimed — the design

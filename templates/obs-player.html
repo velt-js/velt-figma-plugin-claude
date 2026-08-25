@@ -405,7 +405,16 @@ if (MULTI) {
   selEl.onchange = () => loadRun(selEl.value);
   (async () => {
     const runs = await refreshRunsList();
-    const want = new URL(location).searchParams.get("run");
+    // A ?run= that names an EMPTY run is almost always a stale deep link from before
+    // other runs existed -- don't strand someone on it when the served run has content.
+    const want = (() => {
+      const w = new URL(location).searchParams.get("run");
+      if (!w) return null;
+      const wr = runs.find((r) => r.id === w);
+      const root = runs.find((r) => r.id === ".");
+      if (wr && root && wr.id !== "." && (wr.events || 0) === 0) return null;
+      return w;
+    })();
     if (runs.length) await loadRun(want && runs.some((x) => x.id === want) ? want : runs[0].id);
     else $("#details").innerHTML = `<h3>No runs found</h3><div style="color:var(--fg-dim)">Nothing under the served root looks like a run yet — start one and it will appear here automatically.</div>`;
   })();

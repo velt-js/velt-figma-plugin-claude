@@ -355,7 +355,11 @@ function serveMulti(root, port) {
         return;
       }
       if (urlPath === "/runs.json") {
-        const runs = listRuns(root).map((id) => runSummary(root, id)).sort((a, b) => b.mtime - a.mtime);
+        // The run you POINTED THE COMMAND AT comes first, always. Sorting purely by
+        // mtime let an unrelated scratch run in a subfolder outrank it and become the
+        // landing page -- 10 empty events where the 259-event run should have been.
+        const runs = listRuns(root).map((id) => runSummary(root, id))
+          .sort((a, b) => (a.id === "." ? -1 : b.id === "." ? 1 : b.mtime - a.mtime));
         res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
         res.end(JSON.stringify({ root: path.basename(root), generatedAt: nowIso(), runs }));
         return;

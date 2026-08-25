@@ -433,12 +433,24 @@ async function main() {
   // never arrive.
   const landmarks = [...new Set(suite.assertions.map((a) => a.selector).filter(Boolean))];
   if (landmarks.length) {
+    // A box is not the same as being on screen. Content inside a collapsed
+    // (width:0 / height:0, overflow:hidden) ancestor keeps a full bounding rect
+    // and measures perfectly while painting nowhere -- so a CLOSED drawer scores
+    // the same as an open one. Require an unclipped ancestor chain.
     const resolvedCount = async () => page.evaluate((sels) => sels.filter((sel) => {
       try {
         const el = document.querySelector(sel);
         if (!el) return false;
         const r = el.getBoundingClientRect();
-        return r.width > 1 && r.height > 1;
+        if (!(r.width > 1 && r.height > 1)) return false;
+        for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
+          const cs = getComputedStyle(a);
+          if (cs.display === "none" || cs.visibility === "hidden") return false;
+          const ar = a.getBoundingClientRect();
+          const clips = cs.overflow !== "visible" || cs.overflowX !== "visible" || cs.overflowY !== "visible";
+          if (clips && (ar.width < 1 || ar.height < 1)) return false;
+        }
+        return true;
       } catch { return false; }
     }).length, landmarks);
     let best = 0, stable = 0, prev = -1;
@@ -452,9 +464,11 @@ async function main() {
     }
     const ready = best >= Math.ceil(landmarks.length * 0.25);
     if (!ready) {
-      console.error(`✗ app not ready on ${page.url()} — only ${best}/${landmarks.length} planned landmarks resolved after 30s.`);
-      console.error("  Refusing to measure: a page caught mid-reload reports every assertion as a defect.");
-      console.error("  Check the dev server finished rebuilding, then re-run this gate.");
+      console.error(`✗ surface not on screen at ${page.url()} — only ${best}/${landmarks.length} planned landmarks are visible after 30s.`);
+      console.error("  Refusing to measure. Either the page is mid-rebuild, or the surface under test is");
+      console.error("  COLLAPSED: content inside a width:0/overflow:hidden ancestor keeps a full bounding");
+      console.error("  box, so a closed drawer would otherwise score the same as an open one.");
+      console.error("  Reveal the surface (open the drawer) or wait for the rebuild, then re-run.");
       process.exit(3);
     }
   }

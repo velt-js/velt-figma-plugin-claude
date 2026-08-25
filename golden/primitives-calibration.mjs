@@ -542,11 +542,18 @@ export async function calibratePrimitives() {
   // ---- measuring NOTHING must never read as measuring FAILURE ----
   {
     const srcR = await fs.readFile(path.join(ROOT, "scripts", "run-compiled-assertions.mjs"), "utf8");
-    ok("the runner waits for planned landmarks before measuring", /planned landmarks resolved/.test(srcR));
+    ok("the runner waits for planned landmarks before measuring", /planned landmarks are visible/.test(srcR));
     ok("an unready app aborts instead of reporting defects", /Refusing to measure/.test(srcR));
     ok("readiness is checked BEFORE the assertion pass", srcR.indexOf("Refusing to measure") < srcR.indexOf("const byState = new Map()"));
     ok("the runner picks the tab the app is live in, not the first URL match",
       /remember a fallback, keep looking for a live one/.test(srcR));
+  }
+
+  // ---- a collapsed surface must not score like an open one ----
+  {
+    const srcR = await fs.readFile(path.join(ROOT, "scripts", "run-compiled-assertions.mjs"), "utf8");
+    ok("readiness walks the ancestor chain for clipping", /clips && \(ar\.width < 1 \|\| ar\.height < 1\)/.test(srcR));
+    ok("a collapsed surface is named as such, not reported as defects", /COLLAPSED/.test(srcR));
   }
 
   for (const d of [t2, t3, t4]) await fs.rm(d, { recursive: true, force: true });

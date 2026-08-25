@@ -19,7 +19,7 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { pathToFileURL, fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { parseColor } from "./delta-compare.mjs";
 
@@ -161,17 +161,17 @@ export const EXEC = `(function(INPUT){
         // Nothing else from this element's design frame is on screen either --
         // the frame is a whole drawn state (Figma puts each state on its own
         // artboard), so this state isn't showing right now.
-        if (a.frameCohort && a.frameCohort.length && !a.frameCohort.some((c)=>resolve(c))){
+        if (!INPUT.conditionsForced && a.frameCohort && a.frameCohort.length && !a.frameCohort.some((c)=>resolve(c))){
           res.status='blocked';
           res.reason='no element of this design frame is drawn in the current state — nothing to measure';
           results.push(res); continue;
         }
-        if (a.parentSelector && !resolve(a.parentSelector)){
+        if (!INPUT.conditionsForced && a.parentSelector && !resolve(a.parentSelector)){
           res.status='blocked';
           res.reason='container '+a.parentSelector+' not drawn in this state — nothing to measure';
           results.push(res); continue;
         }
-        if (a.expectedSource==='plan-style.json' || INPUT.stateConfirmed){
+        if (a.expectedSource==='plan-style.json' || INPUT.stateConfirmed || INPUT.conditionsForced){
           res.status='fail'; res.measured='(element missing'+(a.state!=='default'?' in '+a.state+' state':'')+')';
           res.note='planned selector matches nothing on the live DOM'+(a.state!=='default'?' with state \\''+a.state+'\\' confirmed active (reveal/mount defect)':' (adoption/mount defect)');
         } else { res.status='blocked'; res.reason='selector unresolved: '+a.selector; }
@@ -301,11 +301,68 @@ async function driveState(page, state, guards) {
   return { driven: true, ok: false, reason: `state '${state}' guard not confirmed (${g.guard})` };
 }
 
+/** Read a value the SDK may hand back as a promise or as a subscription. */
+const FIRST_VALUE = `(async function(thing, ms){
+  return await new Promise((res)=>{
+    if (thing && typeof thing.subscribe === 'function'){
+      let done=false;
+      const sub = thing.subscribe((v)=>{ if(done) return; done=true; try{sub&&sub.unsubscribe&&sub.unsubscribe();}catch(e){} res(v); });
+      setTimeout(()=>{ if(!done) res(null); }, ms);
+    } else Promise.resolve(thing).then(res, ()=>res(null));
+  });
+})`;
+
+/**
+ * Create the data conditions a state needs, measure, then put the data back.
+ *
+ * A design state that depends on data (a collection's empty surface) can never be
+ * observed while the app holds data, so those assertions used to come back blocked
+ * forever. Blocked should mean "the judge could not create the conditions" -- not
+ * "the judge did not try". Once the conditions ARE created, an element that still
+ * fails to lay out is a defect and is reported as one.
+ */
+async function driveDataState(page, drv) {
+  const backup = await page.evaluate(`(async () => {
+    const el = window.Velt && window.Velt.${drv.elementGetter} && window.Velt.${drv.elementGetter}();
+    if (!el || typeof el.${drv.capture} !== 'function') return { ok:false, reason:'${drv.capture} unavailable on ${drv.elementGetter}()' };
+    const items = await ${FIRST_VALUE}(el.${drv.capture}(), 8000);
+    return { ok: Array.isArray(items), items: Array.isArray(items) ? items : [], reason: Array.isArray(items) ? null : 'capture returned no array' };
+  })()`);
+  if (!backup.ok) return { ok: false, reason: backup.reason };
+
+  const cleared = await page.evaluate(`(async (ids) => {
+    const el = window.Velt.${drv.elementGetter}();
+    let n = 0;
+    for (const id of ids) { try { await el.${drv.clear.method}({ ${drv.clear.argKey}: id }); n++; } catch (e) {} }
+    return n;
+  })(${JSON.stringify(backup.items.map((i) => i[drv.clear.idField]).filter(Boolean))})`);
+  await page.waitForTimeout(drv.settleMs || 4000);
+
+  return { ok: true, captured: backup.items, cleared };
+}
+
+async function restoreDataState(page, drv, items) {
+  const n = await page.evaluate(`(async (anns) => {
+    const el = window.Velt.${drv.elementGetter}();
+    let n = 0;
+    for (const a of anns) { try { await el.${drv.restore.method}({ ${drv.restore.argKey}: a }); n++; } catch (e) {} }
+    return n;
+  })(${JSON.stringify(items)})`);
+  await page.waitForTimeout(drv.settleMs || 4000);
+  const live = await page.evaluate(`(async () => {
+    const el = window.Velt.${drv.elementGetter}();
+    const items = await ${FIRST_VALUE}(el.${drv.capture}(), 8000);
+    return Array.isArray(items) ? items.length : null;
+  })()`);
+  return { restored: n, liveCount: live };
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const flag = (k) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : null; };
   const phaseDir = args.find((a, i) => !a.startsWith("--") && (i === 0 || !["--connect", "--url", "--suite"].includes(args[i - 1])));
   if (!phaseDir) { console.error("usage: run-compiled-assertions.mjs <phaseDir> [--connect <ws>] [--url <url>] [--suite <path>] [--write]"); process.exit(1); }
+  const noDriveData = args.includes("--no-drive-data");
   const suitePath = flag("--suite") || path.join(phaseDir, "compiled-assertions.json");
   const suite = await loadJson(suitePath);
   if (!suite?.assertions?.length) { console.error(`✗ no compiled suite at ${suitePath} — run compile-assertions.mjs --write first`); process.exit(1); }
@@ -358,6 +415,59 @@ async function main() {
     await page.waitForTimeout(250);
   }
 
+  // ---- second pass: states whose CONDITIONS the judge can create itself ----
+  const driveReport = { attempted: [], skipped: null };
+  const undrawn = results.filter((r) => r.status === "blocked" && /not drawn|nothing to measure/i.test(r.reason || ""));
+  if (!undrawn.length) {
+    driveReport.skipped = "no assertion was blocked for an undrawn surface";
+  } else if (noDriveData) {
+    driveReport.skipped = `--no-drive-data set; ${undrawn.length} assertion(s) left blocked`;
+  } else {
+    const byId = new Map(suite.assertions.map((a) => [a.id, a]));
+    const retry = undrawn.map((r) => byId.get(r.id)).filter(Boolean);
+    const driversPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "knowledge", "data-state-drivers.json");
+    let drivers = [];
+    try { drivers = JSON.parse(await fs.readFile(driversPath, "utf8")).drivers || []; } catch { /* none installed */ }
+    for (const drv of drivers) {
+      if (!retry.length) break;
+      const drove = await driveDataState(page, drv);
+      if (!drove.ok) { driveReport.attempted.push({ driver: drv.id, ok: false, reason: drove.reason }); continue; }
+      // Back the data up BEFORE anything else can go wrong with the restore.
+      const backupPath = path.join(phaseDir, `data-backup.${drv.id}.json`);
+      await fs.writeFile(backupPath, JSON.stringify(drove.captured, null, 1));
+      let measured = [];
+      try {
+        measured = await page.evaluate(`(${EXEC})(${JSON.stringify({ assertions: retry, stateConfirmed: true, conditionsForced: true })})`);
+      } finally {
+        const back = await restoreDataState(page, drv, drove.captured);
+        driveReport.attempted.push({
+          driver: drv.id, ok: true, cleared: drove.cleared, captured: drove.captured.length,
+          restored: back.restored, liveCountAfterRestore: back.liveCount, backup: path.basename(backupPath),
+          restoreClean: back.liveCount >= drove.captured.length,
+          dataLoss: back.liveCount != null && back.liveCount < drove.captured.length,
+        });
+        // Fewer items live than we captured means the judge DESTROYED data — loud, and
+        // the backup on disk is the recovery path. More is only drift (a comment added
+        // while we measured) and is not a failure.
+        if (back.liveCount != null && back.liveCount < drove.captured.length) {
+          console.error(`  !! ${drv.id}: DATA LOSS — captured ${drove.captured.length}, only ${back.liveCount} live after restore.`);
+          console.error(`     Recover from ${backupPath} before trusting this app's data again.`);
+        } else if (back.liveCount !== drove.captured.length) {
+          console.error(`  ! ${drv.id}: ${back.liveCount} live vs ${drove.captured.length} captured (extra items, no loss)`);
+        }
+      }
+      // Conditions were created, so these verdicts are real: an element that still
+      // will not lay out is a defect, not an unmeasurable one.
+      const byRetryId = new Map(measured.map((m) => [m.id, m]));
+      for (let i = 0; i < results.length; i++) {
+        const m = byRetryId.get(results[i].id);
+        if (m && results[i].status === "blocked") results[i] = { ...m, drivenBy: drv.id };
+      }
+      const stillBlocked = new Set(measured.filter((m) => m.status === "blocked").map((m) => m.id));
+      for (let k = retry.length - 1; k >= 0; k--) if (!stillBlocked.has(retry[k].id)) retry.splice(k, 1);
+    }
+  }
+
   const summary = {
     pass: results.filter((r) => r.status === "pass").length,
     fail: results.filter((r) => r.status === "fail").length,
@@ -372,10 +482,16 @@ async function main() {
     suiteSources: suite.sources,
     url: page.url(),
     states: stateReport,
+    dataStates: driveReport,
     summary,
     results,
   };
   await fs.writeFile(path.join(phaseDir, "compiled-results.json"), JSON.stringify(doc, null, 2) + "\n");
+  for (const at of driveReport.attempted) {
+    console.log(at.ok
+      ? `  ↻ drove ${at.driver}: cleared ${at.cleared}/${at.captured}, restored ${at.restored} (${at.restoreClean ? "clean" : "DRIFT — see " + at.backup})`
+      : `  ↻ ${at.driver} unavailable: ${at.reason}`);
+  }
   console.log(`compiled-assertions: ${summary.pass} pass · ${summary.fail} fail · ${summary.blocked} blocked → compiled-results.json`);
   for (const r of results.filter((x) => x.status === "fail").slice(0, 40)) {
     console.log(`  ✗ ${r.id} [${r.state}] expected ${JSON.stringify(r.expected)} measured ${JSON.stringify(r.measured)} (${r.designPath})`);

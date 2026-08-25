@@ -1,0 +1,16 @@
+{
+  "_comment": "How the judge CREATES the data conditions a design state needs, instead of reporting it unmeasurable. Each driver captures the live data, forces the condition, lets the judge measure, then restores. Keyed by SDK element facade + API names taken from the manifest, so a driver holds for any design built on that family — never a per-design script.",
+  "drivers": [
+    {
+      "id": "collection-empty",
+      "describes": "what a collection surface shows when it holds no items (empty state, zero-data illustration, first-run hint)",
+      "family": "comment",
+      "elementGetter": "getCommentElement",
+      "capture": "getAllCommentAnnotations",
+      "clear": { "method": "deleteCommentAnnotation", "idField": "annotationId", "argKey": "annotationId" },
+      "restore": { "method": "addCommentAnnotation", "argKey": "annotation" },
+      "settleMs": 4000,
+      "mutation": "delete every annotation; the empty surface must lay out with a real box"
+    }
+  ]
+}

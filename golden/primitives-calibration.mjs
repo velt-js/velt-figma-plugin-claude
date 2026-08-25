@@ -479,6 +479,27 @@ export async function calibratePrimitives() {
     ok("console-health listens for warnings on the page", /=== *["']warning["']/.test(srcCH));
   }
 
+  // ---- the judge must CREATE data conditions, not excuse them ----
+  {
+    const RCA = await import(path.join(ROOT, "scripts", "run-compiled-assertions.mjs"));
+    const EXEC = RCA.EXEC;
+    ok("the executor excuses a missing element when its container is absent",
+      /!INPUT\.conditionsForced && a\.parentSelector/.test(EXEC));
+    ok("the executor STOPS excusing once conditions are forced",
+      /INPUT\.conditionsForced/.test(EXEC) && /stateConfirmed \|\| INPUT\.conditionsForced/.test(EXEC));
+    const drv = JSON.parse(await fs.readFile(path.join(ROOT, "knowledge", "data-state-drivers.json"), "utf8"));
+    ok("a data-state driver is installed", (drv.drivers || []).length >= 1);
+    const d0 = drv.drivers[0];
+    ok("the driver captures before it clears, and can restore",
+      !!(d0.capture && d0.clear?.method && d0.restore?.method), JSON.stringify(Object.keys(d0)));
+    ok("the driver names SDK APIs, not a design's selectors",
+      !/\.vc-|#|velt-comment-dialog-thread/.test(JSON.stringify(d0)));
+    const srcR = await fs.readFile(path.join(ROOT, "scripts", "run-compiled-assertions.mjs"), "utf8");
+    ok("captured data is written to disk BEFORE the clear is measured",
+      srcR.indexOf("data-backup.") < srcR.indexOf("conditionsForced: true"));
+    ok("losing data during a drive is reported as DATA LOSS", /DATA LOSS/.test(srcR));
+  }
+
   for (const d of [t2, t3, t4]) await fs.rm(d, { recursive: true, force: true });
 
   const failed = checks.filter((c) => !c.pass);

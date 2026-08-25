@@ -461,6 +461,24 @@ export async function calibratePrimitives() {
       !/\bvc-(composer|thread|sidebar|empty)[a-z-]*\b/.test(srcCA));
   }
 
+  // ---- console-health must see WARNINGS, not only errors ----
+  // The SDK reports structural misuse ("children replace the default content",
+  // "not rendering the markup you placed inside it", unresolved identity) at warn
+  // level. Counting only `error` made a broken surface read "console healthy".
+  {
+    const CH = await import(path.join(ROOT, "scripts", "console-health.mjs"));
+    const warn = (text) => ({ sev: "warning", text });
+    const r = CH.assess([...Array(12)].map(() => warn("[Velt] Children passed to <x-y> replace its default content.")));
+    ok("a repeating SDK WARNING is a storm, not silence", r.storm === true);
+    ok("warnings are counted and reported", r.totalWarnings === 12 && r.totalErrors === 0,
+      `err=${r.totalErrors} warn=${r.totalWarnings}`);
+    ok("a warning signature keeps its severity", r.signatures[0]?.sev === "warning");
+    ok("plain-string entries still read as errors (legacy shape)",
+      CH.assess(["boom", "boom"]).totalErrors === 2);
+    const srcCH = await fs.readFile(path.join(ROOT, "scripts", "console-health.mjs"), "utf8");
+    ok("console-health listens for warnings on the page", /=== *["']warning["']/.test(srcCH));
+  }
+
   for (const d of [t2, t3, t4]) await fs.rm(d, { recursive: true, force: true });
 
   const failed = checks.filter((c) => !c.pass);

@@ -36,22 +36,34 @@ export function signatureOf(text) {
     .slice(0, 160);
 }
 
-export function assess(errors, { perSig = 10, total = 50, allow = [] } = {}) {
+export function assess(entries, { perSig = 10, total = 50, allow = [] } = {}) {
   const allowed = (t) => allow.some((p) => { try { return new RegExp(p).test(t); } catch { return t.includes(p); } });
+  // Accepts plain strings (errors, the historical shape) or {sev, text}.
+  const rows = entries.map((e) => (typeof e === "string" ? { sev: "error", text: e } : e));
   const counts = new Map();
-  let kept = 0;
-  for (const e of errors) {
-    if (allowed(e)) continue;
-    kept++;
-    const sig = signatureOf(e);
-    const cur = counts.get(sig) || { sig, count: 0, sample: e.slice(0, 300) };
+  let kept = 0, keptWarn = 0;
+  for (const { sev, text } of rows) {
+    if (allowed(text)) continue;
+    if (sev === "warning") keptWarn++; else kept++;
+    const sig = signatureOf(text);
+    const cur = counts.get(sig) || { sig, sev, count: 0, sample: text.slice(0, 300) };
     cur.count++;
+    if (sev === "error") cur.sev = "error";
     counts.set(sig, cur);
   }
   const signatures = [...counts.values()].sort((a, b) => b.count - a.count);
+  // A WARNING that repeats every render tick is the same structural defect an
+  // error storm is -- the SDK telling us a slot is being used wrongly, once per
+  // frame. Counting only `error` let that class through silently.
   const storms = signatures.filter((s) => s.count >= perSig);
-  const storm = storms.length > 0 || kept >= total;
-  return { storm, totalErrors: kept, storms, signatures: signatures.slice(0, 20) };
+  const storm = storms.length > 0 || kept + keptWarn >= total;
+  return {
+    storm,
+    totalErrors: kept,
+    totalWarnings: keptWarn,
+    storms,
+    signatures: signatures.slice(0, 20),
+  };
 }
 
 async function main() {
@@ -75,8 +87,14 @@ async function main() {
     ({ page, persistentTab } = await openPage(browser, url, { reuseContext: true }));
     // openPage's console listener has been collecting since navigation — cold-render errors count.
     const collected = [];
-    page.on("console", (m) => { if (m.type() === "error") collected.push(m.text().slice(0, 300)); });
-    page.on("pageerror", (e) => collected.push(String(e).slice(0, 300)));
+    // Warnings count too: the SDK reports structural misuse ("children replace the
+    // default content", unresolved identities) at warn level, and those are defects
+    // the judge must name -- not console noise to be filtered out.
+    page.on("console", (m) => {
+      const t = m.type();
+      if (t === "error" || t === "warning") collected.push({ sev: t, text: m.text().slice(0, 300) });
+    });
+    page.on("pageerror", (e) => collected.push({ sev: "error", text: String(e).slice(0, 300) }));
     const before = collected.length;
     await page.waitForTimeout(sampleMs);
     // Storm math uses the steady-state sample window; the cold-render batch feeds `total`.
@@ -93,7 +111,7 @@ async function main() {
     type: "console-health", src: "console-health", stage: "build-structure", ok: !result.storm,
     summary: result.storm
       ? `console STORM: ${result.storms.map((s) => `${s.count}× ${s.sig.slice(0, 60)}`).join(" · ") || `${result.totalErrors} errors total`}`
-      : `console healthy (${result.totalErrors} error(s) in ${sampleMs}ms sample)`,
+      : `console healthy (${result.totalErrors} error(s), ${result.totalWarnings} warning(s) in ${sampleMs}ms sample)`,
     artifacts: { report: "console-health.json" },
   });
 
@@ -103,12 +121,17 @@ async function main() {
       console.error(`  ${String(s.count).padStart(5)}×  ${s.sig}`);
       console.error(`         e.g. ${s.sample.slice(0, 200)}`);
     }
-    console.error(`  → a repeating SDK error this early is a structure defect (a missing required prop/slot),`);
-    console.error(`    not judge material: dispatch the Builder (fix, structure scope) on the named signature(s),`);
-    console.error(`    then re-run this gate. Full report: ${path.relative(process.cwd(), outP)}`);
+    console.error(`  → a repeating SDK error OR warning this early is a structure defect (a missing required`);
+    console.error(`    prop/slot, or markup placed where the primitive won't render it): dispatch the Builder`);
+    console.error(`    (fix, structure scope) on the named signature(s), then re-run. Report: ${path.relative(process.cwd(), outP)}`);
     process.exit(2);
   }
-  console.log(`✓ console healthy on ${url} — ${result.totalErrors} error(s) in the ${sampleMs}ms sample (report: ${path.relative(process.cwd(), outP)})`);
+  console.log(`✓ console healthy on ${url} — ${result.totalErrors} error(s), ${result.totalWarnings} warning(s) in the ${sampleMs}ms sample (report: ${path.relative(process.cwd(), outP)})`);
+  if (result.totalWarnings) {
+    for (const s2 of result.signatures.filter((x) => x.sev === "warning").slice(0, 8)) {
+      console.log(`    ${String(s2.count).padStart(4)}× warn  ${s2.sig}`);
+    }
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main().catch((e) => { console.error("✗ " + e.message); process.exit(3); });

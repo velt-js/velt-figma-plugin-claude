@@ -598,6 +598,22 @@ export async function calibratePrimitives() {
       (raw.gotchas || []).every((g) => g.id && g.symptom));
   }
 
+  // ---- a baked cssFix must be CSS, not a pattern ----
+  // cssFixBlock output is pasted into the stylesheet verbatim, so a placeholder like
+  // "<owner> div.x { … }" emits an invalid rule and the app 500s on the next compile.
+  {
+    const KN = await import(path.join(ROOT, "scripts", "knowledge.mjs"));
+    const block = await KN.cssFixBlock(null);
+    ok("the baked css-fix block contains no placeholder syntax",
+      !/<[a-z-]+>/i.test(block), block.match(/<[a-z-]+>/i)?.[0] || "");
+    const raw = JSON.parse(await fs.readFile(path.join(ROOT, "knowledge", "sdk-gotchas.json"), "utf8"));
+    const patterns = (raw.gotchas || []).filter((g) => /<[a-z-]+>/i.test(String(g.cssFix || "")));
+    ok("pattern-shaped fixes are not tiered as css-fix",
+      patterns.every((g) => g.kind !== "css-fix"), patterns.map((g) => `${g.id}:${g.kind}`).join(", "));
+    ok("pattern-shaped fixes are still readable by the builder",
+      (await KN.gotchas()).length >= (raw.gotchas || []).filter((g) => g.confidence === "confirmed").length);
+  }
+
   // ---- a scrollport's overflow edge is not padding ----
   {
     const srcR = await fs.readFile(path.join(ROOT, "scripts", "run-compiled-assertions.mjs"), "utf8");

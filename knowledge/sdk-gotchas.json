@@ -686,7 +686,7 @@
       "id": "sizing-a-primitive-does-not-size-the-sdk-chain-inside-it",
       "veltVersion": "6.0.0-beta.15",
       "component": "primitives",
-      "kind": "css-fix",
+      "kind": "pattern",
       "selectorHints": [
         "velt-comment-dialog-thread-card-avatar div.velt-user-avatar",
         "velt-comment-dialog-thread-card-avatar div.velt-user-avatar--initial-container"
@@ -697,13 +697,14 @@
       "confidence": "confirmed",
       "seenOn": [
         "harvey run-5 (avatar rendered as a cropped 32px square through a 20px round window; every assertion on the primitive itself passed)"
-      ]
+      ],
+      "cssFixIsPattern": true
     },
     {
       "id": "data-velt-hidden-sits-inside-your-wrapper-so-the-wrapper-stays-in-flow",
       "veltVersion": "6.0.0-beta.15",
       "component": "primitives",
-      "kind": "css-fix",
+      "kind": "pattern",
       "selectorHints": [
         ".vc-thread-list:has(> velt-comment-sidebar-list-v2[data-velt-hidden=\"true\"])",
         ".vc-sidebar-empty-state:has(> velt-comment-sidebar-empty-placeholder-v2[data-velt-hidden=\"true\"])"
@@ -714,7 +715,8 @@
       "confidence": "confirmed",
       "seenOn": [
         "harvey run-5 (empty-state wrapper 321x0 between composer and list; composer->list gap measured 48 against a design value of 24)"
-      ]
+      ],
+      "cssFixIsPattern": true
     }
   ]
 }

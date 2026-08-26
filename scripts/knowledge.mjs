@@ -41,7 +41,16 @@ export async function gotchas({ cssOnly = false, version = null, includeTentativ
     (!cssOnly || (g.kind === "css-fix" && g.cssFix)));
 }
 export async function cssFixBlock(version = null) {
-  const g = await gotchas({ cssOnly: true, version });
+  const g0 = await gotchas({ cssOnly: true, version });
+  // A cssFix is BAKED INTO THE STYLESHEET VERBATIM. An entry written as a PATTERN
+  // ("<owner> div.x { … }") is not CSS -- pasting it emits an invalid rule and the app
+  // 500s on the next compile (seen live: the whole style stage lost to a placeholder).
+  // Patterns belong in the prose `fix`, never in the baked block.
+  const g = g0.filter((x) => {
+    const bad = x.cssFixIsPattern || /<[a-z-]+>/i.test(String(x.cssFix || ""));
+    if (bad) console.error(`⚠ knowledge: skipping '${x.id}' — its cssFix is a PATTERN, not literal CSS (would emit an invalid rule)`);
+    return !bad;
+  });
   if (!g.length) return "";
   return "\n/* ---- KNOWN SDK GOTCHA FIXES (plugin knowledge base — apply before any patching) ---- */\n" +
     g.map((x) => `/* knowledge:${x.id}  (seen: ${(x.seenOn || []).join(", ")}) */\n${x.cssFix}`).join("\n\n") + "\n";

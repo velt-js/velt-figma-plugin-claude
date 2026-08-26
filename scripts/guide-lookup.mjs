@@ -250,8 +250,22 @@ async function sectionCmd(rel, terms, { list, maxLines }) {
 async function filesCmd(opts) {
   const role = opts.role;
   if (!["plan", "build", "judge"].includes(role || "")) { console.error("✗ --role plan|build|judge is required"); process.exit(1); }
+  // Accept the canonical Approach-Gate strings as well as the short keys. The gate records
+  // `strictly primitives` / `strictly wireframe` / `wireframes + primitives` / `freeform`, and
+  // plan-primitives.mode carries that verbatim — passing it straight through used to exit 1 with
+  // "unknown approach 'strictly primitives'", so every agent told to route its guide reads through
+  // this script hit a hard stop on the one input the orchestrator actually hands it.
+  const normalizeApproach = (a) => {
+    const s = a.toLowerCase().replace(/\s+/g, " ").trim();
+    if (/^strictly wireframes?$/.test(s)) return ["wireframes"];
+    if (/^strictly primitives?$/.test(s)) return ["primitives"];
+    if (/^wireframes? ?\+ ?primitives?$/.test(s)) return ["wireframes", "primitives"];
+    if (s === "freeform") return ["css"];
+    if (s === "mixed") return ["wireframes", "css"];
+    return [s];
+  };
   const approaches = (opts.approach || "").split(",").map((s) => s.trim()).filter(Boolean)
-    .flatMap((a) => (a === "mixed" ? ["wireframes", "css"] : [a]));
+    .flatMap(normalizeApproach);
   for (const a of approaches) if (!APPROACH_FILES[a]) { console.error(`✗ unknown approach '${a}' (css|wireframes|primitives|headless|mixed)`); process.exit(1); }
   if (role === "build" && !approaches.length) { console.error("✗ role=build requires --approach"); process.exit(1); }
   if (opts.surface && !SURFACE_BEHAVIORS[opts.surface]) console.error(`⚠ unknown surface '${opts.surface}' — no behaviors file routed (known: ${Object.keys(SURFACE_BEHAVIORS).join(", ")})`);

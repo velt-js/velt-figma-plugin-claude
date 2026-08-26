@@ -12,139 +12,139 @@
       "forwardsArbitraryProps": false
     },
     "velt-activity-log": {
-      "component": "VeltActivityLogWireframe",
-      "emits": "velt-activity-log-wireframe",
+      "component": "VeltActivityLog",
+      "emits": "velt-activity-log",
       "forwardsArbitraryProps": true
     },
     "velt-activity-log-empty": {
-      "component": "VeltActivityLogEmptyWireframe",
-      "emits": "velt-activity-log-empty-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogEmpty",
+      "emits": "velt-activity-log-empty",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-header": {
-      "component": "VeltActivityLogHeaderWireframe",
-      "emits": "velt-activity-log-header-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogHeader",
+      "emits": "velt-activity-log-header",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-header-close-button": {
-      "component": "VeltActivityLogHeaderCloseButtonWireframe",
-      "emits": "velt-activity-log-header-close-button-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogHeaderCloseButton",
+      "emits": "velt-activity-log-header-close-button",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-header-filter": {
-      "component": "VeltActivityLogHeaderFilterWireframe",
-      "emits": "velt-activity-log-header-filter-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogHeaderFilter",
+      "emits": "velt-activity-log-header-filter",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-header-filter-content": {
-      "component": "VeltActivityLogHeaderFilterContentWireframe",
-      "emits": "velt-activity-log-header-filter-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogHeaderFilterContent",
+      "emits": "velt-activity-log-header-filter-content",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-header-filter-content-item": {
-      "component": "VeltActivityLogHeaderFilterContentItemWireframe",
-      "emits": "velt-activity-log-header-filter-content-item-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogHeaderFilterContentItem",
+      "emits": "velt-activity-log-header-filter-content-item",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-header-filter-content-item-icon": {
-      "component": "VeltActivityLogHeaderFilterContentItemIconWireframe",
-      "emits": "velt-activity-log-header-filter-content-item-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogHeaderFilterContentItemIcon",
+      "emits": "velt-activity-log-header-filter-content-item-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-header-filter-content-item-label": {
-      "component": "VeltActivityLogHeaderFilterContentItemLabelWireframe",
-      "emits": "velt-activity-log-header-filter-content-item-label-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogHeaderFilterContentItemLabel",
+      "emits": "velt-activity-log-header-filter-content-item-label",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-header-filter-trigger": {
-      "component": "VeltActivityLogHeaderFilterTriggerWireframe",
-      "emits": "velt-activity-log-header-filter-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogHeaderFilterTrigger",
+      "emits": "velt-activity-log-header-filter-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-header-filter-trigger-icon": {
-      "component": "VeltActivityLogHeaderFilterTriggerIconWireframe",
-      "emits": "velt-activity-log-header-filter-trigger-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogHeaderFilterTriggerIcon",
+      "emits": "velt-activity-log-header-filter-trigger-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-header-filter-trigger-label": {
-      "component": "VeltActivityLogHeaderFilterTriggerLabelWireframe",
-      "emits": "velt-activity-log-header-filter-trigger-label-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogHeaderFilterTriggerLabel",
+      "emits": "velt-activity-log-header-filter-trigger-label",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-header-title": {
-      "component": "VeltActivityLogHeaderTitleWireframe",
-      "emits": "velt-activity-log-header-title-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogHeaderTitle",
+      "emits": "velt-activity-log-header-title",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-list": {
-      "component": "VeltActivityLogListWireframe",
-      "emits": "velt-activity-log-list-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogList",
+      "emits": "velt-activity-log-list",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-list-date-group": {
-      "component": "VeltActivityLogListDateGroupWireframe",
-      "emits": "velt-activity-log-list-date-group-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogListDateGroup",
+      "emits": "velt-activity-log-list-date-group",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-list-date-group-label": {
-      "component": "VeltActivityLogListDateGroupLabelWireframe",
-      "emits": "velt-activity-log-list-date-group-label-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogListDateGroupLabel",
+      "emits": "velt-activity-log-list-date-group-label",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-list-item": {
-      "component": "VeltActivityLogListItemWireframe",
-      "emits": "velt-activity-log-list-item-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogListItem",
+      "emits": "velt-activity-log-list-item",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-list-item-avatar": {
-      "component": "VeltActivityLogListItemAvatarWireframe",
-      "emits": "velt-activity-log-list-item-avatar-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogListItemAvatar",
+      "emits": "velt-activity-log-list-item-avatar",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-list-item-content": {
-      "component": "VeltActivityLogListItemContentWireframe",
-      "emits": "velt-activity-log-list-item-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogListItemContent",
+      "emits": "velt-activity-log-list-item-content",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-list-item-content-action": {
-      "component": "VeltActivityLogListItemContentActionWireframe",
-      "emits": "velt-activity-log-list-item-content-action-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogListItemContentAction",
+      "emits": "velt-activity-log-list-item-content-action",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-list-item-content-detail": {
-      "component": "VeltActivityLogListItemContentDetailWireframe",
-      "emits": "velt-activity-log-list-item-content-detail-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogListItemContentDetail",
+      "emits": "velt-activity-log-list-item-content-detail",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-list-item-content-target": {
-      "component": "VeltActivityLogListItemContentTargetWireframe",
-      "emits": "velt-activity-log-list-item-content-target-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogListItemContentTarget",
+      "emits": "velt-activity-log-list-item-content-target",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-list-item-content-user": {
-      "component": "VeltActivityLogListItemContentUserWireframe",
-      "emits": "velt-activity-log-list-item-content-user-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogListItemContentUser",
+      "emits": "velt-activity-log-list-item-content-user",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-list-item-icon": {
-      "component": "VeltActivityLogListItemIconWireframe",
-      "emits": "velt-activity-log-list-item-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogListItemIcon",
+      "emits": "velt-activity-log-list-item-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-list-item-time": {
-      "component": "VeltActivityLogListItemTimeWireframe",
-      "emits": "velt-activity-log-list-item-time-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogListItemTime",
+      "emits": "velt-activity-log-list-item-time",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-list-show-more": {
-      "component": "VeltActivityLogListShowMoreWireframe",
-      "emits": "velt-activity-log-list-show-more-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogListShowMore",
+      "emits": "velt-activity-log-list-show-more",
+      "forwardsArbitraryProps": false
     },
     "velt-activity-log-loading": {
-      "component": "VeltActivityLogLoadingWireframe",
-      "emits": "velt-activity-log-loading-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltActivityLogLoading",
+      "emits": "velt-activity-log-loading",
+      "forwardsArbitraryProps": false
     },
     "velt-autocomplete": {
       "component": "VeltAutocomplete",
@@ -157,59 +157,59 @@
       "forwardsArbitraryProps": false
     },
     "velt-autocomplete-chip-tooltip": {
-      "component": "VeltAutocompleteChipTooltipWireframe",
-      "emits": "velt-autocomplete-chip-tooltip-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltAutocompleteChipTooltip",
+      "emits": "velt-autocomplete-chip-tooltip",
+      "forwardsArbitraryProps": false
     },
     "velt-autocomplete-chip-tooltip-description": {
-      "component": "VeltAutocompleteChipTooltipDescriptionWireframe",
-      "emits": "velt-autocomplete-chip-tooltip-description-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltAutocompleteChipTooltipDescription",
+      "emits": "velt-autocomplete-chip-tooltip-description",
+      "forwardsArbitraryProps": false
     },
     "velt-autocomplete-chip-tooltip-icon": {
-      "component": "VeltAutocompleteChipTooltipIconWireframe",
-      "emits": "velt-autocomplete-chip-tooltip-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltAutocompleteChipTooltipIcon",
+      "emits": "velt-autocomplete-chip-tooltip-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-autocomplete-chip-tooltip-name": {
-      "component": "VeltAutocompleteChipTooltipNameWireframe",
-      "emits": "velt-autocomplete-chip-tooltip-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltAutocompleteChipTooltipName",
+      "emits": "velt-autocomplete-chip-tooltip-name",
+      "forwardsArbitraryProps": false
     },
     "velt-autocomplete-empty": {
-      "component": "VeltAutocompleteEmptyWireframe",
-      "emits": "velt-autocomplete-empty-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltAutocompleteEmpty",
+      "emits": "velt-autocomplete-empty",
+      "forwardsArbitraryProps": false
     },
     "velt-autocomplete-group-option": {
-      "component": "VeltAutocompleteGroupOptionWireframe",
-      "emits": "velt-autocomplete-group-option-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltAutocompleteGroupOption",
+      "emits": "velt-autocomplete-group-option",
+      "forwardsArbitraryProps": false
     },
     "velt-autocomplete-option": {
-      "component": "VeltAutocompleteOptionWireframe",
-      "emits": "velt-autocomplete-option-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltAutocompleteOption",
+      "emits": "velt-autocomplete-option",
+      "forwardsArbitraryProps": false
     },
     "velt-autocomplete-option-description": {
-      "component": "VeltAutocompleteOptionDescriptionWireframe",
-      "emits": "velt-autocomplete-option-description-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltAutocompleteOptionDescription",
+      "emits": "velt-autocomplete-option-description",
+      "forwardsArbitraryProps": false
     },
     "velt-autocomplete-option-error-icon": {
-      "component": "VeltAutocompleteOptionErrorIconWireframe",
-      "emits": "velt-autocomplete-option-error-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltAutocompleteOptionErrorIcon",
+      "emits": "velt-autocomplete-option-error-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-autocomplete-option-icon": {
-      "component": "VeltAutocompleteOptionIconWireframe",
-      "emits": "velt-autocomplete-option-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltAutocompleteOptionIcon",
+      "emits": "velt-autocomplete-option-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-autocomplete-option-name": {
-      "component": "VeltAutocompleteOptionNameWireframe",
-      "emits": "velt-autocomplete-option-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltAutocompleteOptionName",
+      "emits": "velt-autocomplete-option-name",
+      "forwardsArbitraryProps": false
     },
     "velt-autocomplete-panel": {
       "component": "VeltAutocompletePanel",
@@ -243,38 +243,38 @@
     },
     "velt-comment-bubble-avatar": {
       "component": "VeltCommentBubbleAvatar",
-      "emits": "velt-comment-bubble-avatar-wireframe",
+      "emits": "velt-comment-bubble-avatar",
       "forwardsArbitraryProps": false
     },
     "velt-comment-bubble-comments-count": {
       "component": "VeltCommentBubbleCommentsCount",
-      "emits": "velt-comment-bubble-comments-count-wireframe",
+      "emits": "velt-comment-bubble-comments-count",
       "forwardsArbitraryProps": false
     },
     "velt-comment-bubble-unread-icon": {
       "component": "VeltCommentBubbleUnreadIcon",
-      "emits": "velt-comment-bubble-unread-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-bubble-unread-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-composer": {
-      "component": "VeltCommentComposerWireframe",
-      "emits": "velt-comment-composer-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentComposer",
+      "emits": "velt-comment-composer",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog": {
-      "component": "VeltCommentDialogWireframe",
-      "emits": "velt-comment-dialog-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialog",
+      "emits": "velt-comment-dialog",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-all-comment": {
       "component": "VeltCommentDialogAllComment",
-      "emits": "velt-comment-dialog-all-comment-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-all-comment",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-approve": {
       "component": "VeltCommentDialogApprove",
-      "emits": "velt-comment-dialog-approve-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-approve",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-assign-dropdown": {
       "component": "VeltCommentDialogAssignDropdown",
@@ -283,33 +283,33 @@
     },
     "velt-comment-dialog-assign-menu": {
       "component": "VeltCommentDialogAssignMenu",
-      "emits": "velt-comment-dialog-assign-menu-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-assign-menu",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-assignee-banner": {
       "component": "VeltCommentDialogAssigneeBanner",
-      "emits": "velt-comment-dialog-assignee-banner-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-assignee-banner",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-assignee-banner-resolve-button": {
       "component": "VeltCommentDialogAssigneeBannerResolveButton",
-      "emits": "velt-comment-dialog-assignee-banner-resolve-button-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-assignee-banner-resolve-button",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-assignee-banner-unresolve-button": {
       "component": "VeltCommentDialogAssigneeBannerUnresolveButton",
-      "emits": "velt-comment-dialog-assignee-banner-unresolve-button-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-assignee-banner-unresolve-button",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-assignee-banner-user-avatar": {
       "component": "VeltCommentDialogAssigneeBannerUserAvatar",
-      "emits": "velt-comment-dialog-assignee-banner-user-avatar-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-assignee-banner-user-avatar",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-assignee-banner-user-name": {
       "component": "VeltCommentDialogAssigneeBannerUserName",
-      "emits": "velt-comment-dialog-assignee-banner-user-name-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-assignee-banner-user-name",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-attachment-button": {
       "component": "VeltCommentDialogAttachmentButton",
@@ -318,173 +318,173 @@
     },
     "velt-comment-dialog-body": {
       "component": "VeltCommentDialogBody",
-      "emits": "velt-comment-dialog-body-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-body",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-close-button": {
       "component": "VeltCommentDialogCloseButton",
-      "emits": "velt-comment-dialog-close-button-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-close-button",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-comment-category": {
       "component": "VeltCommentDialogCommentCategory",
-      "emits": "velt-comment-dialog-comment-category-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-comment-category",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-comment-index": {
       "component": "VeltCommentDialogCommentIndex",
-      "emits": "velt-comment-dialog-comment-index-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-comment-index",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-comment-number": {
       "component": "VeltCommentDialogCommentNumber",
-      "emits": "velt-comment-dialog-comment-number-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-comment-number",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-comment-suggestion-status": {
       "component": "VeltCommentDialogCommentSuggestionStatus",
-      "emits": "velt-comment-dialog-comment-suggestion-status-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-comment-suggestion-status",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer": {
       "component": "VeltCommentDialogComposer",
-      "emits": "velt-comment-dialog-composer-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-action-button": {
       "component": "VeltCommentDialogComposerActionButton",
-      "emits": "velt-comment-dialog-composer-action-button-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-action-button",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-assign-user": {
       "component": "VeltCommentDialogComposerAssignUser",
-      "emits": "velt-comment-dialog-composer-assign-user-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-assign-user",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments": {
       "component": "VeltCommentDialogComposerAttachments",
-      "emits": "velt-comment-dialog-composer-attachments-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-image": {
       "component": "VeltCommentDialogComposerAttachmentsImage",
-      "emits": "velt-comment-dialog-composer-attachments-image-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-image",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-image-delete": {
       "component": "VeltCommentDialogComposerAttachmentsImageDelete",
-      "emits": "velt-comment-dialog-composer-attachments-image-delete-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-image-delete",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-image-download": {
       "component": "VeltCommentDialogComposerAttachmentsImageDownload",
-      "emits": "velt-comment-dialog-composer-attachments-image-download-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-image-download",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-image-loading": {
       "component": "VeltCommentDialogComposerAttachmentsImageLoading",
-      "emits": "velt-comment-dialog-composer-attachments-image-loading-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-image-loading",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-image-preview": {
       "component": "VeltCommentDialogComposerAttachmentsImagePreview",
-      "emits": "velt-comment-dialog-composer-attachments-image-preview-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-image-preview",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-invalid": {
       "component": "VeltCommentDialogComposerAttachmentsInvalid",
-      "emits": "velt-comment-dialog-composer-attachments-invalid-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-invalid",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-invalid-item": {
       "component": "VeltCommentDialogComposerAttachmentsInvalidItem",
-      "emits": "velt-comment-dialog-composer-attachments-invalid-item-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-invalid-item",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-invalid-item-delete": {
       "component": "VeltCommentDialogComposerAttachmentsInvalidItemDelete",
-      "emits": "velt-comment-dialog-composer-attachments-invalid-item-delete-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-invalid-item-delete",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-invalid-item-message": {
       "component": "VeltCommentDialogComposerAttachmentsInvalidItemMessage",
-      "emits": "velt-comment-dialog-composer-attachments-invalid-item-message-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-invalid-item-message",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-invalid-item-preview": {
       "component": "VeltCommentDialogComposerAttachmentsInvalidItemPreview",
-      "emits": "velt-comment-dialog-composer-attachments-invalid-item-preview-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-invalid-item-preview",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-other": {
       "component": "VeltCommentDialogComposerAttachmentsOther",
-      "emits": "velt-comment-dialog-composer-attachments-other-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-other",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-other-delete": {
       "component": "VeltCommentDialogComposerAttachmentsOtherDelete",
-      "emits": "velt-comment-dialog-composer-attachments-other-delete-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-other-delete",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-other-download": {
       "component": "VeltCommentDialogComposerAttachmentsOtherDownload",
-      "emits": "velt-comment-dialog-composer-attachments-other-download-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-other-download",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-other-icon": {
       "component": "VeltCommentDialogComposerAttachmentsOtherIcon",
-      "emits": "velt-comment-dialog-composer-attachments-other-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-other-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-other-loading": {
       "component": "VeltCommentDialogComposerAttachmentsOtherLoading",
-      "emits": "velt-comment-dialog-composer-attachments-other-loading-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-other-loading",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-other-name": {
       "component": "VeltCommentDialogComposerAttachmentsOtherName",
-      "emits": "velt-comment-dialog-composer-attachments-other-name-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-other-name",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-other-size": {
       "component": "VeltCommentDialogComposerAttachmentsOtherSize",
-      "emits": "velt-comment-dialog-composer-attachments-other-size-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-other-size",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-attachments-selected": {
       "component": "VeltCommentDialogComposerAttachmentsSelected",
-      "emits": "velt-comment-dialog-composer-attachments-selected-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-attachments-selected",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-avatar": {
       "component": "VeltCommentDialogComposerAvatar",
-      "emits": "velt-comment-dialog-composer-avatar-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-avatar",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-format-toolbar": {
       "component": "VeltCommentDialogComposerFormatToolbar",
-      "emits": "velt-comment-dialog-composer-format-toolbar-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-format-toolbar",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-format-toolbar-button": {
       "component": "VeltCommentDialogComposerFormatToolbarButton",
-      "emits": "velt-comment-dialog-composer-format-toolbar-button-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-format-toolbar-button",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-input": {
       "component": "VeltCommentDialogComposerInput",
-      "emits": "velt-comment-dialog-composer-input-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-input",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-private-badge": {
       "component": "VeltCommentDialogComposerPrivateBadge",
-      "emits": "velt-comment-dialog-composer-private-badge-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-private-badge",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-composer-recordings": {
       "component": "VeltCommentDialogComposerRecordings",
-      "emits": "velt-comment-dialog-composer-recordings-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-composer-recordings",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-context-wrapper": {
       "component": "VeltCommentDialogContextWrapper",
@@ -493,68 +493,68 @@
     },
     "velt-comment-dialog-copy-link": {
       "component": "VeltCommentDialogCopyLink",
-      "emits": "velt-comment-dialog-copy-link-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-copy-link",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-custom-annotation-dropdown": {
       "component": "VeltCommentDialogCustomAnnotationDropdown",
-      "emits": "velt-comment-dialog-custom-annotation-dropdown-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-custom-annotation-dropdown",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-custom-annotation-dropdown-content": {
       "component": "VeltCommentDialogCustomAnnotationDropdownContent",
-      "emits": "velt-comment-dialog-custom-annotation-dropdown-content-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-custom-annotation-dropdown-content",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-custom-annotation-dropdown-content-item": {
       "component": "VeltCommentDialogCustomAnnotationDropdownContentItem",
-      "emits": "velt-comment-dialog-custom-annotation-dropdown-content-item-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-custom-annotation-dropdown-content-item",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-custom-annotation-dropdown-content-item-icon": {
       "component": "VeltCommentDialogCustomAnnotationDropdownContentItemIcon",
-      "emits": "velt-comment-dialog-custom-annotation-dropdown-content-item-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-custom-annotation-dropdown-content-item-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-custom-annotation-dropdown-content-item-label": {
       "component": "VeltCommentDialogCustomAnnotationDropdownContentItemLabel",
-      "emits": "velt-comment-dialog-custom-annotation-dropdown-content-item-label-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-custom-annotation-dropdown-content-item-label",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-custom-annotation-dropdown-trigger": {
       "component": "VeltCommentDialogCustomAnnotationDropdownTrigger",
-      "emits": "velt-comment-dialog-custom-annotation-dropdown-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-custom-annotation-dropdown-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-custom-annotation-dropdown-trigger-arrow": {
       "component": "VeltCommentDialogCustomAnnotationDropdownTriggerArrow",
-      "emits": "velt-comment-dialog-custom-annotation-dropdown-trigger-arrow-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-custom-annotation-dropdown-trigger-arrow",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-custom-annotation-dropdown-trigger-list": {
       "component": "VeltCommentDialogCustomAnnotationDropdownTriggerList",
-      "emits": "velt-comment-dialog-custom-annotation-dropdown-trigger-list-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-custom-annotation-dropdown-trigger-list",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-custom-annotation-dropdown-trigger-list-item": {
       "component": "VeltCommentDialogCustomAnnotationDropdownTriggerListItem",
-      "emits": "velt-comment-dialog-custom-annotation-dropdown-trigger-list-item-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-custom-annotation-dropdown-trigger-list-item",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-custom-annotation-dropdown-trigger-placeholder": {
       "component": "VeltCommentDialogCustomAnnotationDropdownTriggerPlaceholder",
-      "emits": "velt-comment-dialog-custom-annotation-dropdown-trigger-placeholder-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-custom-annotation-dropdown-trigger-placeholder",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-custom-annotation-dropdown-trigger-remaining-count": {
       "component": "VeltCommentDialogCustomAnnotationDropdownTriggerRemainingCount",
-      "emits": "velt-comment-dialog-custom-annotation-dropdown-trigger-remaining-count-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-custom-annotation-dropdown-trigger-remaining-count",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-delete-button": {
       "component": "VeltCommentDialogDeleteButton",
-      "emits": "velt-comment-dialog-delete-button-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-delete-button",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-device-type-icons": {
       "component": "VeltCommentDialogDeviceTypeIcons",
@@ -563,33 +563,33 @@
     },
     "velt-comment-dialog-ghost-banner": {
       "component": "VeltCommentDialogGhostBanner",
-      "emits": "velt-comment-dialog-ghost-banner-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-ghost-banner",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-header": {
       "component": "VeltCommentDialogHeader",
-      "emits": "velt-comment-dialog-header-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-header",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-hide-reply": {
       "component": "VeltCommentDialogHideReply",
-      "emits": "velt-comment-dialog-hide-reply-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-hide-reply",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-legacy-suggestion-action": {
       "component": "VeltCommentDialogLegacySuggestionAction",
-      "emits": "velt-comment-dialog-legacy-suggestion-action-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-legacy-suggestion-action",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-legacy-suggestion-action-accept": {
       "component": "VeltCommentDialogLegacySuggestionActionAccept",
-      "emits": "velt-comment-dialog-legacy-suggestion-action-accept-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-legacy-suggestion-action-accept",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-legacy-suggestion-action-reject": {
       "component": "VeltCommentDialogLegacySuggestionActionReject",
-      "emits": "velt-comment-dialog-legacy-suggestion-action-reject-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-legacy-suggestion-action-reject",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-metadata": {
       "component": "VeltCommentDialogMetadata",
@@ -598,28 +598,28 @@
     },
     "velt-comment-dialog-more-reply": {
       "component": "VeltCommentDialogMoreReply",
-      "emits": "velt-comment-dialog-more-reply-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-more-reply",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-more-reply-count": {
       "component": "VeltCommentDialogMoreReplyCount",
-      "emits": "velt-comment-dialog-more-reply-count-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-more-reply-count",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-more-reply-text": {
       "component": "VeltCommentDialogMoreReplyText",
-      "emits": "velt-comment-dialog-more-reply-text-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-more-reply-text",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-navigation-button": {
       "component": "VeltCommentDialogNavigationButton",
-      "emits": "velt-comment-dialog-navigation-button-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-navigation-button",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options": {
       "component": "VeltCommentDialogOptions",
-      "emits": "velt-comment-dialog-options-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-options",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown": {
       "component": "VeltCommentDialogOptionsDropdown",
@@ -627,54 +627,54 @@
       "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-content": {
-      "component": "VeltCommentDialogOptionsDropdownContentWireframe",
-      "emits": "velt-comment-dialog-options-dropdown-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogOptionsDropdownContent",
+      "emits": "velt-comment-dialog-options-dropdown-content",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-content-assign": {
-      "component": "VeltCommentDialogOptionsDropdownContentAssignWireframe",
-      "emits": "velt-comment-dialog-options-dropdown-content-assign-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogOptionsDropdownContentAssign",
+      "emits": "velt-comment-dialog-options-dropdown-content-assign",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-content-delete": {
-      "component": "VeltCommentDialogOptionsDropdownContentDeleteWireframe",
-      "emits": "velt-comment-dialog-options-dropdown-content-delete-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogOptionsDropdownContentDelete",
+      "emits": "velt-comment-dialog-options-dropdown-content-delete",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-content-delete-comment": {
-      "component": "VeltCommentDialogOptionsDropdownContentDeleteCommentWireframe",
-      "emits": "velt-comment-dialog-options-dropdown-content-delete-comment-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogOptionsDropdownContentDeleteComment",
+      "emits": "velt-comment-dialog-options-dropdown-content-delete-comment",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-content-delete-thread": {
-      "component": "VeltCommentDialogOptionsDropdownContentDeleteThreadWireframe",
-      "emits": "velt-comment-dialog-options-dropdown-content-delete-thread-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogOptionsDropdownContentDeleteThread",
+      "emits": "velt-comment-dialog-options-dropdown-content-delete-thread",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-content-edit": {
-      "component": "VeltCommentDialogOptionsDropdownContentEditWireframe",
-      "emits": "velt-comment-dialog-options-dropdown-content-edit-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogOptionsDropdownContentEdit",
+      "emits": "velt-comment-dialog-options-dropdown-content-edit",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-content-make-private": {
-      "component": "VeltCommentDialogOptionsDropdownContentMakePrivateWireframe",
-      "emits": "velt-comment-dialog-options-dropdown-content-make-private-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogOptionsDropdownContentMakePrivate",
+      "emits": "velt-comment-dialog-options-dropdown-content-make-private",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-content-make-private-disable": {
-      "component": "VeltCommentDialogOptionsDropdownContentMakePrivateDisableWireframe",
-      "emits": "velt-comment-dialog-options-dropdown-content-make-private-disable-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogOptionsDropdownContentMakePrivateDisable",
+      "emits": "velt-comment-dialog-options-dropdown-content-make-private-disable",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-content-make-private-enable": {
-      "component": "VeltCommentDialogOptionsDropdownContentMakePrivateEnableWireframe",
-      "emits": "velt-comment-dialog-options-dropdown-content-make-private-enable-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogOptionsDropdownContentMakePrivateEnable",
+      "emits": "velt-comment-dialog-options-dropdown-content-make-private-enable",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-content-mark-as-read": {
-      "component": "VeltCommentDialogOptionsDropdownContentMarkAsReadWireframe",
-      "emits": "velt-comment-dialog-options-dropdown-content-mark-as-read-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogOptionsDropdownContentMarkAsRead",
+      "emits": "velt-comment-dialog-options-dropdown-content-mark-as-read",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-content-mark-as-read-mark-read": {
       "component": "VeltCommentDialogOptionsDropdownContentMarkAsReadMarkRead",
@@ -687,9 +687,9 @@
       "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-content-notification": {
-      "component": "VeltCommentDialogOptionsDropdownContentNotificationWireframe",
-      "emits": "velt-comment-dialog-options-dropdown-content-notification-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogOptionsDropdownContentNotification",
+      "emits": "velt-comment-dialog-options-dropdown-content-notification",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-content-notification-subscribe": {
       "component": "VeltCommentDialogOptionsDropdownContentNotificationSubscribe",
@@ -702,14 +702,14 @@
       "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-options-dropdown-trigger": {
-      "component": "VeltCommentDialogOptionsDropdownTriggerWireframe",
-      "emits": "velt-comment-dialog-options-dropdown-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogOptionsDropdownTrigger",
+      "emits": "velt-comment-dialog-options-dropdown-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-priority": {
       "component": "VeltCommentDialogPriority",
-      "emits": "velt-comment-dialog-priority-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-priority",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-priority-dropdown": {
       "component": "VeltCommentDialogPriorityDropdown",
@@ -717,54 +717,54 @@
       "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-priority-dropdown-content": {
-      "component": "VeltCommentDialogPriorityDropdownContentWireframe",
-      "emits": "velt-comment-dialog-priority-dropdown-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogPriorityDropdownContent",
+      "emits": "velt-comment-dialog-priority-dropdown-content",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-priority-dropdown-content-item": {
-      "component": "VeltCommentDialogPriorityDropdownContentItemWireframe",
-      "emits": "velt-comment-dialog-priority-dropdown-content-item-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogPriorityDropdownContentItem",
+      "emits": "velt-comment-dialog-priority-dropdown-content-item",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-priority-dropdown-content-item-icon": {
-      "component": "VeltCommentDialogPriorityDropdownContentItemIconWireframe",
-      "emits": "velt-comment-dialog-priority-dropdown-content-item-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogPriorityDropdownContentItemIcon",
+      "emits": "velt-comment-dialog-priority-dropdown-content-item-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-priority-dropdown-content-item-name": {
-      "component": "VeltCommentDialogPriorityDropdownContentItemNameWireframe",
-      "emits": "velt-comment-dialog-priority-dropdown-content-item-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogPriorityDropdownContentItemName",
+      "emits": "velt-comment-dialog-priority-dropdown-content-item-name",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-priority-dropdown-content-item-tick": {
-      "component": "VeltCommentDialogPriorityDropdownContentItemTickWireframe",
-      "emits": "velt-comment-dialog-priority-dropdown-content-item-tick-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogPriorityDropdownContentItemTick",
+      "emits": "velt-comment-dialog-priority-dropdown-content-item-tick",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-priority-dropdown-trigger": {
-      "component": "VeltCommentDialogPriorityDropdownTriggerWireframe",
-      "emits": "velt-comment-dialog-priority-dropdown-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogPriorityDropdownTrigger",
+      "emits": "velt-comment-dialog-priority-dropdown-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-priority-dropdown-trigger-arrow": {
-      "component": "VeltCommentDialogPriorityDropdownTriggerArrowWireframe",
-      "emits": "velt-comment-dialog-priority-dropdown-trigger-arrow-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogPriorityDropdownTriggerArrow",
+      "emits": "velt-comment-dialog-priority-dropdown-trigger-arrow",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-priority-dropdown-trigger-icon": {
-      "component": "VeltCommentDialogPriorityDropdownTriggerIconWireframe",
-      "emits": "velt-comment-dialog-priority-dropdown-trigger-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogPriorityDropdownTriggerIcon",
+      "emits": "velt-comment-dialog-priority-dropdown-trigger-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-priority-dropdown-trigger-name": {
-      "component": "VeltCommentDialogPriorityDropdownTriggerNameWireframe",
-      "emits": "velt-comment-dialog-priority-dropdown-trigger-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogPriorityDropdownTriggerName",
+      "emits": "velt-comment-dialog-priority-dropdown-trigger-name",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-private-banner": {
       "component": "VeltCommentDialogPrivateBanner",
-      "emits": "velt-comment-dialog-private-banner-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-private-banner",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-private-button": {
       "component": "VeltCommentDialogPrivateButton",
@@ -773,38 +773,38 @@
     },
     "velt-comment-dialog-reply-avatars": {
       "component": "VeltCommentDialogReplyAvatars",
-      "emits": "velt-comment-dialog-reply-avatars-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-reply-avatars",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-reply-avatars-list": {
       "component": "VeltCommentDialogReplyAvatarsList",
-      "emits": "velt-comment-dialog-reply-avatars-list-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-reply-avatars-list",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-reply-avatars-list-item": {
       "component": "VeltCommentDialogReplyAvatarsListItem",
-      "emits": "velt-comment-dialog-reply-avatars-list-item-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-reply-avatars-list-item",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-reply-avatars-remaining-count": {
       "component": "VeltCommentDialogReplyAvatarsRemainingCount",
-      "emits": "velt-comment-dialog-reply-avatars-remaining-count-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-reply-avatars-remaining-count",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-resolve-button": {
       "component": "VeltCommentDialogResolveButton",
-      "emits": "velt-comment-dialog-resolve-button-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-resolve-button",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-sign-in": {
       "component": "VeltCommentDialogSignIn",
-      "emits": "velt-comment-dialog-sign-in-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-sign-in",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-status": {
       "component": "VeltCommentDialogStatus",
-      "emits": "velt-comment-dialog-status-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-status",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-status-dropdown": {
       "component": "VeltCommentDialogStatusDropdown",
@@ -812,569 +812,569 @@
       "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-status-dropdown-content": {
-      "component": "VeltCommentDialogStatusDropdownContentWireframe",
-      "emits": "velt-comment-dialog-status-dropdown-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogStatusDropdownContent",
+      "emits": "velt-comment-dialog-status-dropdown-content",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-status-dropdown-content-item": {
-      "component": "VeltCommentDialogStatusDropdownContentItemWireframe",
-      "emits": "velt-comment-dialog-status-dropdown-content-item-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogStatusDropdownContentItem",
+      "emits": "velt-comment-dialog-status-dropdown-content-item",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-status-dropdown-content-item-icon": {
-      "component": "VeltCommentDialogStatusDropdownContentItemIconWireframe",
-      "emits": "velt-comment-dialog-status-dropdown-content-item-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogStatusDropdownContentItemIcon",
+      "emits": "velt-comment-dialog-status-dropdown-content-item-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-status-dropdown-content-item-name": {
-      "component": "VeltCommentDialogStatusDropdownContentItemNameWireframe",
-      "emits": "velt-comment-dialog-status-dropdown-content-item-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogStatusDropdownContentItemName",
+      "emits": "velt-comment-dialog-status-dropdown-content-item-name",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-status-dropdown-trigger": {
-      "component": "VeltCommentDialogStatusDropdownTriggerWireframe",
-      "emits": "velt-comment-dialog-status-dropdown-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogStatusDropdownTrigger",
+      "emits": "velt-comment-dialog-status-dropdown-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-status-dropdown-trigger-arrow": {
-      "component": "VeltCommentDialogStatusDropdownTriggerArrowWireframe",
-      "emits": "velt-comment-dialog-status-dropdown-trigger-arrow-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogStatusDropdownTriggerArrow",
+      "emits": "velt-comment-dialog-status-dropdown-trigger-arrow",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-status-dropdown-trigger-icon": {
-      "component": "VeltCommentDialogStatusDropdownTriggerIconWireframe",
-      "emits": "velt-comment-dialog-status-dropdown-trigger-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogStatusDropdownTriggerIcon",
+      "emits": "velt-comment-dialog-status-dropdown-trigger-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-status-dropdown-trigger-name": {
-      "component": "VeltCommentDialogStatusDropdownTriggerNameWireframe",
-      "emits": "velt-comment-dialog-status-dropdown-trigger-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogStatusDropdownTriggerName",
+      "emits": "velt-comment-dialog-status-dropdown-trigger-name",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion": {
-      "component": "VeltCommentDialogSuggestionWireframe",
-      "emits": "velt-comment-dialog-suggestion-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestion",
+      "emits": "velt-comment-dialog-suggestion",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-action-accept": {
-      "component": "VeltCommentDialogSuggestionActionAcceptWireframe",
-      "emits": "velt-comment-dialog-suggestion-action-accept-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionActionAccept",
+      "emits": "velt-comment-dialog-suggestion-action-accept",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-action-reject": {
-      "component": "VeltCommentDialogSuggestionActionRejectWireframe",
-      "emits": "velt-comment-dialog-suggestion-action-reject-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionActionReject",
+      "emits": "velt-comment-dialog-suggestion-action-reject",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-actions": {
-      "component": "VeltCommentDialogSuggestionActionsWireframe",
-      "emits": "velt-comment-dialog-suggestion-actions-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionActions",
+      "emits": "velt-comment-dialog-suggestion-actions",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-agent": {
-      "component": "VeltCommentDialogSuggestionAgentWireframe",
-      "emits": "velt-comment-dialog-suggestion-agent-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionAgent",
+      "emits": "velt-comment-dialog-suggestion-agent",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-agent-avatar": {
-      "component": "VeltCommentDialogSuggestionAgentAvatarWireframe",
-      "emits": "velt-comment-dialog-suggestion-agent-avatar-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionAgentAvatar",
+      "emits": "velt-comment-dialog-suggestion-agent-avatar",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-agent-name": {
-      "component": "VeltCommentDialogSuggestionAgentNameWireframe",
-      "emits": "velt-comment-dialog-suggestion-agent-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionAgentName",
+      "emits": "velt-comment-dialog-suggestion-agent-name",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-author": {
-      "component": "VeltCommentDialogSuggestionAuthorWireframe",
-      "emits": "velt-comment-dialog-suggestion-author-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionAuthor",
+      "emits": "velt-comment-dialog-suggestion-author",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-author-avatar": {
-      "component": "VeltCommentDialogSuggestionAuthorAvatarWireframe",
-      "emits": "velt-comment-dialog-suggestion-author-avatar-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionAuthorAvatar",
+      "emits": "velt-comment-dialog-suggestion-author-avatar",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-author-name": {
-      "component": "VeltCommentDialogSuggestionAuthorNameWireframe",
-      "emits": "velt-comment-dialog-suggestion-author-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionAuthorName",
+      "emits": "velt-comment-dialog-suggestion-author-name",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-banner": {
-      "component": "VeltCommentDialogSuggestionBannerWireframe",
-      "emits": "velt-comment-dialog-suggestion-banner-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionBanner",
+      "emits": "velt-comment-dialog-suggestion-banner",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-banner-avatar": {
-      "component": "VeltCommentDialogSuggestionBannerAvatarWireframe",
-      "emits": "velt-comment-dialog-suggestion-banner-avatar-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionBannerAvatar",
+      "emits": "velt-comment-dialog-suggestion-banner-avatar",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-banner-avatar-status-icon": {
-      "component": "VeltCommentDialogSuggestionBannerAvatarStatusIconWireframe",
-      "emits": "velt-comment-dialog-suggestion-banner-avatar-status-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionBannerAvatarStatusIcon",
+      "emits": "velt-comment-dialog-suggestion-banner-avatar-status-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-banner-avatar-user-image": {
-      "component": "VeltCommentDialogSuggestionBannerAvatarUserImageWireframe",
-      "emits": "velt-comment-dialog-suggestion-banner-avatar-user-image-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionBannerAvatarUserImage",
+      "emits": "velt-comment-dialog-suggestion-banner-avatar-user-image",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-banner-label": {
-      "component": "VeltCommentDialogSuggestionBannerLabelWireframe",
-      "emits": "velt-comment-dialog-suggestion-banner-label-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionBannerLabel",
+      "emits": "velt-comment-dialog-suggestion-banner-label",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-banner-resolver-user-name": {
-      "component": "VeltCommentDialogSuggestionBannerResolverUserNameWireframe",
-      "emits": "velt-comment-dialog-suggestion-banner-resolver-user-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionBannerResolverUserName",
+      "emits": "velt-comment-dialog-suggestion-banner-resolver-user-name",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-banner-separator": {
-      "component": "VeltCommentDialogSuggestionBannerSeparatorWireframe",
-      "emits": "velt-comment-dialog-suggestion-banner-separator-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionBannerSeparator",
+      "emits": "velt-comment-dialog-suggestion-banner-separator",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-banner-timestamp": {
-      "component": "VeltCommentDialogSuggestionBannerTimestampWireframe",
-      "emits": "velt-comment-dialog-suggestion-banner-timestamp-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionBannerTimestamp",
+      "emits": "velt-comment-dialog-suggestion-banner-timestamp",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-body": {
-      "component": "VeltCommentDialogSuggestionBodyWireframe",
-      "emits": "velt-comment-dialog-suggestion-body-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionBody",
+      "emits": "velt-comment-dialog-suggestion-body",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-footer": {
-      "component": "VeltCommentDialogSuggestionFooterWireframe",
-      "emits": "velt-comment-dialog-suggestion-footer-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionFooter",
+      "emits": "velt-comment-dialog-suggestion-footer",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-footer-open-comment": {
-      "component": "VeltCommentDialogSuggestionFooterOpenCommentWireframe",
-      "emits": "velt-comment-dialog-suggestion-footer-open-comment-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionFooterOpenComment",
+      "emits": "velt-comment-dialog-suggestion-footer-open-comment",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-header": {
-      "component": "VeltCommentDialogSuggestionHeaderWireframe",
-      "emits": "velt-comment-dialog-suggestion-header-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionHeader",
+      "emits": "velt-comment-dialog-suggestion-header",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-menu": {
-      "component": "VeltCommentDialogSuggestionMenuWireframe",
-      "emits": "velt-comment-dialog-suggestion-menu-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionMenu",
+      "emits": "velt-comment-dialog-suggestion-menu",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-menu-content": {
-      "component": "VeltCommentDialogSuggestionMenuContentWireframe",
-      "emits": "velt-comment-dialog-suggestion-menu-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionMenuContent",
+      "emits": "velt-comment-dialog-suggestion-menu-content",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-menu-content-item": {
-      "component": "VeltCommentDialogSuggestionMenuContentItemWireframe",
-      "emits": "velt-comment-dialog-suggestion-menu-content-item-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionMenuContentItem",
+      "emits": "velt-comment-dialog-suggestion-menu-content-item",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-menu-content-item-icon": {
-      "component": "VeltCommentDialogSuggestionMenuContentItemIconWireframe",
-      "emits": "velt-comment-dialog-suggestion-menu-content-item-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionMenuContentItemIcon",
+      "emits": "velt-comment-dialog-suggestion-menu-content-item-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-menu-content-item-label": {
-      "component": "VeltCommentDialogSuggestionMenuContentItemLabelWireframe",
-      "emits": "velt-comment-dialog-suggestion-menu-content-item-label-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionMenuContentItemLabel",
+      "emits": "velt-comment-dialog-suggestion-menu-content-item-label",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-menu-trigger": {
-      "component": "VeltCommentDialogSuggestionMenuTriggerWireframe",
-      "emits": "velt-comment-dialog-suggestion-menu-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionMenuTrigger",
+      "emits": "velt-comment-dialog-suggestion-menu-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-suggestion-timestamp": {
-      "component": "VeltCommentDialogSuggestionTimestampWireframe",
-      "emits": "velt-comment-dialog-suggestion-timestamp-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogSuggestionTimestamp",
+      "emits": "velt-comment-dialog-suggestion-timestamp",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card": {
       "component": "VeltCommentDialogThreadCard",
-      "emits": "velt-comment-dialog-thread-card-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-assign-button": {
       "component": "VeltCommentDialogThreadCardAssignButton",
-      "emits": "velt-comment-dialog-thread-card-assign-button-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-assign-button",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-attachments": {
       "component": "VeltCommentDialogThreadCardAttachments",
-      "emits": "velt-comment-dialog-thread-card-attachments-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-attachments",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-attachments-image": {
       "component": "VeltCommentDialogThreadCardAttachmentsImage",
-      "emits": "velt-comment-dialog-thread-card-attachments-image-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-attachments-image",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-attachments-image-delete": {
       "component": "VeltCommentDialogThreadCardAttachmentsImageDelete",
-      "emits": "velt-comment-dialog-thread-card-attachments-image-delete-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-attachments-image-delete",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-attachments-image-download": {
       "component": "VeltCommentDialogThreadCardAttachmentsImageDownload",
-      "emits": "velt-comment-dialog-thread-card-attachments-image-download-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-attachments-image-download",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-attachments-image-preview": {
       "component": "VeltCommentDialogThreadCardAttachmentsImagePreview",
-      "emits": "velt-comment-dialog-thread-card-attachments-image-preview-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-attachments-image-preview",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-attachments-other": {
       "component": "VeltCommentDialogThreadCardAttachmentsOther",
-      "emits": "velt-comment-dialog-thread-card-attachments-other-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-attachments-other",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-attachments-other-delete": {
       "component": "VeltCommentDialogThreadCardAttachmentsOtherDelete",
-      "emits": "velt-comment-dialog-thread-card-attachments-other-delete-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-attachments-other-delete",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-attachments-other-download": {
       "component": "VeltCommentDialogThreadCardAttachmentsOtherDownload",
-      "emits": "velt-comment-dialog-thread-card-attachments-other-download-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-attachments-other-download",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-attachments-other-icon": {
       "component": "VeltCommentDialogThreadCardAttachmentsOtherIcon",
-      "emits": "velt-comment-dialog-thread-card-attachments-other-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-attachments-other-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-attachments-other-name": {
       "component": "VeltCommentDialogThreadCardAttachmentsOtherName",
-      "emits": "velt-comment-dialog-thread-card-attachments-other-name-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-attachments-other-name",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-attachments-other-size": {
       "component": "VeltCommentDialogThreadCardAttachmentsOtherSize",
-      "emits": "velt-comment-dialog-thread-card-attachments-other-size-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-attachments-other-size",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-avatar": {
       "component": "VeltCommentDialogThreadCardAvatar",
-      "emits": "velt-comment-dialog-thread-card-avatar-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-avatar",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-device-type": {
       "component": "VeltCommentDialogThreadCardDeviceType",
-      "emits": "velt-comment-dialog-thread-card-device-type-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-device-type",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-draft": {
       "component": "VeltCommentDialogThreadCardDraft",
-      "emits": "velt-comment-dialog-thread-card-draft-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-draft",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-edit-composer": {
       "component": "VeltCommentDialogThreadCardEditComposer",
-      "emits": "velt-comment-dialog-thread-card-edit-composer-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-edit-composer",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-edited": {
       "component": "VeltCommentDialogThreadCardEdited",
-      "emits": "velt-comment-dialog-thread-card-edited-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-edited",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-message": {
       "component": "VeltCommentDialogThreadCardMessage",
-      "emits": "velt-comment-dialog-thread-card-message-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-message",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-message-show-less": {
       "component": "VeltCommentDialogThreadCardMessageShowLess",
-      "emits": "velt-comment-dialog-thread-card-message-show-less-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-message-show-less",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-message-show-more": {
       "component": "VeltCommentDialogThreadCardMessageShowMore",
-      "emits": "velt-comment-dialog-thread-card-message-show-more-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-message-show-more",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-name": {
       "component": "VeltCommentDialogThreadCardName",
-      "emits": "velt-comment-dialog-thread-card-name-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-name",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-options": {
       "component": "VeltCommentDialogThreadCardOptions",
-      "emits": "velt-comment-dialog-thread-card-options-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-options",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-reaction-pin": {
       "component": "VeltCommentDialogThreadCardReactionPin",
-      "emits": "velt-comment-dialog-thread-card-reaction-pin-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-reaction-pin",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-reaction-tool": {
       "component": "VeltCommentDialogThreadCardReactionTool",
-      "emits": "velt-comment-dialog-thread-card-reaction-tool-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-reaction-tool",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-reactions": {
       "component": "VeltCommentDialogThreadCardReactions",
-      "emits": "velt-comment-dialog-thread-card-reactions-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-reactions",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-recordings": {
       "component": "VeltCommentDialogThreadCardRecordings",
-      "emits": "velt-comment-dialog-thread-card-recordings-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-recordings",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-reply": {
       "component": "VeltCommentDialogThreadCardReply",
-      "emits": "velt-comment-dialog-thread-card-reply-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-reply",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-seen-dropdown": {
       "component": "VeltCommentDialogThreadCardSeenDropdown",
-      "emits": "velt-comment-dialog-thread-card-seen-dropdown-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-seen-dropdown",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-seen-dropdown-content": {
       "component": "VeltCommentDialogThreadCardSeenDropdownContent",
-      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-seen-dropdown-content-item": {
       "component": "VeltCommentDialogThreadCardSeenDropdownContentItem",
-      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content-item-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content-item",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-seen-dropdown-content-item-avatar": {
       "component": "VeltCommentDialogThreadCardSeenDropdownContentItemAvatar",
-      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content-item-avatar-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content-item-avatar",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-seen-dropdown-content-item-name": {
       "component": "VeltCommentDialogThreadCardSeenDropdownContentItemName",
-      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content-item-name-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content-item-name",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-seen-dropdown-content-item-time": {
       "component": "VeltCommentDialogThreadCardSeenDropdownContentItemTime",
-      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content-item-time-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content-item-time",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-seen-dropdown-content-items": {
       "component": "VeltCommentDialogThreadCardSeenDropdownContentItems",
-      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content-items-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content-items",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-seen-dropdown-content-title": {
       "component": "VeltCommentDialogThreadCardSeenDropdownContentTitle",
-      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content-title-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-seen-dropdown-content-title",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-seen-dropdown-trigger": {
       "component": "VeltCommentDialogThreadCardSeenDropdownTrigger",
-      "emits": "velt-comment-dialog-thread-card-seen-dropdown-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-seen-dropdown-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-time": {
       "component": "VeltCommentDialogThreadCardTime",
-      "emits": "velt-comment-dialog-thread-card-time-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-time",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-thread-card-unread": {
       "component": "VeltCommentDialogThreadCardUnread",
-      "emits": "velt-comment-dialog-thread-card-unread-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-thread-card-unread",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-threads": {
       "component": "VeltCommentDialogThreads",
-      "emits": "velt-comment-dialog-threads-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-threads",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-toggle-reply": {
       "component": "VeltCommentDialogToggleReply",
-      "emits": "velt-comment-dialog-toggle-reply-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-toggle-reply",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-toggle-reply-count": {
       "component": "VeltCommentDialogToggleReplyCount",
-      "emits": "velt-comment-dialog-toggle-reply-count-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-toggle-reply-count",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-toggle-reply-icon": {
       "component": "VeltCommentDialogToggleReplyIcon",
-      "emits": "velt-comment-dialog-toggle-reply-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-toggle-reply-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-toggle-reply-text": {
       "component": "VeltCommentDialogToggleReplyText",
-      "emits": "velt-comment-dialog-toggle-reply-text-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-toggle-reply-text",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-unresolve-button": {
       "component": "VeltCommentDialogUnresolveButton",
-      "emits": "velt-comment-dialog-unresolve-button-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-unresolve-button",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-upgrade": {
       "component": "VeltCommentDialogUpgrade",
-      "emits": "velt-comment-dialog-upgrade-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-upgrade",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner": {
       "component": "VeltCommentDialogVisibilityBanner",
-      "emits": "velt-comment-dialog-visibility-banner-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-dropdown": {
       "component": "VeltCommentDialogVisibilityBannerDropdown",
-      "emits": "velt-comment-dialog-visibility-banner-dropdown-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-dropdown",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-dropdown-content": {
       "component": "VeltCommentDialogVisibilityBannerDropdownContent",
-      "emits": "velt-comment-dialog-visibility-banner-dropdown-content-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-dropdown-content",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-dropdown-content-item": {
       "component": "VeltCommentDialogVisibilityBannerDropdownContentItem",
-      "emits": "velt-comment-dialog-visibility-banner-dropdown-content-item-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-dropdown-content-item",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-dropdown-content-item-icon": {
       "component": "VeltCommentDialogVisibilityBannerDropdownContentItemIcon",
-      "emits": "velt-comment-dialog-visibility-banner-dropdown-content-item-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-dropdown-content-item-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-dropdown-content-item-label": {
       "component": "VeltCommentDialogVisibilityBannerDropdownContentItemLabel",
-      "emits": "velt-comment-dialog-visibility-banner-dropdown-content-item-label-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-dropdown-content-item-label",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-dropdown-content-org-picker": {
       "component": "VeltCommentDialogVisibilityBannerDropdownContentOrgPicker",
-      "emits": "velt-comment-dialog-visibility-banner-dropdown-content-org-picker-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-dropdown-content-org-picker",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-dropdown-content-user-picker": {
       "component": "VeltCommentDialogVisibilityBannerDropdownContentUserPicker",
-      "emits": "velt-comment-dialog-visibility-banner-dropdown-content-user-picker-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-dropdown-content-user-picker",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-dropdown-trigger": {
       "component": "VeltCommentDialogVisibilityBannerDropdownTrigger",
-      "emits": "velt-comment-dialog-visibility-banner-dropdown-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-dropdown-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list": {
       "component": "VeltCommentDialogVisibilityBannerDropdownTriggerAvatarList",
-      "emits": "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-item": {
       "component": "VeltCommentDialogVisibilityBannerDropdownTriggerAvatarListItem",
-      "emits": "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-item-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-item",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-remaining-count": {
       "component": "VeltCommentDialogVisibilityBannerDropdownTriggerAvatarListRemainingCount",
-      "emits": "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-remaining-count-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-remaining-count",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-dropdown-trigger-icon": {
       "component": "VeltCommentDialogVisibilityBannerDropdownTriggerIcon",
-      "emits": "velt-comment-dialog-visibility-banner-dropdown-trigger-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-dropdown-trigger-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-dropdown-trigger-label": {
       "component": "VeltCommentDialogVisibilityBannerDropdownTriggerLabel",
-      "emits": "velt-comment-dialog-visibility-banner-dropdown-trigger-label-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-dropdown-trigger-label",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-icon": {
       "component": "VeltCommentDialogVisibilityBannerIcon",
-      "emits": "velt-comment-dialog-visibility-banner-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-banner-text": {
       "component": "VeltCommentDialogVisibilityBannerText",
-      "emits": "velt-comment-dialog-visibility-banner-text-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-banner-text",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-dropdown": {
       "component": "VeltCommentDialogVisibilityDropdown",
-      "emits": "velt-comment-dialog-visibility-dropdown-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-dialog-visibility-dropdown",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-dropdown-content": {
-      "component": "VeltCommentDialogVisibilityDropdownContentWireframe",
-      "emits": "velt-comment-dialog-visibility-dropdown-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogVisibilityDropdownContent",
+      "emits": "velt-comment-dialog-visibility-dropdown-content",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-dropdown-content-private": {
-      "component": "VeltCommentDialogVisibilityDropdownContentPrivateWireframe",
-      "emits": "velt-comment-dialog-visibility-dropdown-content-private-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogVisibilityDropdownContentPrivate",
+      "emits": "velt-comment-dialog-visibility-dropdown-content-private",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-dropdown-content-public": {
-      "component": "VeltCommentDialogVisibilityDropdownContentPublicWireframe",
-      "emits": "velt-comment-dialog-visibility-dropdown-content-public-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogVisibilityDropdownContentPublic",
+      "emits": "velt-comment-dialog-visibility-dropdown-content-public",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-dropdown-trigger": {
-      "component": "VeltCommentDialogVisibilityDropdownTriggerWireframe",
-      "emits": "velt-comment-dialog-visibility-dropdown-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogVisibilityDropdownTrigger",
+      "emits": "velt-comment-dialog-visibility-dropdown-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-dropdown-trigger-icon": {
-      "component": "VeltCommentDialogVisibilityDropdownTriggerIconWireframe",
-      "emits": "velt-comment-dialog-visibility-dropdown-trigger-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogVisibilityDropdownTriggerIcon",
+      "emits": "velt-comment-dialog-visibility-dropdown-trigger-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-dialog-visibility-dropdown-trigger-label": {
-      "component": "VeltCommentDialogVisibilityDropdownTriggerLabelWireframe",
-      "emits": "velt-comment-dialog-visibility-dropdown-trigger-label-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentDialogVisibilityDropdownTriggerLabel",
+      "emits": "velt-comment-dialog-visibility-dropdown-trigger-label",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-pin": {
-      "component": "VeltCommentPinWireframe",
-      "emits": "velt-comment-pin-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentPin",
+      "emits": "velt-comment-pin",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-pin-ghost-comment-indicator": {
       "component": "VeltCommentPinGhostCommentIndicator",
-      "emits": "velt-comment-pin-ghost-comment-indicator-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-pin-ghost-comment-indicator",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-pin-index": {
       "component": "VeltCommentPinIndex",
-      "emits": "velt-comment-pin-index-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-pin-index",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-pin-number": {
       "component": "VeltCommentPinNumber",
-      "emits": "velt-comment-pin-number-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-pin-number",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-pin-private-comment-indicator": {
       "component": "VeltCommentPinPrivateCommentIndicator",
-      "emits": "velt-comment-pin-private-comment-indicator-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-pin-private-comment-indicator",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-pin-triangle": {
       "component": "VeltCommentPinTriangle",
-      "emits": "velt-comment-pin-triangle-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-pin-triangle",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-pin-unread-comment-indicator": {
       "component": "VeltCommentPinUnreadCommentIndicator",
-      "emits": "velt-comment-pin-unread-comment-indicator-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-comment-pin-unread-comment-indicator",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-player-timeline": {
       "component": "VeltCommentPlayerTimeline",
@@ -1662,9 +1662,9 @@
       "forwardsArbitraryProps": false
     },
     "velt-comment-thread": {
-      "component": "VeltCommentThreadWireframe",
-      "emits": "velt-comment-thread-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentThread",
+      "emits": "velt-comment-thread",
+      "forwardsArbitraryProps": false
     },
     "velt-comment-tool": {
       "component": "VeltCommentToolWireframe",
@@ -2437,9 +2437,9 @@
       "forwardsArbitraryProps": true
     },
     "velt-comments-sidebar-v2": {
-      "component": "VeltCommentsSidebarV2Wireframe",
-      "emits": "velt-comments-sidebar-v2-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltCommentsSidebarV2",
+      "emits": "velt-comments-sidebar-v2",
+      "forwardsArbitraryProps": false
     },
     "velt-confirm-dialog": {
       "component": "VeltConfirmDialogWireframe",
@@ -2527,134 +2527,134 @@
       "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section": {
-      "component": "VeltInlineCommentsSectionWireframe",
-      "emits": "velt-inline-comments-section-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSection",
+      "emits": "velt-inline-comments-section",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-comment-count": {
-      "component": "VeltInlineCommentsSectionCommentCountWireframe",
-      "emits": "velt-inline-comments-section-comment-count-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionCommentCount",
+      "emits": "velt-inline-comments-section-comment-count",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-composer-container": {
-      "component": "VeltInlineCommentsSectionComposerContainerWireframe",
-      "emits": "velt-inline-comments-section-composer-container-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionComposerContainer",
+      "emits": "velt-inline-comments-section-composer-container",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-filter-dropdown": {
-      "component": "VeltInlineCommentsSectionFilterDropdownWireframe",
-      "emits": "velt-inline-comments-section-filter-dropdown-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionFilterDropdown",
+      "emits": "velt-inline-comments-section-filter-dropdown",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-filter-dropdown-content": {
-      "component": "VeltInlineCommentsSectionFilterDropdownContentWireframe",
-      "emits": "velt-inline-comments-section-filter-dropdown-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionFilterDropdownContent",
+      "emits": "velt-inline-comments-section-filter-dropdown-content",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-filter-dropdown-content-apply-button": {
-      "component": "VeltInlineCommentsSectionFilterDropdownContentApplyButtonWireframe",
-      "emits": "velt-inline-comments-section-filter-dropdown-content-apply-button-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionFilterDropdownContentApplyButton",
+      "emits": "velt-inline-comments-section-filter-dropdown-content-apply-button",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-filter-dropdown-content-list": {
-      "component": "VeltInlineCommentsSectionFilterDropdownContentListWireframe",
-      "emits": "velt-inline-comments-section-filter-dropdown-content-list-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionFilterDropdownContentList",
+      "emits": "velt-inline-comments-section-filter-dropdown-content-list",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-filter-dropdown-content-list-item": {
-      "component": "VeltInlineCommentsSectionFilterDropdownContentListItemWireframe",
-      "emits": "velt-inline-comments-section-filter-dropdown-content-list-item-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionFilterDropdownContentListItem",
+      "emits": "velt-inline-comments-section-filter-dropdown-content-list-item",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-filter-dropdown-content-list-item-checkbox": {
-      "component": "VeltInlineCommentsSectionFilterDropdownContentListItemCheckboxWireframe",
-      "emits": "velt-inline-comments-section-filter-dropdown-content-list-item-checkbox-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionFilterDropdownContentListItemCheckbox",
+      "emits": "velt-inline-comments-section-filter-dropdown-content-list-item-checkbox",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-filter-dropdown-content-list-item-label": {
-      "component": "VeltInlineCommentsSectionFilterDropdownContentListItemLabelWireframe",
-      "emits": "velt-inline-comments-section-filter-dropdown-content-list-item-label-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionFilterDropdownContentListItemLabel",
+      "emits": "velt-inline-comments-section-filter-dropdown-content-list-item-label",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-filter-dropdown-trigger": {
-      "component": "VeltInlineCommentsSectionFilterDropdownTriggerWireframe",
-      "emits": "velt-inline-comments-section-filter-dropdown-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionFilterDropdownTrigger",
+      "emits": "velt-inline-comments-section-filter-dropdown-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-filter-dropdown-trigger-arrow": {
-      "component": "VeltInlineCommentsSectionFilterDropdownTriggerArrowWireframe",
-      "emits": "velt-inline-comments-section-filter-dropdown-trigger-arrow-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionFilterDropdownTriggerArrow",
+      "emits": "velt-inline-comments-section-filter-dropdown-trigger-arrow",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-filter-dropdown-trigger-name": {
-      "component": "VeltInlineCommentsSectionFilterDropdownTriggerNameWireframe",
-      "emits": "velt-inline-comments-section-filter-dropdown-trigger-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionFilterDropdownTriggerName",
+      "emits": "velt-inline-comments-section-filter-dropdown-trigger-name",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-list": {
-      "component": "VeltInlineCommentsSectionListWireframe",
-      "emits": "velt-inline-comments-section-list-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionList",
+      "emits": "velt-inline-comments-section-list",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-panel": {
-      "component": "VeltInlineCommentsSectionPanelWireframe",
-      "emits": "velt-inline-comments-section-panel-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionPanel",
+      "emits": "velt-inline-comments-section-panel",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-skeleton": {
-      "component": "VeltInlineCommentsSectionSkeletonWireframe",
-      "emits": "velt-inline-comments-section-skeleton-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionSkeleton",
+      "emits": "velt-inline-comments-section-skeleton",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-sorting-dropdown": {
-      "component": "VeltInlineCommentsSectionSortingDropdownWireframe",
-      "emits": "velt-inline-comments-section-sorting-dropdown-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionSortingDropdown",
+      "emits": "velt-inline-comments-section-sorting-dropdown",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-sorting-dropdown-content": {
-      "component": "VeltInlineCommentsSectionSortingDropdownContentWireframe",
-      "emits": "velt-inline-comments-section-sorting-dropdown-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionSortingDropdownContent",
+      "emits": "velt-inline-comments-section-sorting-dropdown-content",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-sorting-dropdown-content-item": {
-      "component": "VeltInlineCommentsSectionSortingDropdownContentItemWireframe",
-      "emits": "velt-inline-comments-section-sorting-dropdown-content-item-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionSortingDropdownContentItem",
+      "emits": "velt-inline-comments-section-sorting-dropdown-content-item",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-sorting-dropdown-content-item-icon": {
-      "component": "VeltInlineCommentsSectionSortingDropdownContentItemIconWireframe",
-      "emits": "velt-inline-comments-section-sorting-dropdown-content-item-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionSortingDropdownContentItemIcon",
+      "emits": "velt-inline-comments-section-sorting-dropdown-content-item-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-sorting-dropdown-content-item-name": {
-      "component": "VeltInlineCommentsSectionSortingDropdownContentItemNameWireframe",
-      "emits": "velt-inline-comments-section-sorting-dropdown-content-item-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionSortingDropdownContentItemName",
+      "emits": "velt-inline-comments-section-sorting-dropdown-content-item-name",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-sorting-dropdown-content-item-tick": {
-      "component": "VeltInlineCommentsSectionSortingDropdownContentItemTickWireframe",
-      "emits": "velt-inline-comments-section-sorting-dropdown-content-item-tick-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionSortingDropdownContentItemTick",
+      "emits": "velt-inline-comments-section-sorting-dropdown-content-item-tick",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-sorting-dropdown-trigger": {
-      "component": "VeltInlineCommentsSectionSortingDropdownTriggerWireframe",
-      "emits": "velt-inline-comments-section-sorting-dropdown-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionSortingDropdownTrigger",
+      "emits": "velt-inline-comments-section-sorting-dropdown-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-sorting-dropdown-trigger-icon": {
-      "component": "VeltInlineCommentsSectionSortingDropdownTriggerIconWireframe",
-      "emits": "velt-inline-comments-section-sorting-dropdown-trigger-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionSortingDropdownTriggerIcon",
+      "emits": "velt-inline-comments-section-sorting-dropdown-trigger-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-comments-section-sorting-dropdown-trigger-name": {
-      "component": "VeltInlineCommentsSectionSortingDropdownTriggerNameWireframe",
-      "emits": "velt-inline-comments-section-sorting-dropdown-trigger-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineCommentsSectionSortingDropdownTriggerName",
+      "emits": "velt-inline-comments-section-sorting-dropdown-trigger-name",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-reactions-section": {
-      "component": "VeltInlineReactionsSectionWireframe",
-      "emits": "velt-inline-reactions-section-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltInlineReactionsSection",
+      "emits": "velt-inline-reactions-section",
+      "forwardsArbitraryProps": false
     },
     "velt-inline-reactions-section-list": {
       "component": "VeltInlineReactionsSectionListWireframe",
@@ -2732,44 +2732,44 @@
       "forwardsArbitraryProps": true
     },
     "velt-multi-thread-comment-dialog": {
-      "component": "VeltMultiThreadCommentDialogWireframe",
-      "emits": "velt-multi-thread-comment-dialog-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialog",
+      "emits": "velt-multi-thread-comment-dialog",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-close-button": {
-      "component": "VeltMultiThreadCommentDialogCloseButtonWireframe",
-      "emits": "velt-multi-thread-comment-dialog-close-button-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogCloseButton",
+      "emits": "velt-multi-thread-comment-dialog-close-button",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-comment-count": {
-      "component": "VeltMultiThreadCommentDialogCommentCountWireframe",
-      "emits": "velt-multi-thread-comment-dialog-comment-count-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogCommentCount",
+      "emits": "velt-multi-thread-comment-dialog-comment-count",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-composer-container": {
-      "component": "VeltMultiThreadCommentDialogComposerContainerWireframe",
-      "emits": "velt-multi-thread-comment-dialog-composer-container-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogComposerContainer",
+      "emits": "velt-multi-thread-comment-dialog-composer-container",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-empty-placeholder": {
-      "component": "VeltMultiThreadCommentDialogEmptyPlaceholderWireframe",
-      "emits": "velt-multi-thread-comment-dialog-empty-placeholder-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogEmptyPlaceholder",
+      "emits": "velt-multi-thread-comment-dialog-empty-placeholder",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-list": {
-      "component": "VeltMultiThreadCommentDialogListWireframe",
-      "emits": "velt-multi-thread-comment-dialog-list-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogList",
+      "emits": "velt-multi-thread-comment-dialog-list",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-actions-dropdown": {
-      "component": "VeltMultiThreadCommentDialogMinimalActionsDropdownWireframe",
-      "emits": "velt-multi-thread-comment-dialog-minimal-actions-dropdown-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogMinimalActionsDropdown",
+      "emits": "velt-multi-thread-comment-dialog-minimal-actions-dropdown",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-actions-dropdown-content": {
-      "component": "VeltMultiThreadCommentDialogMinimalActionsDropdownContentWireframe",
-      "emits": "velt-multi-thread-comment-dialog-minimal-actions-dropdown-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogMinimalActionsDropdownContent",
+      "emits": "velt-multi-thread-comment-dialog-minimal-actions-dropdown-content",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-actions-dropdown-content-mark-all-read": {
       "component": "VeltMultiThreadCommentDialogMinimalActionsDropdownContentMarkAllRead",
@@ -2782,64 +2782,64 @@
       "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-actions-dropdown-trigger": {
-      "component": "VeltMultiThreadCommentDialogMinimalActionsDropdownTriggerWireframe",
-      "emits": "velt-multi-thread-comment-dialog-minimal-actions-dropdown-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogMinimalActionsDropdownTrigger",
+      "emits": "velt-multi-thread-comment-dialog-minimal-actions-dropdown-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-filter-dropdown": {
-      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownWireframe",
-      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdown",
+      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content": {
-      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentWireframe",
-      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContent",
+      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-all": {
-      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentFilterAllWireframe",
-      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-all-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentFilterAll",
+      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-all",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-read": {
-      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentFilterReadWireframe",
-      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-read-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentFilterRead",
+      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-read",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-resolved": {
-      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentFilterResolvedWireframe",
-      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-resolved-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentFilterResolved",
+      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-resolved",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-unread": {
-      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentFilterUnreadWireframe",
-      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-unread-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentFilterUnread",
+      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-unread",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-selected-icon": {
-      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentSelectedIconWireframe",
-      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-selected-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentSelectedIcon",
+      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-selected-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-sort-date": {
-      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentSortDateWireframe",
-      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-sort-date-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentSortDate",
+      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-sort-date",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-sort-unread": {
-      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentSortUnreadWireframe",
-      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-sort-unread-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownContentSortUnread",
+      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-sort-unread",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-minimal-filter-dropdown-trigger": {
-      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownTriggerWireframe",
-      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogMinimalFilterDropdownTrigger",
+      "emits": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-new-thread-button": {
-      "component": "VeltMultiThreadCommentDialogNewThreadButtonWireframe",
-      "emits": "velt-multi-thread-comment-dialog-new-thread-button-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogNewThreadButton",
+      "emits": "velt-multi-thread-comment-dialog-new-thread-button",
+      "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-panel": {
       "component": "VeltMultiThreadCommentDialogPanel",
@@ -2847,9 +2847,9 @@
       "forwardsArbitraryProps": false
     },
     "velt-multi-thread-comment-dialog-reset-filter-button": {
-      "component": "VeltMultiThreadCommentDialogResetFilterButtonWireframe",
-      "emits": "velt-multi-thread-comment-dialog-reset-filter-button-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltMultiThreadCommentDialogResetFilterButton",
+      "emits": "velt-multi-thread-comment-dialog-reset-filter-button",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-history-panel": {
       "component": "VeltNotificationsHistoryPanel",
@@ -2857,349 +2857,349 @@
       "forwardsArbitraryProps": false
     },
     "velt-notifications-panel": {
-      "component": "VeltNotificationsPanelWireframe",
-      "emits": "velt-notifications-panel-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanel",
+      "emits": "velt-notifications-panel",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-close-button": {
-      "component": "VeltNotificationsPanelCloseButtonWireframe",
-      "emits": "velt-notifications-panel-close-button-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelCloseButton",
+      "emits": "velt-notifications-panel-close-button",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content": {
-      "component": "VeltNotificationsPanelContentWireframe",
-      "emits": "velt-notifications-panel-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContent",
+      "emits": "velt-notifications-panel-content",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-all": {
-      "component": "VeltNotificationsPanelContentAllWireframe",
-      "emits": "velt-notifications-panel-content-all-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentAll",
+      "emits": "velt-notifications-panel-content-all",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-all-list": {
-      "component": "VeltNotificationsPanelContentAllListWireframe",
-      "emits": "velt-notifications-panel-content-all-list-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentAllList",
+      "emits": "velt-notifications-panel-content-all-list",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-all-list-item": {
-      "component": "VeltNotificationsPanelContentAllListItemWireframe",
-      "emits": "velt-notifications-panel-content-all-list-item-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentAllListItem",
+      "emits": "velt-notifications-panel-content-all-list-item",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-all-list-item-content": {
-      "component": "VeltNotificationsPanelContentAllListItemContentWireframe",
-      "emits": "velt-notifications-panel-content-all-list-item-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentAllListItemContent",
+      "emits": "velt-notifications-panel-content-all-list-item-content",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-all-list-item-label": {
-      "component": "VeltNotificationsPanelContentAllListItemLabelWireframe",
-      "emits": "velt-notifications-panel-content-all-list-item-label-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentAllListItemLabel",
+      "emits": "velt-notifications-panel-content-all-list-item-label",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-all-read-container": {
-      "component": "VeltNotificationsPanelContentAllReadContainerWireframe",
-      "emits": "velt-notifications-panel-content-all-read-container-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentAllReadContainer",
+      "emits": "velt-notifications-panel-content-all-read-container",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-documents": {
-      "component": "VeltNotificationsPanelContentDocumentsWireframe",
-      "emits": "velt-notifications-panel-content-documents-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentDocuments",
+      "emits": "velt-notifications-panel-content-documents",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-documents-list": {
-      "component": "VeltNotificationsPanelContentDocumentsListWireframe",
-      "emits": "velt-notifications-panel-content-documents-list-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentDocumentsList",
+      "emits": "velt-notifications-panel-content-documents-list",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-documents-list-item": {
-      "component": "VeltNotificationsPanelContentDocumentsListItemWireframe",
-      "emits": "velt-notifications-panel-content-documents-list-item-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentDocumentsListItem",
+      "emits": "velt-notifications-panel-content-documents-list-item",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-documents-list-item-content": {
-      "component": "VeltNotificationsPanelContentDocumentsListItemContentWireframe",
-      "emits": "velt-notifications-panel-content-documents-list-item-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentDocumentsListItemContent",
+      "emits": "velt-notifications-panel-content-documents-list-item-content",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-documents-list-item-count": {
-      "component": "VeltNotificationsPanelContentDocumentsListItemCountWireframe",
-      "emits": "velt-notifications-panel-content-documents-list-item-count-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentDocumentsListItemCount",
+      "emits": "velt-notifications-panel-content-documents-list-item-count",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-documents-list-item-name": {
-      "component": "VeltNotificationsPanelContentDocumentsListItemNameWireframe",
-      "emits": "velt-notifications-panel-content-documents-list-item-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentDocumentsListItemName",
+      "emits": "velt-notifications-panel-content-documents-list-item-name",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-documents-list-item-unread": {
-      "component": "VeltNotificationsPanelContentDocumentsListItemUnreadWireframe",
-      "emits": "velt-notifications-panel-content-documents-list-item-unread-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentDocumentsListItemUnread",
+      "emits": "velt-notifications-panel-content-documents-list-item-unread",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-for-you": {
-      "component": "VeltNotificationsPanelContentForYouWireframe",
-      "emits": "velt-notifications-panel-content-for-you-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentForYou",
+      "emits": "velt-notifications-panel-content-for-you",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-list": {
-      "component": "VeltNotificationsPanelContentListWireframe",
-      "emits": "velt-notifications-panel-content-list-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentList",
+      "emits": "velt-notifications-panel-content-list",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-list-item": {
-      "component": "VeltNotificationsPanelContentListItemWireframe",
-      "emits": "velt-notifications-panel-content-list-item-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentListItem",
+      "emits": "velt-notifications-panel-content-list-item",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-list-item-avatar": {
-      "component": "VeltNotificationsPanelContentListItemAvatarWireframe",
-      "emits": "velt-notifications-panel-content-list-item-avatar-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentListItemAvatar",
+      "emits": "velt-notifications-panel-content-list-item-avatar",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-list-item-body": {
-      "component": "VeltNotificationsPanelContentListItemBodyWireframe",
-      "emits": "velt-notifications-panel-content-list-item-body-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentListItemBody",
+      "emits": "velt-notifications-panel-content-list-item-body",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-list-item-file-name": {
-      "component": "VeltNotificationsPanelContentListItemFileNameWireframe",
-      "emits": "velt-notifications-panel-content-list-item-file-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentListItemFileName",
+      "emits": "velt-notifications-panel-content-list-item-file-name",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-list-item-headline": {
-      "component": "VeltNotificationsPanelContentListItemHeadlineWireframe",
-      "emits": "velt-notifications-panel-content-list-item-headline-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentListItemHeadline",
+      "emits": "velt-notifications-panel-content-list-item-headline",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-list-item-time": {
-      "component": "VeltNotificationsPanelContentListItemTimeWireframe",
-      "emits": "velt-notifications-panel-content-list-item-time-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentListItemTime",
+      "emits": "velt-notifications-panel-content-list-item-time",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-list-item-unread": {
-      "component": "VeltNotificationsPanelContentListItemUnreadWireframe",
-      "emits": "velt-notifications-panel-content-list-item-unread-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentListItemUnread",
+      "emits": "velt-notifications-panel-content-list-item-unread",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-load-more": {
-      "component": "VeltNotificationsPanelContentLoadMoreWireframe",
-      "emits": "velt-notifications-panel-content-load-more-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentLoadMore",
+      "emits": "velt-notifications-panel-content-load-more",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-people": {
-      "component": "VeltNotificationsPanelContentPeopleWireframe",
-      "emits": "velt-notifications-panel-content-people-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentPeople",
+      "emits": "velt-notifications-panel-content-people",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-people-list": {
-      "component": "VeltNotificationsPanelContentPeopleListWireframe",
-      "emits": "velt-notifications-panel-content-people-list-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentPeopleList",
+      "emits": "velt-notifications-panel-content-people-list",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-people-list-item": {
-      "component": "VeltNotificationsPanelContentPeopleListItemWireframe",
-      "emits": "velt-notifications-panel-content-people-list-item-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentPeopleListItem",
+      "emits": "velt-notifications-panel-content-people-list-item",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-people-list-item-avatar": {
-      "component": "VeltNotificationsPanelContentPeopleListItemAvatarWireframe",
-      "emits": "velt-notifications-panel-content-people-list-item-avatar-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentPeopleListItemAvatar",
+      "emits": "velt-notifications-panel-content-people-list-item-avatar",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-people-list-item-content": {
-      "component": "VeltNotificationsPanelContentPeopleListItemContentWireframe",
-      "emits": "velt-notifications-panel-content-people-list-item-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentPeopleListItemContent",
+      "emits": "velt-notifications-panel-content-people-list-item-content",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-people-list-item-count": {
-      "component": "VeltNotificationsPanelContentPeopleListItemCountWireframe",
-      "emits": "velt-notifications-panel-content-people-list-item-count-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentPeopleListItemCount",
+      "emits": "velt-notifications-panel-content-people-list-item-count",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-content-people-list-item-name": {
-      "component": "VeltNotificationsPanelContentPeopleListItemNameWireframe",
-      "emits": "velt-notifications-panel-content-people-list-item-name-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelContentPeopleListItemName",
+      "emits": "velt-notifications-panel-content-people-list-item-name",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-header": {
-      "component": "VeltNotificationsPanelHeaderWireframe",
-      "emits": "velt-notifications-panel-header-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelHeader",
+      "emits": "velt-notifications-panel-header",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-header-tab-all": {
-      "component": "VeltNotificationsPanelHeaderTabAllWireframe",
-      "emits": "velt-notifications-panel-header-tab-all-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelHeaderTabAll",
+      "emits": "velt-notifications-panel-header-tab-all",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-header-tab-documents": {
-      "component": "VeltNotificationsPanelHeaderTabDocumentsWireframe",
-      "emits": "velt-notifications-panel-header-tab-documents-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelHeaderTabDocuments",
+      "emits": "velt-notifications-panel-header-tab-documents",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-header-tab-for-you": {
-      "component": "VeltNotificationsPanelHeaderTabForYouWireframe",
-      "emits": "velt-notifications-panel-header-tab-for-you-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelHeaderTabForYou",
+      "emits": "velt-notifications-panel-header-tab-for-you",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-header-tab-people": {
-      "component": "VeltNotificationsPanelHeaderTabPeopleWireframe",
-      "emits": "velt-notifications-panel-header-tab-people-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelHeaderTabPeople",
+      "emits": "velt-notifications-panel-header-tab-people",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-read-all-button": {
-      "component": "VeltNotificationsPanelReadAllButtonWireframe",
-      "emits": "velt-notifications-panel-read-all-button-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelReadAllButton",
+      "emits": "velt-notifications-panel-read-all-button",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings": {
-      "component": "VeltNotificationsPanelSettingsWireframe",
-      "emits": "velt-notifications-panel-settings-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettings",
+      "emits": "velt-notifications-panel-settings",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-accordion": {
-      "component": "VeltNotificationsPanelSettingsAccordionWireframe",
-      "emits": "velt-notifications-panel-settings-accordion-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsAccordion",
+      "emits": "velt-notifications-panel-settings-accordion",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-accordion-content": {
-      "component": "VeltNotificationsPanelSettingsAccordionContentWireframe",
-      "emits": "velt-notifications-panel-settings-accordion-content-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsAccordionContent",
+      "emits": "velt-notifications-panel-settings-accordion-content",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-accordion-content-item": {
-      "component": "VeltNotificationsPanelSettingsAccordionContentItemWireframe",
-      "emits": "velt-notifications-panel-settings-accordion-content-item-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsAccordionContentItem",
+      "emits": "velt-notifications-panel-settings-accordion-content-item",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-accordion-content-item-icon": {
-      "component": "VeltNotificationsPanelSettingsAccordionContentItemIconWireframe",
-      "emits": "velt-notifications-panel-settings-accordion-content-item-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsAccordionContentItemIcon",
+      "emits": "velt-notifications-panel-settings-accordion-content-item-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-accordion-content-item-label": {
-      "component": "VeltNotificationsPanelSettingsAccordionContentItemLabelWireframe",
-      "emits": "velt-notifications-panel-settings-accordion-content-item-label-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsAccordionContentItemLabel",
+      "emits": "velt-notifications-panel-settings-accordion-content-item-label",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-accordion-trigger": {
-      "component": "VeltNotificationsPanelSettingsAccordionTriggerWireframe",
-      "emits": "velt-notifications-panel-settings-accordion-trigger-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsAccordionTrigger",
+      "emits": "velt-notifications-panel-settings-accordion-trigger",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-accordion-trigger-icon": {
-      "component": "VeltNotificationsPanelSettingsAccordionTriggerIconWireframe",
-      "emits": "velt-notifications-panel-settings-accordion-trigger-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsAccordionTriggerIcon",
+      "emits": "velt-notifications-panel-settings-accordion-trigger-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-accordion-trigger-label": {
-      "component": "VeltNotificationsPanelSettingsAccordionTriggerLabelWireframe",
-      "emits": "velt-notifications-panel-settings-accordion-trigger-label-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsAccordionTriggerLabel",
+      "emits": "velt-notifications-panel-settings-accordion-trigger-label",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-accordion-trigger-selected-value": {
-      "component": "VeltNotificationsPanelSettingsAccordionTriggerSelectedValueWireframe",
-      "emits": "velt-notifications-panel-settings-accordion-trigger-selected-value-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsAccordionTriggerSelectedValue",
+      "emits": "velt-notifications-panel-settings-accordion-trigger-selected-value",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-back-button": {
-      "component": "VeltNotificationsPanelSettingsBackButtonWireframe",
-      "emits": "velt-notifications-panel-settings-back-button-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsBackButton",
+      "emits": "velt-notifications-panel-settings-back-button",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-button": {
-      "component": "VeltNotificationsPanelSettingsButtonWireframe",
-      "emits": "velt-notifications-panel-settings-button-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsButton",
+      "emits": "velt-notifications-panel-settings-button",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-description": {
-      "component": "VeltNotificationsPanelSettingsDescriptionWireframe",
-      "emits": "velt-notifications-panel-settings-description-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsDescription",
+      "emits": "velt-notifications-panel-settings-description",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-footer": {
-      "component": "VeltNotificationsPanelSettingsFooterWireframe",
-      "emits": "velt-notifications-panel-settings-footer-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsFooter",
+      "emits": "velt-notifications-panel-settings-footer",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-header": {
-      "component": "VeltNotificationsPanelSettingsHeaderWireframe",
-      "emits": "velt-notifications-panel-settings-header-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsHeader",
+      "emits": "velt-notifications-panel-settings-header",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-header-title": {
-      "component": "VeltNotificationsPanelSettingsHeaderTitleWireframe",
-      "emits": "velt-notifications-panel-settings-header-title-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsHeaderTitle",
+      "emits": "velt-notifications-panel-settings-header-title",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-list": {
-      "component": "VeltNotificationsPanelSettingsListWireframe",
-      "emits": "velt-notifications-panel-settings-list-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsList",
+      "emits": "velt-notifications-panel-settings-list",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-mute-all-description": {
-      "component": "VeltNotificationsPanelSettingsMuteAllDescriptionWireframe",
-      "emits": "velt-notifications-panel-settings-mute-all-description-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsMuteAllDescription",
+      "emits": "velt-notifications-panel-settings-mute-all-description",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-mute-all-title": {
-      "component": "VeltNotificationsPanelSettingsMuteAllTitleWireframe",
-      "emits": "velt-notifications-panel-settings-mute-all-title-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsMuteAllTitle",
+      "emits": "velt-notifications-panel-settings-mute-all-title",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-mute-all-toggle": {
-      "component": "VeltNotificationsPanelSettingsMuteAllToggleWireframe",
-      "emits": "velt-notifications-panel-settings-mute-all-toggle-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsMuteAllToggle",
+      "emits": "velt-notifications-panel-settings-mute-all-toggle",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-settings-title": {
-      "component": "VeltNotificationsPanelSettingsTitleWireframe",
-      "emits": "velt-notifications-panel-settings-title-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSettingsTitle",
+      "emits": "velt-notifications-panel-settings-title",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-skeleton": {
-      "component": "VeltNotificationsPanelSkeletonWireframe",
-      "emits": "velt-notifications-panel-skeleton-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelSkeleton",
+      "emits": "velt-notifications-panel-skeleton",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-title": {
-      "component": "VeltNotificationsPanelTitleWireframe",
-      "emits": "velt-notifications-panel-title-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelTitle",
+      "emits": "velt-notifications-panel-title",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-title-text": {
-      "component": "VeltNotificationsPanelTitleTextWireframe",
-      "emits": "velt-notifications-panel-title-text-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelTitleText",
+      "emits": "velt-notifications-panel-title-text",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-panel-view-all-button": {
-      "component": "VeltNotificationsPanelViewAllButtonWireframe",
-      "emits": "velt-notifications-panel-view-all-button-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsPanelViewAllButton",
+      "emits": "velt-notifications-panel-view-all-button",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-tool": {
-      "component": "VeltNotificationsToolWireframe",
-      "emits": "velt-notifications-tool-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsTool",
+      "emits": "velt-notifications-tool",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-tool-icon": {
-      "component": "VeltNotificationsToolIconWireframe",
-      "emits": "velt-notifications-tool-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsToolIcon",
+      "emits": "velt-notifications-tool-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-tool-label": {
-      "component": "VeltNotificationsToolLabelWireframe",
-      "emits": "velt-notifications-tool-label-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsToolLabel",
+      "emits": "velt-notifications-tool-label",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-tool-unread-count": {
-      "component": "VeltNotificationsToolUnreadCountWireframe",
-      "emits": "velt-notifications-tool-unread-count-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsToolUnreadCount",
+      "emits": "velt-notifications-tool-unread-count",
+      "forwardsArbitraryProps": false
     },
     "velt-notifications-tool-unread-icon": {
-      "component": "VeltNotificationsToolUnreadIconWireframe",
-      "emits": "velt-notifications-tool-unread-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltNotificationsToolUnreadIcon",
+      "emits": "velt-notifications-tool-unread-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-persistent-comment-mode": {
       "component": "VeltPersistentCommentModeWireframe",
@@ -3317,9 +3317,9 @@
       "forwardsArbitraryProps": true
     },
     "velt-reaction-tool": {
-      "component": "VeltReactionToolWireframe",
-      "emits": "velt-reaction-tool-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltReactionTool",
+      "emits": "velt-reaction-tool",
+      "forwardsArbitraryProps": false
     },
     "velt-reactions-panel": {
       "component": "VeltReactionsPanelWireframe",
@@ -3848,23 +3848,23 @@
     },
     "velt-sidebar-button-comments-count": {
       "component": "VeltSidebarButtonCommentsCount",
-      "emits": "velt-sidebar-button-comments-count-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-sidebar-button-comments-count",
+      "forwardsArbitraryProps": false
     },
     "velt-sidebar-button-icon": {
       "component": "VeltSidebarButtonIcon",
-      "emits": "velt-sidebar-button-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-sidebar-button-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-sidebar-button-unread-icon": {
       "component": "VeltSidebarButtonUnreadIcon",
-      "emits": "velt-sidebar-button-unread-icon-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-sidebar-button-unread-icon",
+      "forwardsArbitraryProps": false
     },
     "velt-single-editor-mode-panel": {
-      "component": "VeltSingleEditorModePanelWireframe",
-      "emits": "velt-single-editor-mode-panel-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltSingleEditorModePanel",
+      "emits": "velt-single-editor-mode-panel",
+      "forwardsArbitraryProps": false
     },
     "velt-single-editor-mode-panel-accept-request": {
       "component": "VeltSingleEditorModePanelAcceptRequestWireframe",
@@ -3947,34 +3947,34 @@
       "forwardsArbitraryProps": false
     },
     "velt-text-comment-tool": {
-      "component": "VeltTextCommentToolWireframe",
-      "emits": "velt-text-comment-tool-wireframe",
-      "forwardsArbitraryProps": true
+      "component": "VeltTextCommentTool",
+      "emits": "velt-text-comment-tool",
+      "forwardsArbitraryProps": false
     },
     "velt-text-comment-toolbar": {
       "component": "VeltTextCommentToolbar",
-      "emits": "velt-text-comment-toolbar-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-text-comment-toolbar",
+      "forwardsArbitraryProps": false
     },
     "velt-text-comment-toolbar-comment-annotation": {
       "component": "VeltTextCommentToolbarCommentAnnotation",
-      "emits": "velt-text-comment-toolbar-comment-annotation-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-text-comment-toolbar-comment-annotation",
+      "forwardsArbitraryProps": false
     },
     "velt-text-comment-toolbar-copywriter": {
       "component": "VeltTextCommentToolbarCopywriter",
-      "emits": "velt-text-comment-toolbar-copywriter-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-text-comment-toolbar-copywriter",
+      "forwardsArbitraryProps": false
     },
     "velt-text-comment-toolbar-divider": {
       "component": "VeltTextCommentToolbarDivider",
-      "emits": "velt-text-comment-toolbar-divider-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-text-comment-toolbar-divider",
+      "forwardsArbitraryProps": false
     },
     "velt-text-comment-toolbar-generic": {
       "component": "VeltTextCommentToolbarGeneric",
-      "emits": "velt-text-comment-toolbar-generic-wireframe",
-      "forwardsArbitraryProps": true
+      "emits": "velt-text-comment-toolbar-generic",
+      "forwardsArbitraryProps": false
     },
     "velt-transcription-button": {
       "component": "VeltTranscriptionButtonWireframe",

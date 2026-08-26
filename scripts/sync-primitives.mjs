@@ -441,7 +441,22 @@ async function deriveReactWrappers(reactPkgPath) {
     byComponent[rec.component] = rec;
     // The manifest tag is the emitted tag minus a -wireframe suffix when the wrapper adds one.
     const manifestTag = emits.replace(/-wireframe$/, "");
-    if (!byTag[manifestTag] || forwards) byTag[manifestTag] = rec;
+    // TWO wrappers can share a reactName and collide on this key: the PRIMITIVE one emits the
+    // plain tag, a separate wireframe one emits `<tag>-wireframe`. The old `|| forwards`
+    // tiebreak handed the entry to the wireframe twin every time — it __rest-forwards while the
+    // primitive destructures named props and does not — so the whole CommentDialogPrimitive
+    // family was recorded with BOTH the wrong `emitsTag` (selectors/probes then address an
+    // element that is not in the DOM) and `forwardsClassName:true` for a wrapper that actually
+    // drops className (contradicting the builder's rule 16). Verified in @veltdev/react
+    // 6.0.0-beta.15: esm/index.js:2918 emits `velt-comment-dialog-thread-card-message`,
+    // esm/index.js:5109 emits `…-message-wireframe`. Prefer the wrapper whose emitted tag IS the
+    // manifest tag; fall back to the old rule only between wrappers of the same kind (the ~366
+    // tags that legitimately have a -wireframe wrapper ONLY are unaffected — nothing collides).
+    const prev = byTag[manifestTag];
+    const exact = emits === manifestTag;
+    if (!prev) byTag[manifestTag] = rec;
+    else if (exact !== (prev.emits === manifestTag)) { if (exact) byTag[manifestTag] = rec; }
+    else if (forwards) byTag[manifestTag] = rec;
   }
 
   const doc = {

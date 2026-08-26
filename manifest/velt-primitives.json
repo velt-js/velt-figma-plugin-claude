@@ -3708,7 +3708,7 @@
       "readsDefaultCondition": false,
       "ownsVisibility": null,
       "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-wireframe",
+      "emitsTag": "velt-activity-log",
       "sdkParents": null,
       "bindsClick": false
     },
@@ -3731,8 +3731,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-empty-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-empty",
       "sdkParents": [
         "velt-activity-log"
       ],
@@ -3751,8 +3751,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-header-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-header",
       "sdkParents": [
         "velt-activity-log"
       ],
@@ -3771,8 +3771,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-header-close-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-header-close-button",
       "sdkParents": [
         "velt-activity-log-header"
       ],
@@ -3791,8 +3791,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-header-filter-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-header-filter",
       "sdkParents": [
         "velt-activity-log-header"
       ],
@@ -3816,8 +3816,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-header-filter-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-header-filter-content",
       "sdkParents": [
         "velt-activity-log-header-filter"
       ],
@@ -3836,8 +3836,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-header-filter-content-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-header-filter-content-item",
       "sdkParents": [
         "velt-activity-log-header-filter-content"
       ],
@@ -3856,8 +3856,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-header-filter-content-item-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-header-filter-content-item-icon",
       "sdkParents": [
         "velt-activity-log-header-filter-content-item"
       ],
@@ -3876,8 +3876,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-header-filter-content-item-label-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-header-filter-content-item-label",
       "sdkParents": [
         "velt-activity-log-header-filter-content-item"
       ],
@@ -3904,8 +3904,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-header-filter-trigger-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-header-filter-trigger",
       "sdkParents": [
         "velt-activity-log-header-filter"
       ],
@@ -3924,8 +3924,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-header-filter-trigger-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-header-filter-trigger-icon",
       "sdkParents": [
         "velt-activity-log-header-filter-trigger"
       ],
@@ -3944,8 +3944,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-header-filter-trigger-label-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-header-filter-trigger-label",
       "sdkParents": [
         "velt-activity-log-header-filter-trigger"
       ],
@@ -3964,8 +3964,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-header-title-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-header-title",
       "sdkParents": [
         "velt-activity-log-header"
       ],
@@ -3990,8 +3990,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-list-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-list",
       "sdkParents": [
         "velt-activity-log"
       ],
@@ -4010,8 +4010,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-list-date-group-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-list-date-group",
       "sdkParents": [
         "velt-activity-log-list"
       ],
@@ -4030,8 +4030,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-list-date-group-label-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-list-date-group-label",
       "sdkParents": [
         "velt-activity-log-list-date-group"
       ],
@@ -4050,8 +4050,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-list-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-list-item",
       "sdkParents": [
         "velt-activity-log-list"
       ],
@@ -4074,8 +4074,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-list-item-avatar-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-list-item-avatar",
       "sdkParents": [
         "velt-activity-log-list-item"
       ],
@@ -4094,8 +4094,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-list-item-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-list-item-content",
       "sdkParents": [
         "velt-activity-log-list-item"
       ],
@@ -4114,8 +4114,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-list-item-content-action-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-list-item-content-action",
       "sdkParents": [
         "velt-activity-log-list-item-content"
       ],
@@ -4138,8 +4138,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-list-item-content-detail-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-list-item-content-detail",
       "sdkParents": [
         "velt-activity-log-list-item-content"
       ],
@@ -4162,8 +4162,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-list-item-content-target-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-list-item-content-target",
       "sdkParents": [
         "velt-activity-log-list-item-content"
       ],
@@ -4182,8 +4182,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-list-item-content-user-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-list-item-content-user",
       "sdkParents": [
         "velt-activity-log-list-item-content"
       ],
@@ -4202,8 +4202,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-list-item-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-list-item-icon",
       "sdkParents": [
         "velt-activity-log-list-item"
       ],
@@ -4222,8 +4222,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-list-item-time-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-list-item-time",
       "sdkParents": [
         "velt-activity-log-list-item"
       ],
@@ -4248,8 +4248,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-list-show-more-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-list-show-more",
       "sdkParents": [
         "velt-activity-log-list"
       ],
@@ -4274,8 +4274,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-activity-log-loading-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-activity-log-loading",
       "sdkParents": [
         "velt-activity-log"
       ],
@@ -4312,8 +4312,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-autocomplete-chip-tooltip-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-autocomplete-chip-tooltip",
       "sdkParents": [
         "velt-autocomplete-chip"
       ],
@@ -4332,8 +4332,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-autocomplete-chip-tooltip-description-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-autocomplete-chip-tooltip-description",
       "sdkParents": [
         "velt-autocomplete-chip-tooltip"
       ],
@@ -4352,8 +4352,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-autocomplete-chip-tooltip-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-autocomplete-chip-tooltip-icon",
       "sdkParents": [
         "velt-autocomplete-chip-tooltip"
       ],
@@ -4372,8 +4372,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-autocomplete-chip-tooltip-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-autocomplete-chip-tooltip-name",
       "sdkParents": [
         "velt-autocomplete-chip-tooltip"
       ],
@@ -4392,8 +4392,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-autocomplete-empty-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-autocomplete-empty",
       "sdkParents": null,
       "bindsClick": false
     },
@@ -4415,8 +4415,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-autocomplete-group-option-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-autocomplete-group-option",
       "sdkParents": [
         "velt-autocomplete-panel"
       ],
@@ -4435,8 +4435,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-autocomplete-option-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-autocomplete-option",
       "sdkParents": [
         "velt-autocomplete-panel"
       ],
@@ -4455,8 +4455,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-autocomplete-option-description-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-autocomplete-option-description",
       "sdkParents": [
         "velt-autocomplete-option"
       ],
@@ -4475,8 +4475,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": true,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-autocomplete-option-error-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-autocomplete-option-error-icon",
       "sdkParents": [
         "velt-autocomplete-option"
       ],
@@ -4495,8 +4495,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-autocomplete-option-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-autocomplete-option-icon",
       "sdkParents": [
         "velt-autocomplete-option"
       ],
@@ -4515,8 +4515,8 @@
       "capabilityExceptions": null,
       "readsDefaultCondition": false,
       "ownsVisibility": null,
-      "forwardsClassName": true,
-      "emitsTag": "velt-autocomplete-option-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-autocomplete-option-name",
       "sdkParents": [
         "velt-autocomplete-option"
       ],
@@ -4592,7 +4592,7 @@
         "viaBaseClass": false
       },
       "forwardsClassName": false,
-      "emitsTag": "velt-comment-bubble-avatar-wireframe",
+      "emitsTag": "velt-comment-bubble-avatar",
       "sdkParents": [
         "snippyly-comment-bubble"
       ],
@@ -4621,7 +4621,7 @@
         "viaBaseClass": false
       },
       "forwardsClassName": false,
-      "emitsTag": "velt-comment-bubble-comments-count-wireframe",
+      "emitsTag": "velt-comment-bubble-comments-count",
       "sdkParents": [
         "snippyly-comment-bubble"
       ],
@@ -4651,8 +4651,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-bubble-unread-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-bubble-unread-icon",
       "sdkParents": [
         "snippyly-comment-bubble"
       ],
@@ -4687,8 +4687,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-all-comment-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-all-comment",
       "sdkParents": [
         "velt-comment-dialog"
       ],
@@ -4718,8 +4718,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-approve-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-approve",
       "sdkParents": [
         "velt-comment-dialog"
       ],
@@ -4746,8 +4746,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-assign-menu-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-assign-menu",
       "sdkParents": [
         "velt-comment-dialog-header",
         "velt-comment-dialog-options",
@@ -4780,8 +4780,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-assignee-banner-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-assignee-banner",
       "sdkParents": [
         "velt-comment-dialog"
       ],
@@ -4809,8 +4809,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-assignee-banner-resolve-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-assignee-banner-resolve-button",
       "sdkParents": [
         "velt-comment-dialog-assignee-banner"
       ],
@@ -4838,8 +4838,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-assignee-banner-unresolve-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-assignee-banner-unresolve-button",
       "sdkParents": [
         "velt-comment-dialog-assignee-banner"
       ],
@@ -4866,8 +4866,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-assignee-banner-user-avatar-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-assignee-banner-user-avatar",
       "sdkParents": [
         "velt-comment-dialog-assignee-banner"
       ],
@@ -4894,8 +4894,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-assignee-banner-user-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-assignee-banner-user-name",
       "sdkParents": [
         "velt-comment-dialog-assignee-banner"
       ],
@@ -4924,8 +4924,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-body-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-body",
       "sdkParents": [
         "velt-comment-dialog"
       ],
@@ -4952,8 +4952,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-close-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-close-button",
       "sdkParents": null,
       "bindsClick": true
     },
@@ -4986,8 +4986,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-comment-category-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-comment-category",
       "sdkParents": [
         "velt-comment-dialog-header"
       ],
@@ -5015,8 +5015,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-comment-index-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-comment-index",
       "sdkParents": null,
       "bindsClick": false
     },
@@ -5048,8 +5048,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-comment-number-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-comment-number",
       "sdkParents": [
         "velt-comment-dialog-header"
       ],
@@ -5086,8 +5086,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-comment-suggestion-status-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-comment-suggestion-status",
       "sdkParents": [
         "velt-comment-dialog-header"
       ],
@@ -5118,8 +5118,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer",
       "sdkParents": [
         "velt-comment-dialog",
         "velt-comment-dialog-thread-card-edit-composer"
@@ -5147,8 +5147,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-action-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-action-button",
       "sdkParents": [
         "velt-comment-dialog-composer"
       ],
@@ -5181,8 +5181,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-assign-user-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-assign-user",
       "sdkParents": [
         "velt-comment-dialog-composer"
       ],
@@ -5209,8 +5209,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments",
       "sdkParents": [
         "velt-comment-dialog-composer"
       ],
@@ -5237,8 +5237,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-image-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-image",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-selected"
       ],
@@ -5265,8 +5265,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-image-delete-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-image-delete",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-image"
       ],
@@ -5293,8 +5293,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-image-download-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-image-download",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-image"
       ],
@@ -5322,8 +5322,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-image-loading-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-image-loading",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-image"
       ],
@@ -5350,8 +5350,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-image-preview-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-image-preview",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-image"
       ],
@@ -5378,8 +5378,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-invalid-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-invalid",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments"
       ],
@@ -5406,8 +5406,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-invalid-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-invalid-item",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-invalid"
       ],
@@ -5434,8 +5434,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-invalid-item-delete-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-invalid-item-delete",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-invalid-item"
       ],
@@ -5462,8 +5462,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-invalid-item-message-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-invalid-item-message",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-invalid-item"
       ],
@@ -5490,8 +5490,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-invalid-item-preview-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-invalid-item-preview",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-invalid-item"
       ],
@@ -5518,8 +5518,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-other-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-other",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-selected"
       ],
@@ -5546,8 +5546,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-other-delete-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-other-delete",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-other"
       ],
@@ -5574,8 +5574,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-other-download-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-other-download",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-other"
       ],
@@ -5602,8 +5602,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-other-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-other-icon",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-other"
       ],
@@ -5631,8 +5631,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-other-loading-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-other-loading",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-other"
       ],
@@ -5659,8 +5659,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-other-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-other-name",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-other"
       ],
@@ -5687,8 +5687,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-other-size-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-other-size",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments-other"
       ],
@@ -5715,8 +5715,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-attachments-selected-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-attachments-selected",
       "sdkParents": [
         "velt-comment-dialog-composer-attachments"
       ],
@@ -5748,8 +5748,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-avatar-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-avatar",
       "sdkParents": [
         "velt-comment-dialog-composer"
       ],
@@ -5776,8 +5776,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-format-toolbar-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-format-toolbar",
       "sdkParents": [
         "velt-comment-dialog-composer"
       ],
@@ -5804,8 +5804,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-format-toolbar-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-format-toolbar-button",
       "sdkParents": [
         "velt-comment-dialog-composer-format-toolbar"
       ],
@@ -5832,8 +5832,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-input-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-input",
       "sdkParents": [
         "velt-comment-dialog-composer"
       ],
@@ -5863,8 +5863,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-private-badge-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-private-badge",
       "sdkParents": [
         "velt-comment-dialog-composer"
       ],
@@ -5891,8 +5891,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-composer-recordings-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-composer-recordings",
       "sdkParents": [
         "velt-comment-dialog-composer"
       ],
@@ -5925,8 +5925,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-copy-link-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-copy-link",
       "sdkParents": [
         "velt-comment-dialog-header"
       ],
@@ -5955,8 +5955,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown",
       "sdkParents": [
         "velt-comment-dialog-composer",
         "velt-comment-dialog-header"
@@ -5984,8 +5984,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-content",
       "sdkParents": [
         "velt-comment-dialog-custom-annotation-dropdown"
       ],
@@ -6017,8 +6017,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-content-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-content-item",
       "sdkParents": [
         "velt-comment-dialog-custom-annotation-dropdown-content"
       ],
@@ -6050,8 +6050,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-content-item-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-content-item-icon",
       "sdkParents": [
         "velt-comment-dialog-custom-annotation-dropdown-content-item"
       ],
@@ -6083,8 +6083,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-content-item-label-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-content-item-label",
       "sdkParents": [
         "velt-comment-dialog-custom-annotation-dropdown-content-item"
       ],
@@ -6122,8 +6122,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-trigger-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-trigger",
       "sdkParents": [
         "velt-comment-dialog-custom-annotation-dropdown"
       ],
@@ -6150,8 +6150,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-trigger-arrow-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-trigger-arrow",
       "sdkParents": [
         "velt-comment-dialog-custom-annotation-dropdown-trigger"
       ],
@@ -6178,8 +6178,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-trigger-list-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-trigger-list",
       "sdkParents": [
         "velt-comment-dialog-custom-annotation-dropdown-trigger"
       ],
@@ -6206,8 +6206,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-trigger-list-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-trigger-list-item",
       "sdkParents": [
         "velt-comment-dialog-custom-annotation-dropdown-trigger-list"
       ],
@@ -6236,8 +6236,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-trigger-placeholder-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-trigger-placeholder",
       "sdkParents": [
         "velt-comment-dialog-custom-annotation-dropdown-trigger"
       ],
@@ -6266,8 +6266,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-trigger-remaining-count-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-custom-annotation-dropdown-trigger-remaining-count",
       "sdkParents": [
         "velt-comment-dialog-custom-annotation-dropdown-trigger"
       ],
@@ -6296,8 +6296,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-delete-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-delete-button",
       "sdkParents": null,
       "bindsClick": true
     },
@@ -6325,8 +6325,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-ghost-banner-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-ghost-banner",
       "sdkParents": [
         "velt-comment-dialog"
       ],
@@ -6355,8 +6355,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-header-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-header",
       "sdkParents": [
         "velt-comment-dialog"
       ],
@@ -6390,8 +6390,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-hide-reply-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-hide-reply",
       "sdkParents": [
         "velt-comment-dialog-body"
       ],
@@ -6419,8 +6419,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-legacy-suggestion-action-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-legacy-suggestion-action",
       "sdkParents": [
         "velt-comment-dialog"
       ],
@@ -6448,8 +6448,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-legacy-suggestion-action-accept-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-legacy-suggestion-action-accept",
       "sdkParents": [
         "velt-comment-dialog-legacy-suggestion-action"
       ],
@@ -6476,8 +6476,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-legacy-suggestion-action-reject-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-legacy-suggestion-action-reject",
       "sdkParents": [
         "velt-comment-dialog-legacy-suggestion-action"
       ],
@@ -6537,8 +6537,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-more-reply-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-more-reply",
       "sdkParents": [
         "velt-comment-dialog-threads"
       ],
@@ -6566,8 +6566,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-more-reply-count-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-more-reply-count",
       "sdkParents": [
         "velt-comment-dialog-more-reply"
       ],
@@ -6594,8 +6594,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-more-reply-text-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-more-reply-text",
       "sdkParents": [
         "velt-comment-dialog-more-reply"
       ],
@@ -6629,8 +6629,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-navigation-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-navigation-button",
       "sdkParents": [
         "velt-comment-dialog-header"
       ],
@@ -6658,8 +6658,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-options-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-options",
       "sdkParents": null,
       "bindsClick": false
     },
@@ -6714,8 +6714,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-options-dropdown-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-options-dropdown-content",
       "sdkParents": [
         "velt-comment-dialog-options-dropdown"
       ],
@@ -6742,8 +6742,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-options-dropdown-content-assign-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-options-dropdown-content-assign",
       "sdkParents": [
         "velt-comment-dialog-options-dropdown-content"
       ],
@@ -6770,8 +6770,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-options-dropdown-content-delete-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-options-dropdown-content-delete",
       "sdkParents": [
         "velt-comment-dialog-options-dropdown-content"
       ],
@@ -6805,8 +6805,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-options-dropdown-content-delete-comment-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-options-dropdown-content-delete-comment",
       "sdkParents": [
         "velt-comment-dialog-options-dropdown-content-delete"
       ],
@@ -6840,8 +6840,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-options-dropdown-content-delete-thread-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-options-dropdown-content-delete-thread",
       "sdkParents": [
         "velt-comment-dialog-options-dropdown-content-delete"
       ],
@@ -6868,8 +6868,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-options-dropdown-content-edit-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-options-dropdown-content-edit",
       "sdkParents": [
         "velt-comment-dialog-options-dropdown-content"
       ],
@@ -6899,8 +6899,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-options-dropdown-content-make-private-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-options-dropdown-content-make-private",
       "sdkParents": [
         "velt-comment-dialog-options-dropdown-content"
       ],
@@ -6934,8 +6934,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-options-dropdown-content-make-private-disable-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-options-dropdown-content-make-private-disable",
       "sdkParents": [
         "velt-comment-dialog-options-dropdown-content-make-private"
       ],
@@ -6969,8 +6969,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-options-dropdown-content-make-private-enable-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-options-dropdown-content-make-private-enable",
       "sdkParents": [
         "velt-comment-dialog-options-dropdown-content-make-private"
       ],
@@ -6999,8 +6999,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-options-dropdown-content-mark-as-read-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-options-dropdown-content-mark-as-read",
       "sdkParents": [
         "velt-comment-dialog-options-dropdown-content"
       ],
@@ -7083,8 +7083,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-options-dropdown-content-notification-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-options-dropdown-content-notification",
       "sdkParents": [
         "velt-comment-dialog-options-dropdown-content"
       ],
@@ -7174,8 +7174,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-options-dropdown-trigger-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-options-dropdown-trigger",
       "sdkParents": [
         "velt-comment-dialog-options-dropdown"
       ],
@@ -7203,8 +7203,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-priority-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-priority",
       "sdkParents": null,
       "bindsClick": true
     },
@@ -7259,8 +7259,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-priority-dropdown-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-priority-dropdown-content",
       "sdkParents": [
         "velt-comment-dialog-priority-dropdown"
       ],
@@ -7287,8 +7287,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-priority-dropdown-content-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-priority-dropdown-content-item",
       "sdkParents": [
         "velt-comment-dialog-priority-dropdown-content"
       ],
@@ -7315,8 +7315,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-priority-dropdown-content-item-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-priority-dropdown-content-item-icon",
       "sdkParents": [
         "velt-comment-dialog-priority-dropdown-content-item"
       ],
@@ -7343,8 +7343,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-priority-dropdown-content-item-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-priority-dropdown-content-item-name",
       "sdkParents": [
         "velt-comment-dialog-priority-dropdown-content-item"
       ],
@@ -7371,8 +7371,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-priority-dropdown-content-item-tick-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-priority-dropdown-content-item-tick",
       "sdkParents": [
         "velt-comment-dialog-priority-dropdown-content-item"
       ],
@@ -7409,8 +7409,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-priority-dropdown-trigger-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-priority-dropdown-trigger",
       "sdkParents": [
         "velt-comment-dialog-priority-dropdown"
       ],
@@ -7439,8 +7439,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-priority-dropdown-trigger-arrow-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-priority-dropdown-trigger-arrow",
       "sdkParents": [
         "velt-comment-dialog-priority-dropdown-trigger"
       ],
@@ -7468,8 +7468,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-priority-dropdown-trigger-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-priority-dropdown-trigger-icon",
       "sdkParents": [
         "velt-comment-dialog-priority-dropdown-trigger"
       ],
@@ -7497,8 +7497,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-priority-dropdown-trigger-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-priority-dropdown-trigger-name",
       "sdkParents": [
         "velt-comment-dialog-priority-dropdown-trigger"
       ],
@@ -7529,8 +7529,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-private-banner-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-private-banner",
       "sdkParents": [
         "velt-comment-dialog"
       ],
@@ -7593,8 +7593,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-reply-avatars-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-reply-avatars",
       "sdkParents": [
         "velt-comment-dialog-body"
       ],
@@ -7621,8 +7621,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-reply-avatars-list-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-reply-avatars-list",
       "sdkParents": [
         "velt-comment-dialog-reply-avatars"
       ],
@@ -7649,8 +7649,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-reply-avatars-list-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-reply-avatars-list-item",
       "sdkParents": [
         "velt-comment-dialog-reply-avatars-list"
       ],
@@ -7679,8 +7679,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-reply-avatars-remaining-count-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-reply-avatars-remaining-count",
       "sdkParents": [
         "velt-comment-dialog-reply-avatars"
       ],
@@ -7718,8 +7718,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-resolve-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-resolve-button",
       "sdkParents": [
         "velt-comment-dialog-header"
       ],
@@ -7749,8 +7749,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-sign-in-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-sign-in",
       "sdkParents": [
         "velt-comment-dialog"
       ],
@@ -7778,8 +7778,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-status-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-status",
       "sdkParents": null,
       "bindsClick": true
     },
@@ -7834,8 +7834,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-status-dropdown-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-status-dropdown-content",
       "sdkParents": [
         "velt-comment-dialog-status-dropdown"
       ],
@@ -7862,8 +7862,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-status-dropdown-content-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-status-dropdown-content-item",
       "sdkParents": [
         "velt-comment-dialog-status-dropdown-content"
       ],
@@ -7890,8 +7890,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-status-dropdown-content-item-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-status-dropdown-content-item-icon",
       "sdkParents": [
         "velt-comment-dialog-status-dropdown-content-item"
       ],
@@ -7918,8 +7918,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-status-dropdown-content-item-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-status-dropdown-content-item-name",
       "sdkParents": [
         "velt-comment-dialog-status-dropdown-content-item"
       ],
@@ -7956,8 +7956,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-status-dropdown-trigger-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-status-dropdown-trigger",
       "sdkParents": [
         "velt-comment-dialog-status-dropdown"
       ],
@@ -7986,8 +7986,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-status-dropdown-trigger-arrow-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-status-dropdown-trigger-arrow",
       "sdkParents": [
         "velt-comment-dialog-status-dropdown-trigger"
       ],
@@ -8015,8 +8015,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-status-dropdown-trigger-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-status-dropdown-trigger-icon",
       "sdkParents": [
         "velt-comment-dialog-status-dropdown-trigger"
       ],
@@ -8044,8 +8044,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-status-dropdown-trigger-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-status-dropdown-trigger-name",
       "sdkParents": [
         "velt-comment-dialog-status-dropdown-trigger"
       ],
@@ -8078,8 +8078,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion",
       "sdkParents": [
         "velt-comment-dialog"
       ],
@@ -8106,8 +8106,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-action-accept-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-action-accept",
       "sdkParents": [
         "velt-comment-dialog-suggestion-actions"
       ],
@@ -8134,8 +8134,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-action-reject-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-action-reject",
       "sdkParents": [
         "velt-comment-dialog-suggestion-actions"
       ],
@@ -8163,8 +8163,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-actions-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-actions",
       "sdkParents": [
         "velt-comment-dialog-suggestion-footer"
       ],
@@ -8191,8 +8191,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-agent-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-agent",
       "sdkParents": [
         "velt-comment-dialog-suggestion-header"
       ],
@@ -8219,8 +8219,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-agent-avatar-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-agent-avatar",
       "sdkParents": [
         "velt-comment-dialog-suggestion-agent"
       ],
@@ -8247,8 +8247,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-agent-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-agent-name",
       "sdkParents": [
         "velt-comment-dialog-suggestion-agent"
       ],
@@ -8275,8 +8275,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-author-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-author",
       "sdkParents": [
         "velt-comment-dialog-suggestion-header"
       ],
@@ -8303,8 +8303,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-author-avatar-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-author-avatar",
       "sdkParents": [
         "velt-comment-dialog-suggestion-author"
       ],
@@ -8331,8 +8331,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-author-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-author-name",
       "sdkParents": [
         "velt-comment-dialog-suggestion-author"
       ],
@@ -8359,8 +8359,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-banner-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-banner",
       "sdkParents": [
         "velt-comment-dialog",
         "velt-comment-dialog-suggestion"
@@ -8388,8 +8388,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-banner-avatar-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-banner-avatar",
       "sdkParents": [
         "velt-comment-dialog-suggestion-banner"
       ],
@@ -8416,8 +8416,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-banner-avatar-status-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-banner-avatar-status-icon",
       "sdkParents": [
         "velt-comment-dialog-suggestion-banner-avatar"
       ],
@@ -8444,8 +8444,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-banner-avatar-user-image-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-banner-avatar-user-image",
       "sdkParents": [
         "velt-comment-dialog-suggestion-banner-avatar"
       ],
@@ -8472,8 +8472,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-banner-label-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-banner-label",
       "sdkParents": [
         "velt-comment-dialog-suggestion-banner"
       ],
@@ -8500,8 +8500,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-banner-resolver-user-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-banner-resolver-user-name",
       "sdkParents": [
         "velt-comment-dialog-suggestion-banner"
       ],
@@ -8528,8 +8528,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-banner-separator-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-banner-separator",
       "sdkParents": [
         "velt-comment-dialog-suggestion-banner"
       ],
@@ -8556,8 +8556,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-banner-timestamp-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-banner-timestamp",
       "sdkParents": [
         "velt-comment-dialog-suggestion-banner"
       ],
@@ -8584,8 +8584,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-body-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-body",
       "sdkParents": [
         "velt-comment-dialog-suggestion"
       ],
@@ -8612,8 +8612,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-footer-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-footer",
       "sdkParents": [
         "velt-comment-dialog-suggestion"
       ],
@@ -8640,8 +8640,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-footer-open-comment-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-footer-open-comment",
       "sdkParents": [
         "velt-comment-dialog-suggestion-footer"
       ],
@@ -8668,8 +8668,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-header-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-header",
       "sdkParents": [
         "velt-comment-dialog-suggestion"
       ],
@@ -8696,8 +8696,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-menu-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-menu",
       "sdkParents": [
         "velt-comment-dialog-suggestion-header"
       ],
@@ -8724,8 +8724,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-menu-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-menu-content",
       "sdkParents": [
         "velt-comment-dialog-suggestion-menu"
       ],
@@ -8752,8 +8752,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-menu-content-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-menu-content-item",
       "sdkParents": [
         "velt-comment-dialog-suggestion-menu-content"
       ],
@@ -8780,8 +8780,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-menu-content-item-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-menu-content-item-icon",
       "sdkParents": [
         "velt-comment-dialog-suggestion-menu-content-item"
       ],
@@ -8808,8 +8808,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-menu-content-item-label-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-menu-content-item-label",
       "sdkParents": [
         "velt-comment-dialog-suggestion-menu-content-item"
       ],
@@ -8841,8 +8841,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-menu-trigger-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-menu-trigger",
       "sdkParents": [
         "velt-comment-dialog-suggestion-menu"
       ],
@@ -8869,8 +8869,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-suggestion-timestamp-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-suggestion-timestamp",
       "sdkParents": [
         "velt-comment-dialog-suggestion-header"
       ],
@@ -8900,8 +8900,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card",
       "sdkParents": [
         "velt-comment-dialog-threads"
       ],
@@ -8931,8 +8931,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-assign-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-assign-button",
       "sdkParents": null,
       "bindsClick": true
     },
@@ -8962,8 +8962,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-attachments-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-attachments",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -8995,8 +8995,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-attachments-image-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-attachments-image",
       "sdkParents": [
         "velt-comment-dialog-thread-card-attachments"
       ],
@@ -9026,8 +9026,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-attachments-image-delete-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-attachments-image-delete",
       "sdkParents": [
         "velt-comment-dialog-thread-card-attachments-image"
       ],
@@ -9057,8 +9057,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-attachments-image-download-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-attachments-image-download",
       "sdkParents": [
         "velt-comment-dialog-thread-card-attachments-image"
       ],
@@ -9085,8 +9085,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-attachments-image-preview-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-attachments-image-preview",
       "sdkParents": [
         "velt-comment-dialog-thread-card-attachments-image"
       ],
@@ -9113,8 +9113,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-attachments-other-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-attachments-other",
       "sdkParents": [
         "velt-comment-dialog-thread-card-attachments"
       ],
@@ -9144,8 +9144,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-attachments-other-delete-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-attachments-other-delete",
       "sdkParents": [
         "velt-comment-dialog-thread-card-attachments-other"
       ],
@@ -9172,8 +9172,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-attachments-other-download-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-attachments-other-download",
       "sdkParents": [
         "velt-comment-dialog-thread-card-attachments-other"
       ],
@@ -9200,8 +9200,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-attachments-other-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-attachments-other-icon",
       "sdkParents": [
         "velt-comment-dialog-thread-card-attachments-other"
       ],
@@ -9228,8 +9228,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-attachments-other-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-attachments-other-name",
       "sdkParents": [
         "velt-comment-dialog-thread-card-attachments-other"
       ],
@@ -9256,8 +9256,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-attachments-other-size-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-attachments-other-size",
       "sdkParents": [
         "velt-comment-dialog-thread-card-attachments-other"
       ],
@@ -9284,8 +9284,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-avatar-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-avatar",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -9318,8 +9318,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-device-type-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-device-type",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -9351,8 +9351,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-draft-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-draft",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -9379,8 +9379,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-edit-composer-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-edit-composer",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -9412,8 +9412,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-edited-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-edited",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -9440,8 +9440,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-message-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-message",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -9480,8 +9480,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-message-show-less-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-message-show-less",
       "sdkParents": [
         "velt-comment-dialog-thread-card-message"
       ],
@@ -9520,8 +9520,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-message-show-more-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-message-show-more",
       "sdkParents": [
         "velt-comment-dialog-thread-card-message"
       ],
@@ -9553,8 +9553,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-name",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -9588,8 +9588,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-options-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-options",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -9616,8 +9616,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-reaction-pin-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-reaction-pin",
       "sdkParents": null,
       "bindsClick": true
     },
@@ -9662,8 +9662,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-reaction-tool-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-reaction-tool",
       "sdkParents": [
         "velt-comment-dialog-thread-card",
         "velt-comment-dialog-thread-card-reactions"
@@ -9706,8 +9706,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-reactions-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-reactions",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -9739,8 +9739,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-recordings-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-recordings",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -9767,8 +9767,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-reply-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-reply",
       "sdkParents": null,
       "bindsClick": true
     },
@@ -9802,8 +9802,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -9830,8 +9830,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content",
       "sdkParents": [
         "velt-comment-dialog-thread-card-seen-dropdown"
       ],
@@ -9858,8 +9858,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content-item",
       "sdkParents": [
         "velt-comment-dialog-thread-card-seen-dropdown-content-items"
       ],
@@ -9891,8 +9891,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content-item-avatar-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content-item-avatar",
       "sdkParents": [
         "velt-comment-dialog-thread-card-seen-dropdown-content-item"
       ],
@@ -9924,8 +9924,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content-item-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content-item-name",
       "sdkParents": [
         "velt-comment-dialog-thread-card-seen-dropdown-content-item"
       ],
@@ -9957,8 +9957,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content-item-time-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content-item-time",
       "sdkParents": [
         "velt-comment-dialog-thread-card-seen-dropdown-content-item"
       ],
@@ -9985,8 +9985,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content-items-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content-items",
       "sdkParents": [
         "velt-comment-dialog-thread-card-seen-dropdown-content"
       ],
@@ -10013,8 +10013,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content-title-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-content-title",
       "sdkParents": [
         "velt-comment-dialog-thread-card-seen-dropdown-content"
       ],
@@ -10046,8 +10046,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-trigger-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-seen-dropdown-trigger",
       "sdkParents": [
         "velt-comment-dialog-thread-card-seen-dropdown"
       ],
@@ -10079,8 +10079,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-time-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-time",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -10115,8 +10115,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-thread-card-unread-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-thread-card-unread",
       "sdkParents": [
         "velt-comment-dialog-thread-card"
       ],
@@ -10147,8 +10147,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-threads-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-threads",
       "sdkParents": [
         "velt-comment-dialog-body"
       ],
@@ -10182,8 +10182,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-toggle-reply-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-toggle-reply",
       "sdkParents": [
         "velt-comment-dialog-body"
       ],
@@ -10211,8 +10211,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-toggle-reply-count-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-toggle-reply-count",
       "sdkParents": [
         "velt-comment-dialog-toggle-reply"
       ],
@@ -10248,8 +10248,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-toggle-reply-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-toggle-reply-icon",
       "sdkParents": [
         "velt-comment-dialog-toggle-reply"
       ],
@@ -10276,8 +10276,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-toggle-reply-text-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-toggle-reply-text",
       "sdkParents": [
         "velt-comment-dialog-toggle-reply"
       ],
@@ -10312,8 +10312,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-unresolve-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-unresolve-button",
       "sdkParents": [
         "velt-comment-dialog-header"
       ],
@@ -10343,8 +10343,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-upgrade-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-upgrade",
       "sdkParents": [
         "velt-comment-dialog"
       ],
@@ -10373,8 +10373,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner",
       "sdkParents": [
         "velt-comment-dialog"
       ],
@@ -10402,8 +10402,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner"
       ],
@@ -10435,8 +10435,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-content",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner-dropdown"
       ],
@@ -10463,8 +10463,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-content-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-content-item",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner-dropdown-content"
       ],
@@ -10491,8 +10491,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-content-item-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-content-item-icon",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner-dropdown-content-item"
       ],
@@ -10519,8 +10519,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-content-item-label-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-content-item-label",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner-dropdown-content-item"
       ],
@@ -10547,8 +10547,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-content-org-picker-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-content-org-picker",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner"
       ],
@@ -10576,8 +10576,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-content-user-picker-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-content-user-picker",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner"
       ],
@@ -10610,8 +10610,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-trigger-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-trigger",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner-dropdown"
       ],
@@ -10638,8 +10638,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner-dropdown-trigger"
       ],
@@ -10666,8 +10666,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-item",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list"
       ],
@@ -10694,8 +10694,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-remaining-count-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list-remaining-count",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner-dropdown-trigger-avatar-list"
       ],
@@ -10722,8 +10722,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-trigger-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-trigger-icon",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner-dropdown-trigger"
       ],
@@ -10750,8 +10750,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-trigger-label-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-dropdown-trigger-label",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner-dropdown-trigger"
       ],
@@ -10778,8 +10778,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-icon",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner"
       ],
@@ -10806,8 +10806,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-dialog-visibility-banner-text-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-dialog-visibility-banner-text",
       "sdkParents": [
         "velt-comment-dialog-visibility-banner"
       ],
@@ -10833,8 +10833,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-pin-ghost-comment-indicator-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-pin-ghost-comment-indicator",
       "sdkParents": [
         "snippyly-comment-pin"
       ],
@@ -10862,8 +10862,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-pin-index-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-pin-index",
       "sdkParents": null,
       "bindsClick": false
     },
@@ -10889,8 +10889,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-pin-number-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-pin-number",
       "sdkParents": [
         "snippyly-comment-pin"
       ],
@@ -10915,8 +10915,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-pin-private-comment-indicator-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-pin-private-comment-indicator",
       "sdkParents": [
         "snippyly-comment-pin"
       ],
@@ -10941,8 +10941,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-pin-triangle-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-pin-triangle",
       "sdkParents": [
         "snippyly-comment-pin"
       ],
@@ -10974,8 +10974,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-comment-pin-unread-comment-indicator-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-comment-pin-unread-comment-indicator",
       "sdkParents": [
         "snippyly-comment-pin"
       ],
@@ -12529,8 +12529,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section",
       "sdkParents": null,
       "bindsClick": false
     },
@@ -12560,8 +12560,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-comment-count-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-comment-count",
       "sdkParents": [
         "velt-inline-comments-section-panel"
       ],
@@ -12588,8 +12588,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-composer-container-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-composer-container",
       "sdkParents": [
         "velt-inline-comments-section-panel"
       ],
@@ -12612,8 +12612,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-filter-dropdown-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-filter-dropdown",
       "sdkParents": null,
       "bindsClick": false
     },
@@ -12636,8 +12636,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-filter-dropdown-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-filter-dropdown-content",
       "sdkParents": [
         "velt-inline-comments-section-filter-dropdown"
       ],
@@ -12660,8 +12660,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-filter-dropdown-content-apply-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-filter-dropdown-content-apply-button",
       "sdkParents": null,
       "bindsClick": true
     },
@@ -12684,8 +12684,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-filter-dropdown-content-list-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-filter-dropdown-content-list",
       "sdkParents": [
         "velt-inline-comments-section-filter-dropdown-content"
       ],
@@ -12708,8 +12708,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-filter-dropdown-content-list-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-filter-dropdown-content-list-item",
       "sdkParents": [
         "velt-inline-comments-section-filter-dropdown-content-list"
       ],
@@ -12732,8 +12732,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-filter-dropdown-content-list-item-checkbox-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-filter-dropdown-content-list-item-checkbox",
       "sdkParents": [
         "velt-inline-comments-section-filter-dropdown-content-list-item"
       ],
@@ -12756,8 +12756,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-filter-dropdown-content-list-item-label-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-filter-dropdown-content-list-item-label",
       "sdkParents": [
         "velt-inline-comments-section-filter-dropdown-content-list-item"
       ],
@@ -12783,8 +12783,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-filter-dropdown-trigger-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-filter-dropdown-trigger",
       "sdkParents": [
         "velt-inline-comments-section-filter-dropdown"
       ],
@@ -12807,8 +12807,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-filter-dropdown-trigger-arrow-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-filter-dropdown-trigger-arrow",
       "sdkParents": [
         "velt-inline-comments-section-filter-dropdown-trigger"
       ],
@@ -12831,8 +12831,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-filter-dropdown-trigger-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-filter-dropdown-trigger-name",
       "sdkParents": [
         "velt-inline-comments-section-filter-dropdown-trigger"
       ],
@@ -12857,8 +12857,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-list-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-list",
       "sdkParents": [
         "velt-inline-comments-section-panel"
       ],
@@ -12883,8 +12883,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-panel-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-panel",
       "sdkParents": [
         "velt-inline-comments-section"
       ],
@@ -12909,8 +12909,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-skeleton-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-skeleton",
       "sdkParents": [
         "velt-inline-comments-section"
       ],
@@ -12946,8 +12946,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-sorting-dropdown-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-sorting-dropdown",
       "sdkParents": [
         "velt-inline-comments-section-panel"
       ],
@@ -12972,8 +12972,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-sorting-dropdown-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-sorting-dropdown-content",
       "sdkParents": [
         "velt-inline-comments-section-sorting-dropdown"
       ],
@@ -12996,8 +12996,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-sorting-dropdown-content-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-sorting-dropdown-content-item",
       "sdkParents": [
         "velt-inline-comments-section-sorting-dropdown-content"
       ],
@@ -13022,8 +13022,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-sorting-dropdown-content-item-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-sorting-dropdown-content-item-icon",
       "sdkParents": [
         "velt-inline-comments-section-sorting-dropdown-content-item"
       ],
@@ -13046,8 +13046,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-sorting-dropdown-content-item-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-sorting-dropdown-content-item-name",
       "sdkParents": [
         "velt-inline-comments-section-sorting-dropdown-content-item"
       ],
@@ -13072,8 +13072,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-sorting-dropdown-content-item-tick-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-sorting-dropdown-content-item-tick",
       "sdkParents": [
         "velt-inline-comments-section-sorting-dropdown-content-item"
       ],
@@ -13099,8 +13099,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-sorting-dropdown-trigger-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-sorting-dropdown-trigger",
       "sdkParents": [
         "velt-inline-comments-section-sorting-dropdown"
       ],
@@ -13123,8 +13123,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-sorting-dropdown-trigger-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-sorting-dropdown-trigger-icon",
       "sdkParents": [
         "velt-inline-comments-section-sorting-dropdown-trigger"
       ],
@@ -13147,8 +13147,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-inline-comments-section-sorting-dropdown-trigger-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-inline-comments-section-sorting-dropdown-trigger-name",
       "sdkParents": [
         "velt-inline-comments-section-sorting-dropdown-trigger"
       ],
@@ -13171,8 +13171,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog",
       "sdkParents": [
         "snippyly-comment-inbox",
         "snippyly-comment-text-portal",
@@ -13199,8 +13199,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-close-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-close-button",
       "sdkParents": null,
       "bindsClick": true
     },
@@ -13223,8 +13223,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-comment-count-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-comment-count",
       "sdkParents": [
         "velt-multi-thread-comment-dialog",
         "velt-multi-thread-comment-dialog-panel"
@@ -13250,8 +13250,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-composer-container-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-composer-container",
       "sdkParents": [
         "velt-multi-thread-comment-dialog",
         "velt-multi-thread-comment-dialog-panel"
@@ -13278,8 +13278,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-empty-placeholder-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-empty-placeholder",
       "sdkParents": [
         "velt-multi-thread-comment-dialog"
       ],
@@ -13302,8 +13302,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-list-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-list",
       "sdkParents": [
         "velt-multi-thread-comment-dialog",
         "velt-multi-thread-comment-dialog-panel"
@@ -13327,8 +13327,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-minimal-actions-dropdown-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-minimal-actions-dropdown",
       "sdkParents": null,
       "bindsClick": false
     },
@@ -13351,8 +13351,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-minimal-actions-dropdown-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-minimal-actions-dropdown-content",
       "sdkParents": [
         "velt-multi-thread-comment-dialog-minimal-actions-dropdown"
       ],
@@ -13423,8 +13423,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-minimal-actions-dropdown-trigger-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-minimal-actions-dropdown-trigger",
       "sdkParents": [
         "velt-multi-thread-comment-dialog-minimal-actions-dropdown"
       ],
@@ -13447,8 +13447,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown",
       "sdkParents": [
         "velt-multi-thread-comment-dialog"
       ],
@@ -13473,8 +13473,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content",
       "sdkParents": [
         "velt-multi-thread-comment-dialog-minimal-filter-dropdown"
       ],
@@ -13497,8 +13497,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-all-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-all",
       "sdkParents": [
         "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content"
       ],
@@ -13521,8 +13521,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-read-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-read",
       "sdkParents": [
         "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content"
       ],
@@ -13545,8 +13545,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-resolved-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-resolved",
       "sdkParents": [
         "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content"
       ],
@@ -13569,8 +13569,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-unread-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-unread",
       "sdkParents": [
         "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content"
       ],
@@ -13593,8 +13593,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-selected-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-selected-icon",
       "sdkParents": [
         "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-all",
         "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-filter-read",
@@ -13622,8 +13622,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-sort-date-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-sort-date",
       "sdkParents": [
         "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content"
       ],
@@ -13646,8 +13646,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-sort-unread-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content-sort-unread",
       "sdkParents": [
         "velt-multi-thread-comment-dialog-minimal-filter-dropdown-content"
       ],
@@ -13670,8 +13670,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-trigger-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-minimal-filter-dropdown-trigger",
       "sdkParents": [
         "velt-multi-thread-comment-dialog-minimal-filter-dropdown"
       ],
@@ -13696,8 +13696,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-new-thread-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-new-thread-button",
       "sdkParents": [
         "velt-multi-thread-comment-dialog"
       ],
@@ -13744,8 +13744,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-multi-thread-comment-dialog-reset-filter-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-multi-thread-comment-dialog-reset-filter-button",
       "sdkParents": [
         "velt-multi-thread-comment-dialog-empty-placeholder"
       ],
@@ -13772,8 +13772,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel",
       "sdkParents": [
         "velt-notifications-tool"
       ],
@@ -13800,8 +13800,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-close-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-close-button",
       "sdkParents": [
         "velt-notifications-panel-title"
       ],
@@ -13828,8 +13828,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content",
       "sdkParents": [
         "velt-notifications-panel"
       ],
@@ -13856,8 +13856,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-all-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-all",
       "sdkParents": [
         "velt-notifications-panel-content"
       ],
@@ -13893,8 +13893,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-all-list-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-all-list",
       "sdkParents": [
         "velt-notifications-panel-content-all"
       ],
@@ -13926,8 +13926,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-all-list-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-all-list-item",
       "sdkParents": [
         "velt-notifications-panel-content-all-list"
       ],
@@ -13954,8 +13954,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-all-list-item-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-all-list-item-content",
       "sdkParents": [
         "velt-notifications-panel-content-all-list-item"
       ],
@@ -13982,8 +13982,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-all-list-item-label-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-all-list-item-label",
       "sdkParents": [
         "velt-notifications-panel-content-all-list-item"
       ],
@@ -14019,8 +14019,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-all-read-container-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-all-read-container",
       "sdkParents": [
         "velt-notifications-panel-content-all",
         "velt-notifications-panel-content-documents",
@@ -14050,8 +14050,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-documents-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-documents",
       "sdkParents": [
         "velt-notifications-panel-content"
       ],
@@ -14087,8 +14087,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-documents-list-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-documents-list",
       "sdkParents": [
         "velt-notifications-panel-content-documents"
       ],
@@ -14115,8 +14115,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-documents-list-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-documents-list-item",
       "sdkParents": [
         "velt-notifications-panel-content-documents-list"
       ],
@@ -14143,8 +14143,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-documents-list-item-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-documents-list-item-content",
       "sdkParents": [
         "velt-notifications-panel-content-documents-list-item"
       ],
@@ -14171,8 +14171,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-documents-list-item-count-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-documents-list-item-count",
       "sdkParents": [
         "velt-notifications-panel-content-documents-list-item"
       ],
@@ -14199,8 +14199,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-documents-list-item-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-documents-list-item-name",
       "sdkParents": [
         "velt-notifications-panel-content-documents-list-item"
       ],
@@ -14227,8 +14227,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-documents-list-item-unread-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-documents-list-item-unread",
       "sdkParents": [
         "velt-notifications-panel-content-documents-list-item"
       ],
@@ -14255,8 +14255,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-for-you-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-for-you",
       "sdkParents": [
         "velt-notifications-panel-content"
       ],
@@ -14292,8 +14292,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-list-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-list",
       "sdkParents": [
         "velt-notifications-panel-content-all-list-item-content",
         "velt-notifications-panel-content-documents-list-item-content",
@@ -14328,8 +14328,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-list-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-list-item",
       "sdkParents": [
         "velt-notifications-panel-content-list"
       ],
@@ -14356,8 +14356,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-list-item-avatar-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-list-item-avatar",
       "sdkParents": [
         "velt-notifications-panel-content-list-item"
       ],
@@ -14384,8 +14384,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-list-item-body-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-list-item-body",
       "sdkParents": [
         "velt-notifications-panel-content-list-item"
       ],
@@ -14412,8 +14412,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-list-item-file-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-list-item-file-name",
       "sdkParents": [
         "velt-notifications-panel-content-list-item"
       ],
@@ -14440,8 +14440,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-list-item-headline-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-list-item-headline",
       "sdkParents": [
         "velt-notifications-panel-content-list-item"
       ],
@@ -14468,8 +14468,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-list-item-time-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-list-item-time",
       "sdkParents": [
         "velt-notifications-panel-content-list-item"
       ],
@@ -14496,8 +14496,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-list-item-unread-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-list-item-unread",
       "sdkParents": [
         "velt-notifications-panel-content-list-item"
       ],
@@ -14529,8 +14529,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-load-more-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-load-more",
       "sdkParents": [
         "velt-notifications-panel-content-all-list-item-content",
         "velt-notifications-panel-content-documents-list-item-content",
@@ -14560,8 +14560,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-people-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-people",
       "sdkParents": [
         "velt-notifications-panel-content"
       ],
@@ -14597,8 +14597,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-people-list-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-people-list",
       "sdkParents": [
         "velt-notifications-panel-content-people"
       ],
@@ -14625,8 +14625,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-people-list-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-people-list-item",
       "sdkParents": [
         "velt-notifications-panel-content-people-list"
       ],
@@ -14653,8 +14653,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-people-list-item-avatar-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-people-list-item-avatar",
       "sdkParents": [
         "velt-notifications-panel-content-people-list-item"
       ],
@@ -14681,8 +14681,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-people-list-item-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-people-list-item-content",
       "sdkParents": [
         "velt-notifications-panel-content-people-list-item"
       ],
@@ -14709,8 +14709,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-people-list-item-count-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-people-list-item-count",
       "sdkParents": [
         "velt-notifications-panel-content-people-list-item"
       ],
@@ -14737,8 +14737,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-content-people-list-item-name-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-content-people-list-item-name",
       "sdkParents": [
         "velt-notifications-panel-content-people-list-item"
       ],
@@ -14765,8 +14765,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-header-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-header",
       "sdkParents": [
         "velt-notifications-panel"
       ],
@@ -14793,8 +14793,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-header-tab-all-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-header-tab-all",
       "sdkParents": [
         "velt-notifications-panel-header"
       ],
@@ -14821,8 +14821,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-header-tab-documents-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-header-tab-documents",
       "sdkParents": [
         "velt-notifications-panel-header"
       ],
@@ -14849,8 +14849,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-header-tab-for-you-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-header-tab-for-you",
       "sdkParents": [
         "velt-notifications-panel-header"
       ],
@@ -14877,8 +14877,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-header-tab-people-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-header-tab-people",
       "sdkParents": [
         "velt-notifications-panel-header"
       ],
@@ -14905,8 +14905,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-read-all-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-read-all-button",
       "sdkParents": [
         "velt-notifications-panel-title"
       ],
@@ -14933,8 +14933,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings",
       "sdkParents": [
         "velt-notifications-panel"
       ],
@@ -14961,8 +14961,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-accordion-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-accordion",
       "sdkParents": [
         "velt-notifications-panel-settings-list"
       ],
@@ -14994,8 +14994,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-accordion-content-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-accordion-content",
       "sdkParents": [
         "velt-notifications-panel-settings-accordion"
       ],
@@ -15027,8 +15027,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-accordion-content-item-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-accordion-content-item",
       "sdkParents": [
         "velt-notifications-panel-settings-accordion-content"
       ],
@@ -15055,8 +15055,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-accordion-content-item-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-accordion-content-item-icon",
       "sdkParents": [
         "velt-notifications-panel-settings-accordion-content-item"
       ],
@@ -15083,8 +15083,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-accordion-content-item-label-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-accordion-content-item-label",
       "sdkParents": [
         "velt-notifications-panel-settings-accordion-content-item"
       ],
@@ -15120,8 +15120,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-accordion-trigger-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-accordion-trigger",
       "sdkParents": [
         "velt-notifications-panel-settings-accordion"
       ],
@@ -15148,8 +15148,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-accordion-trigger-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-accordion-trigger-icon",
       "sdkParents": [
         "velt-notifications-panel-settings-accordion-trigger"
       ],
@@ -15176,8 +15176,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-accordion-trigger-label-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-accordion-trigger-label",
       "sdkParents": [
         "velt-notifications-panel-settings-accordion-trigger"
       ],
@@ -15204,8 +15204,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-accordion-trigger-selected-value-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-accordion-trigger-selected-value",
       "sdkParents": [
         "velt-notifications-panel-settings-accordion-trigger"
       ],
@@ -15232,8 +15232,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-back-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-back-button",
       "sdkParents": [
         "velt-notifications-panel-settings-header"
       ],
@@ -15260,8 +15260,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-button",
       "sdkParents": [
         "velt-notifications-panel-title"
       ],
@@ -15293,8 +15293,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-description-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-description",
       "sdkParents": [
         "velt-notifications-panel-settings"
       ],
@@ -15326,8 +15326,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-footer-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-footer",
       "sdkParents": [
         "velt-notifications-panel-settings"
       ],
@@ -15359,8 +15359,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-header-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-header",
       "sdkParents": [
         "velt-notifications-panel-settings"
       ],
@@ -15387,8 +15387,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-header-title-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-header-title",
       "sdkParents": [
         "velt-notifications-panel-settings-header"
       ],
@@ -15420,8 +15420,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-list-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-list",
       "sdkParents": [
         "velt-notifications-panel-settings"
       ],
@@ -15448,8 +15448,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-mute-all-description-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-mute-all-description",
       "sdkParents": [
         "velt-notifications-panel-settings-footer"
       ],
@@ -15476,8 +15476,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-mute-all-title-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-mute-all-title",
       "sdkParents": [
         "velt-notifications-panel-settings-footer"
       ],
@@ -15504,8 +15504,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-mute-all-toggle-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-mute-all-toggle",
       "sdkParents": [
         "velt-notifications-panel-settings-footer"
       ],
@@ -15537,8 +15537,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-settings-title-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-settings-title",
       "sdkParents": [
         "velt-notifications-panel-settings"
       ],
@@ -15574,8 +15574,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-skeleton-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-skeleton",
       "sdkParents": [
         "velt-notifications-panel-content-all",
         "velt-notifications-panel-content-documents",
@@ -15605,8 +15605,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-title-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-title",
       "sdkParents": [
         "velt-notifications-panel"
       ],
@@ -15633,8 +15633,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-title-text-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-title-text",
       "sdkParents": [
         "velt-notifications-panel-title"
       ],
@@ -15666,8 +15666,8 @@
         ],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-panel-view-all-button-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-panel-view-all-button",
       "sdkParents": [
         "velt-notifications-panel-content-all-read-container"
       ],
@@ -15690,8 +15690,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-tool-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-tool",
       "sdkParents": null,
       "bindsClick": true
     },
@@ -15712,8 +15712,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-tool-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-tool-icon",
       "sdkParents": [
         "velt-notifications-tool"
       ],
@@ -15736,8 +15736,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-tool-label-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-tool-label",
       "sdkParents": [
         "velt-notifications-tool"
       ],
@@ -15765,8 +15765,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-tool-unread-count-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-tool-unread-count",
       "sdkParents": [
         "velt-notifications-tool-label"
       ],
@@ -15789,8 +15789,8 @@
         "reads": [],
         "viaBaseClass": true
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-notifications-tool-unread-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-notifications-tool-unread-icon",
       "sdkParents": [
         "velt-notifications-tool"
       ],
@@ -15818,8 +15818,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-sidebar-button-comments-count-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-sidebar-button-comments-count",
       "sdkParents": [
         "snippyly-sidebar-button"
       ],
@@ -15847,8 +15847,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-sidebar-button-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-sidebar-button-icon",
       "sdkParents": [
         "snippyly-sidebar-button"
       ],
@@ -15876,8 +15876,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-sidebar-button-unread-icon-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-sidebar-button-unread-icon",
       "sdkParents": [
         "snippyly-sidebar-button"
       ],
@@ -15931,8 +15931,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-text-comment-tool-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-text-comment-tool",
       "sdkParents": [
         "velt-text-comment"
       ],
@@ -15963,8 +15963,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-text-comment-toolbar-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-text-comment-toolbar",
       "sdkParents": [
         "velt-text-comment"
       ],
@@ -15989,8 +15989,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-text-comment-toolbar-comment-annotation-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-text-comment-toolbar-comment-annotation",
       "sdkParents": [
         "velt-text-comment-toolbar"
       ],
@@ -16013,8 +16013,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-text-comment-toolbar-copywriter-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-text-comment-toolbar-copywriter",
       "sdkParents": [
         "velt-text-comment-toolbar"
       ],
@@ -16039,8 +16039,8 @@
         ],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-text-comment-toolbar-divider-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-text-comment-toolbar-divider",
       "sdkParents": [
         "velt-text-comment-toolbar"
       ],
@@ -16063,8 +16063,8 @@
         "reads": [],
         "viaBaseClass": false
       },
-      "forwardsClassName": true,
-      "emitsTag": "velt-text-comment-toolbar-generic-wireframe",
+      "forwardsClassName": false,
+      "emitsTag": "velt-text-comment-toolbar-generic",
       "sdkParents": [
         "velt-text-comment-toolbar"
       ],

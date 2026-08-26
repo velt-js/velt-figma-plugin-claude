@@ -57,10 +57,14 @@ Rules that are not optional:
   primitive typechecks and never reaches the DOM — the style stage then plans selectors against a
   class that cannot exist, and it surfaces at `skeleton-check`, three stages and one build later.
   The manifest records `forwardsClassName` per tag; `--lint` errors on `undeliverable-vcclass`.
-- **Address a primitive by `emitsTag`, not by its manifest name.** 366 tags are rendered through a
-  `-wireframe`-suffixed element: `VeltCommentDialogComposerInput` emits
-  `velt-comment-dialog-composer-input-wireframe`. Any selector or probe built from the manifest tag
-  addresses an element that is not there.
+- **Address a primitive by `emitsTag`.** For primitives that is now always the manifest tag itself:
+  `VeltCommentDialogComposerInput` emits `velt-comment-dialog-composer-input`. The former claim here
+  — that 366 of the 441 render through a `-wireframe`-suffixed element — was an artifact of a
+  `sync-primitives.mjs` collision bug, not a property of the SDK: two wrappers share each reactName
+  (the primitive emitting the plain tag, a separate wireframe emitting `-wireframe`) and the old
+  tiebreak recorded the wireframe twin every time. That also mis-recorded `forwardsClassName:true`
+  for 363 wrappers that actually drop `className`. Both are fixed; the manifest now records the
+  primitive wrapper. Still read `emitsTag` rather than assuming — but expect it to equal the tag.
 - **Never re-gate a primitive that owns its own visibility.** The manifest records `ownsVisibility`
   with the exact config fields the primitive's own `shouldShow()` evaluates. Run 5 gated the sidebar
   empty placeholder on `data.listRows` + `uiState.skeletonLoading`; the primitive reads

@@ -1,0 +1,152 @@
+{
+  "runId": "WYAWuEm8DrIk-351-15578-2026-08-26T16-33-58Z",
+  "phaseId": "WYAWuEm8DrIk-351-15578",
+  "app": "harvey",
+  "mode": "strictly primitives",
+  "node": "351-15578",
+  "pluginSha": "974138b",
+  "publishedAt": "2026-08-26T16:33:59.002Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "The Velt primitives capability set (R1 children / R2 context / R3 state reads) is absent from EVERY published @veltdev/react on npm — verified through 6.0.7 and 6.0.8-beta.1 by packing the tarball and grepping for the 7 published R3 identifiers. A 'strictly primitives' run is therefore not buildable against any public SDK today, and the reachability script's availability.ok=false should be treated as a hard pre-planner gate for that mode, not an advisory note.",
+      "category": "sdk-gotcha",
+      "evidence": "npm pack @veltdev/react@6.0.7 / @6.0.8-beta.1 -> package/index.d.ts contains none of getCommentDialogConfig, getCommentSidebarConfig, getNotificationsPanelConfig, getInlineCommentsSectionConfig, getMultiThreadDialogConfig, getActivityLogConfig, useCommentDialogConfig. Installed 6.0.0-beta.15 likewise absent in index.d.ts + esm/ + cjs/.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "Primitive prop interfaces extend React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>>, so children ALWAYS type-check even on an SDK that cannot render them. A TypeScript check can never be used to decide R1 availability — probe the runtime bundle for the R3 getters instead, which ship in the same change.",
+      "category": "sdk-gotcha",
+      "evidence": "IVeltCommentSidebarV2HeaderProps / PanelProps / CloseButtonProps in @veltdev/react@6.0.0-beta.15 index.d.ts all extend React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>, which includes children?: ReactNode, while the runtime has no R1 support.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "guide",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "The wireframe/primitive parity gap is not evenly spread — it can remove a whole design FAMILY from a strictly-primitives run. On this Loop the sidebar 'minimal actions' and 'minimal filter' controls exist as wireframe slots (velt-comments-sidebar-minimal-{actions,filter}-dropdown-*) but the only Minimal* PRIMITIVES are VeltMultiThreadCommentDialogMinimal*. A reachability check at SURFACE granularity ('sidebar' -> OK) therefore passes while 4 of the surface's blocks are individually unreachable. Reachability should be checked per design ELEMENT/slot, not per surface, before a strictly-primitives mode is accepted.",
+      "category": "component-difficulty",
+      "evidence": "check-primitive-reachability --surface sidebar returns reachable:true (family SidebarV2), yet grep of @veltdev/react@6.0.0-beta.15 shows no VeltCommentSidebarV2MinimalFilterDropdown / MinimalActionsDropdown, and no DocumentId component on either the primitive or wireframe side; guide/reference/wireframe-components.md lists the sidebar minimal-* slots as wireframe-only.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "Any 'does Velt render?' probe must pierce shadow roots. Velt's default (non-wireframe) surfaces render inside shadow DOM, so document.querySelectorAll over the light DOM returns 0 velt elements on a perfectly healthy app — a false negative that reads identically to a dead integration.",
+      "category": "sdk-gotcha",
+      "evidence": "Same app, same moment: light-DOM query -> veltClassedElements 0, railText ''; composed walk over 7 shadow roots -> 24 velt-ish elements incl. velt-root, velt-comments-sidebar, .velt-sidebar-container, with 0 console errors.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "R1 (custom markup inside a Velt primitive) is absent at RUNTIME on @veltdev/react@6.0.0-beta.15, and it fails SILENTLY. The React wrapper does forward children into the custom element, so the code compiles, renders no error, and logs nothing — the element simply replaces its own light DOM. Probe it with a data-attribute marker child and read the composed DOM back; never infer availability from types (every primitive prop interface extends React.HTMLAttributes, so children always type-check).",
+      "category": "sdk-gotcha",
+      "evidence": "Mounted <VeltCommentsSidebarV2> with a direct child <div data-vc-probe> and a nested <VeltCommentSidebarV2Header> wrapping another. After sign-in + sidebar open, a shadow-piercing walk found NEITHER probe; velt-comments-sidebar-v2 had exactly one child (a div Velt created) and velt-comment-sidebar-header-v2 was absent entirely. Reproduced twice, 0 console errors. Fix: rebuilt the surface as props-only + whole-primitive placement; re-verified the sidebar renders (353x900, then 353x841 after the scrollport fix).",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "Velt renders its components under an -internal tag suffix that the primitives manifest does not record. manifest emitsTag says velt-comment-sidebar-header-v2 (and -wireframe suffixes for the dialog family); the DOM actually carries velt-comment-sidebar-header-v2-internal, velt-comment-dialog-composer-input-internal, and so on. Any selector, probe or assertion built from the manifest tag binds to nothing and fails silently.",
+      "category": "sdk-gotcha",
+      "evidence": "dom-snapshot corpus from a live capture lists 36 tags, every Velt one ending -internal. Briefs originally carried .vc-* / manifest-tag selectors and captured 0 surfaces; after repointing to the -internal tags dom-snapshot captured 2/2 reachable blocks.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "setUnstyledMode(true) strips Velt ATTRIBUTE PAINTERS — the :empty::before { content: attr(...) } rules that turn an attribute into visible text. The element, its box and its typography all measure exactly as planned while rendering blank, so no value-level assertion catches it. Re-add content: attr(<name>) for every such attribute the design shows.",
+      "category": "sdk-gotcha",
+      "evidence": "SECOND instance of this class on this app. The page-mode composer placeholder is a contenteditable carrying placeholder=\"Add a comment\"; after setUnstyledMode its ::before computed content:none and the composer rendered as an empty box (screenshot). Adding .velt-composer-input--message:empty::before{content:attr(placeholder)} made \"Add a comment\" paint — verified by re-running dom-snapshot and reading the new PNG. The knowledge base already carries avatar-initial-attr-painter-stripped for data-modal-author-initial; same mechanism, different attribute.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "Setting fill on a Velt icon <svg> is not enough — the paint lives on its child <path>, which keeps its own computed fill. The svg measures the right colour while the glyph renders in the SDK default, so an assertion on the svg passes on a visibly wrong icon. Always paint svg AND svg path.",
+      "category": "sdk-gotcha",
+      "evidence": "Composer send glyph: computed fill on .velt-composer--input-button svg was rgb(154,152,148) (#9a9894, as planned) while its path computed rgb(30,30,28) and the icon rendered near-black in the capture. Adding the path to the selector turned it grey — verified in the re-captured PNG.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "velt-comment-dialog-composer-attachments is the attachments TRAY, not the attach TRIGGER. Mapping a design paperclip button onto it and forcing display/size produces a phantom transparent box that steals a flex slot in the composer row, and no glyph ever appears. Its innerHTML is comment nodes at rest.",
+      "category": "component-difficulty",
+      "evidence": "Rule forcing 32x32 + border on velt-comment-dialog-composer-attachments-internal made it render 32x32 with innerHTML \"<!----><!---->\" and widened the input row; the dom-snapshot unstyledVeltInternals hint flagged it as painting a box the design does not draw. Reverted and collapsed it when :empty — the re-captured composer is a single tidy row.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "The V2 comment sidebar can sit in velt-comment-sidebar-skeleton-v2-internal for ~40 SECONDS before its panel renders when the realtime transport is degraded, and every panel child measures 0x0 until it flips. Any capture that settles for less than that records the skeleton and reports every surface as missing — a false INCOMPLETE that looks exactly like a broken build. Gate the drive on the panel element with a 120s waitFor, never on a fixed sleep.",
+      "category": "model-reliability",
+      "evidence": "Sampled the same page at t+5s/t+15s/t+30s/t+45s: identical skeleton (353x708) for the first three, then at t+45s the full tree appeared (header 353x24, search 307x24, filter 22x22, empty placeholder 181x838, page-mode composer 353x38). Cause: Firestore Listen/Write channels 400 and the Firebase WebSocket is refused. After adding waitFor velt-comment-sidebar-panel-v2-internal @120s, dom-snapshot captured 2/2 reachable blocks on every subsequent run.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "knowledge",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "gaps",
+      "scope": "general",
+      "what": "sidebar header content under strictly primitives",
+      "why": "V2 header renders search+filter only; title/doc-id/unread-tag/status-dropdown/overflow have no primitive, no prop, and R1 children are discarded",
+      "seenOn": [
+        "harvey"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "gaps",
+      "scope": "general",
+      "what": "plugin golden-path host-wiring gate requires <VeltCustomization/>",
+      "why": "that component is absent from @veltdev/react@6.0.0-beta.15 (0 occurrences in index.d.ts and esm/index.js), so verify-host-wiring --apply would inject an unresolvable import and break the build. The gate needs an SDK-version guard.",
+      "seenOn": [
+        "harvey"
+      ],
+      "verified": true
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "runId": "WYAWuEm8DrIk-351-15578-2026-08-26T14-42-03Z",
+  "phaseId": "WYAWuEm8DrIk-351-15578",
+  "app": "velt-figma-plugin-claude",
+  "mode": null,
+  "node": null,
+  "pluginSha": "974138b",
+  "publishedAt": "2026-08-26T14:42:03.469Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "The Velt primitives capability set (R1 children / R2 context / R3 state reads) is absent from EVERY published @veltdev/react on npm — verified through 6.0.7 and 6.0.8-beta.1 by packing the tarball and grepping for the 7 published R3 identifiers. A 'strictly primitives' run is therefore not buildable against any public SDK today, and the reachability script's availability.ok=false should be treated as a hard pre-planner gate for that mode, not an advisory note.",
+      "category": "sdk-gotcha",
+      "evidence": "npm pack @veltdev/react@6.0.7 / @6.0.8-beta.1 -> package/index.d.ts contains none of getCommentDialogConfig, getCommentSidebarConfig, getNotificationsPanelConfig, getInlineCommentsSectionConfig, getMultiThreadDialogConfig, getActivityLogConfig, useCommentDialogConfig. Installed 6.0.0-beta.15 likewise absent in index.d.ts + esm/ + cjs/.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "Primitive prop interfaces extend React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>>, so children ALWAYS type-check even on an SDK that cannot render them. A TypeScript check can never be used to decide R1 availability — probe the runtime bundle for the R3 getters instead, which ship in the same change.",
+      "category": "sdk-gotcha",
+      "evidence": "IVeltCommentSidebarV2HeaderProps / PanelProps / CloseButtonProps in @veltdev/react@6.0.0-beta.15 index.d.ts all extend React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>, which includes children?: ReactNode, while the runtime has no R1 support.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "guide",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "The wireframe/primitive parity gap is not evenly spread — it can remove a whole design FAMILY from a strictly-primitives run. On this Loop the sidebar 'minimal actions' and 'minimal filter' controls exist as wireframe slots (velt-comments-sidebar-minimal-{actions,filter}-dropdown-*) but the only Minimal* PRIMITIVES are VeltMultiThreadCommentDialogMinimal*. A reachability check at SURFACE granularity ('sidebar' -> OK) therefore passes while 4 of the surface's blocks are individually unreachable. Reachability should be checked per design ELEMENT/slot, not per surface, before a strictly-primitives mode is accepted.",
+      "category": "component-difficulty",
+      "evidence": "check-primitive-reachability --surface sidebar returns reachable:true (family SidebarV2), yet grep of @veltdev/react@6.0.0-beta.15 shows no VeltCommentSidebarV2MinimalFilterDropdown / MinimalActionsDropdown, and no DocumentId component on either the primitive or wireframe side; guide/reference/wireframe-components.md lists the sidebar minimal-* slots as wireframe-only.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "Any 'does Velt render?' probe must pierce shadow roots. Velt's default (non-wireframe) surfaces render inside shadow DOM, so document.querySelectorAll over the light DOM returns 0 velt elements on a perfectly healthy app — a false negative that reads identically to a dead integration.",
+      "category": "sdk-gotcha",
+      "evidence": "Same app, same moment: light-DOM query -> veltClassedElements 0, railText ''; composed walk over 7 shadow roots -> 24 velt-ish elements incl. velt-root, velt-comments-sidebar, .velt-sidebar-container, with 0 console errors.",
+      "seenOn": [
+        "harvey"
+      ],
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    }
+  ]
+}

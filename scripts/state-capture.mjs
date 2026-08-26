@@ -19,6 +19,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -164,6 +165,7 @@ async function main() {
   const chromium = await loadPlaywright();
   const browser = await chromium.connectOverCDP(ws);
   const context = browser.contexts()[0];
+  await installEgressRelay(context);
   let page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
   if (!page) { console.error("✗ no page in connected browser"); process.exit(1); }
   if (url && !page.url().includes(new URL(url).host)) await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });

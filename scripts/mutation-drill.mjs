@@ -26,6 +26,7 @@ const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
 import { createRequire } from "node:module";
 import { evaluateStructuralContract, OBSERVE } from "./structural-contract-validate.mjs";
 import { EXEC } from "./run-compiled-assertions.mjs";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 const require = createRequire(import.meta.url);
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -187,6 +188,7 @@ async function main() {
   const chromium = await loadPlaywright();
   const browser = await chromium.connectOverCDP(ws);
   const context = browser.contexts()[0];
+  await installEgressRelay(context);
   const page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
   if (!page) { console.error("✗ no page"); process.exit(1); }
   const url = flag("--url") || page.url();

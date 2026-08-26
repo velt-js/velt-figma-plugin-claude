@@ -21,6 +21,7 @@ import {
   decodePNG, encodePNG, visualDiff, cropImage, resampleImage, textMasksFromSpec, textBoxesFromSpec,
 } from "./visual-diff.mjs";
 import { runJudge2ChromeProbes } from "./judge2-chrome-probes.mjs";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -366,6 +367,7 @@ async function captureResting(phaseDir, { url, ws }) {
   if (!chromium) throw new Error("playwright-core not found");
   const browser = await chromium.connectOverCDP(ws.startsWith("http") ? ws : ws);
   const context = browser.contexts()[0] || await browser.newContext();
+  await installEgressRelay(context);
   let page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
   if (!page) page = await context.newPage();
   // Prefer the pinned run URL (documentId isolation) — host match alone can leave the wrong doc.

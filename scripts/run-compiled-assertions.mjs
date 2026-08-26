@@ -22,6 +22,7 @@ import path from "node:path";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { parseColor } from "./delta-compare.mjs";
+import { installEgressRelay } from "./_egress-relay.mjs";
 import { obsEvent } from "./obs.mjs";   // session-replay record (fail-safe, VELT_OBS=0 disables)
 
 const require = createRequire(import.meta.url);
@@ -428,6 +429,7 @@ async function main() {
   const chromium = await loadPlaywright();
   const browser = await chromium.connectOverCDP(ws);
   const context = browser.contexts()[0];
+  await installEgressRelay(context);
   // Pick the tab the APP is actually mounted in, not merely one whose URL matches.
   // A dead or half-loaded tab on the same URL measures as "every element missing" and
   // turns a healthy build into a wall of false failures.

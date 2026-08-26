@@ -38,6 +38,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { BROWSER_PROBE, LAYER_PROBE, CONTRACT_PROBE, STABILITY_PROBE } from "./delta-compare.mjs";
 import { obsEvent, obsSnapshotBlock, obsIterHint } from "./obs.mjs";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
 
@@ -288,6 +289,7 @@ export async function openPage(browser, url, { scale = 2, selectUser = null, tim
   let ctx, reused = false;
   if (reuseContext && browser.contexts().length) { ctx = browser.contexts()[0]; reused = true; }
   else ctx = await browser.newContext({ viewport: { width: 1512, height: 900 }, deviceScaleFactor: scale });
+  await installEgressRelay(ctx);
   let page = null, persistentTab = false;
   if (reused && singleTab()) {
     page = await findRunTab(ctx, { originHint: url });

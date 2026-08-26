@@ -19,6 +19,7 @@
 
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 async function loadChromium() {
   const candidates = [process.env.PLAYWRIGHT_CORE, "playwright-core",
@@ -53,6 +54,7 @@ async function main() {
   const browser = await acquireBrowser(chromium, connectWs);
   try {
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    await installEgressRelay(ctx);
     const page = await ctx.newPage();
     await page.goto(url, { waitUntil: "domcontentloaded", timeout });
     // Velt BOOT evidence, not mere presence. A cloud run's preflight passed on `veltPresent:true`

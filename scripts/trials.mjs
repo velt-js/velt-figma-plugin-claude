@@ -33,6 +33,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { loadChromium } from "./measure-block.mjs";
 import { obsEvent } from "./obs.mjs";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
 export const MOCK_GATE_PCT = 2.0;   // Δspec pass threshold for a mock (see trialScoreMock)
@@ -69,6 +70,7 @@ async function screenshotPage(htmlPath, { scale = 2, selector = null, outPng, ou
   const browser = await chromium.launch({ headless: true });   // static local HTML — no auth/session needed
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: scale });
+    await installEgressRelay(page.context());
     await page.goto(pathToFileURL(htmlPath).href, { waitUntil: "networkidle", timeout: 45000 }).catch(() => {});
     // WHITE compositing: Figma's per-block PNG export composites transparency to WHITE, but a
     // block clipped out of the rendered board keeps the board's own (often dark) background —

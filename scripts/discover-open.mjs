@@ -31,6 +31,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { loadChromium, acquireBrowser } from "./measure-block.mjs";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 const argvv = process.argv.slice(2);
 const flag = (n) => argvv.includes(n);
@@ -68,6 +69,7 @@ const chromium = await loadChromium();
 const connect = val("--connect", null);
 const browser = await acquireBrowser(chromium, connect, { requireConnect: !!connect });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+await installEgressRelay(page.context());
 await page.goto(url, { waitUntil: "networkidle", timeout: 40000 });
 await page.waitForTimeout(2500);
 

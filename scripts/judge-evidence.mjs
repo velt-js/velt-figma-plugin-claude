@@ -33,6 +33,7 @@ import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 import { decodePNG, encodePNG, cropImage } from "./visual-diff.mjs";
 import { isTemplatedMiss, evidenceCssBox } from "./emit-judge-defects.mjs";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -186,6 +187,7 @@ async function resolveLandmarks(ws, requests) {
     if (!conn.browser) return null;
     const browser = conn.browser;
     const context = browser.contexts()[0];
+    await installEgressRelay(context);
     const page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
     if (!page) return null;
     // Do NOT navigate — use the already-open tab (navigation races hang CDP sessions).
@@ -342,6 +344,7 @@ async function liveDomBoxes(url, ws) {
     if (!chromium) return {};
     const browser = await chromium.connectOverCDP(ws);
     const context = browser.contexts()[0];
+    await installEgressRelay(context);
     const page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
     if (!page) return {};
     await page.waitForTimeout(300);

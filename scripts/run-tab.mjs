@@ -12,6 +12,7 @@
 
 import { pathToFileURL } from "node:url";
 import { loadChromium, acquireBrowser, openPage, findRunTab, RUN_TAB_NAME } from "./measure-block.mjs";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 async function main() {
   const [cmd, ...rest] = process.argv.slice(2);
@@ -23,6 +24,7 @@ async function main() {
   try {
     const ctx = browser.contexts()[0];
     if (!ctx) { console.error("✗ no browser context — is the real browser running?"); process.exit(2); }
+    await installEgressRelay(ctx);
     const tab = await findRunTab(ctx, { originHint: flag("--url", null) });
     if (cmd === "status") {
       console.log(tab ? `✓ run tab open (${RUN_TAB_NAME}) at ${tab.url()}` : "· no run tab (the first pipeline call creates it)");

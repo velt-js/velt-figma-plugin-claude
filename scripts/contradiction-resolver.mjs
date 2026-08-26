@@ -29,6 +29,7 @@ import { createRequire } from "node:module";
 import { decodePNG, encodePNG, cropImage } from "./visual-diff.mjs";
 import { evidenceCssBox, boxIoU } from "./emit-judge-defects.mjs";
 import { parseColor } from "./delta-compare.mjs";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 const require = createRequire(import.meta.url);
 async function loadJson(p) { try { return JSON.parse(await fs.readFile(p, "utf8")); } catch { return null; } }
@@ -260,6 +261,7 @@ async function main() {
       try {
         const browser = await chromium.connectOverCDP(ws);
         const context = browser.contexts()[0];
+        await installEgressRelay(context);
         const page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
         if (page) {
           const planStyle = await loadJson(path.join(phaseDir, "plan-style.json"));

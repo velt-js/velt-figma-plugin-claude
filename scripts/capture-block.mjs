@@ -22,6 +22,7 @@
 
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 async function loadChromium() {
   const candidates = [process.env.PLAYWRIGHT_CORE, "playwright-core",
@@ -68,6 +69,7 @@ async function main() {
   const browser = await acquireBrowser(chromium, connectWs, { requireConnect });
   try {
     const ctx = await browser.newContext({ viewport: { width: 1512, height: 900 }, deviceScaleFactor: scale });
+    await installEgressRelay(ctx);
     const page = await ctx.newPage();
     // domcontentloaded (not networkidle): a realtime Velt app holds long-poll/SSE connections that may
     // never go idle; the explicit waitForSelector(liveSelector) below is the real readiness gate.

@@ -69,6 +69,43 @@ Every piece is load-bearing (each one cost a live run real time when missing):
 - **`--add-dir <plugin repo>`** — the nested process can otherwise touch only the app repo, not the plugin's scripts. Flag order matters: the prompt/stdin follows `-p`; flags after.
 - **On any interruption** (container restart, silent death): relaunch the same command. `resume-check.mjs` reads the phase artifacts and resumes mechanically — do not hand-write resume instructions.
 
+## Sandboxes with no browser egress (`VELT_EGRESS_RELAY`)
+
+Some sandboxes (claude.ai/code web sessions, hardened CI runners) send all egress through a
+MITM proxy **and** give the browser no way to trust that proxy's CA — no `certutil`, no NSS db.
+There, `curl https://cdn.velt.dev` succeeds while the identical fetch from Chromium dies with
+`ERR_CONNECTION_RESET`. The visible symptom is `verify-app.mjs` reporting
+`veltPresent:true, veltBooted:false` — React rendered the `<velt-*>` tags, the SDK bundle never
+loaded, so nothing was ever `customElements.define`d.
+
+Fix: `export VELT_EGRESS_RELAY=1`. Every browser-driving script then routes the page's
+cross-origin requests through Node's `fetch` (which does reach the sanctioned proxy) and fulfills
+the page with the response — the network I/O moves from the blocked client to an allowed one.
+No TLS verification is disabled: Node still validates the chain and the proxy still enforces
+egress policy. The flag is **off by default**, so ordinary machines keep the browser's own
+(faster) networking. Implementation + caveats: `scripts/_egress-relay.mjs`, `guide/debugging.md`.
+
+Full sandbox preamble:
+
+```bash
+export VELT_EGRESS_RELAY=1
+export PLAYWRIGHT_CORE=/path/to/playwright-core/index.js   # only if it is not resolvable
+export FIGMA_TOKEN=figd_...
+# a real browser for --connect/--require-connect measurement:
+chromium --headless --remote-debugging-port=9222 &
+export VELT_CDP_WS=$(node scripts/browser-endpoint.mjs --quiet | tail -1)
+```
+
+Two known residues, neither of which blocks measurement:
+- Firestore's `Listen/channel` is a long-lived stream and `route.fulfill()` cannot stream, so it
+  is capped and re-polled.
+- WebSockets bypass request interception entirely, so `firebaseio.com` presence/realtime stays
+  down and logs connection errors.
+
+Expect the Velt sidebar to take noticeably longer to reach its loaded state under the relay
+(~35-40s on the Harvey demo vs. a couple of seconds natively) — raise `--timeout` on the
+measurement scripts accordingly.
+
 ## Prerequisites (the run preflights all of these and HALTs with a fix if any is missing)
 
 - **A Figma token** (`FIGMA_TOKEN` env var or the OS keychain) — design intake is **REST-only** (`api.figma.com`); there is no Figma desktop/MCP dependency. See the token section below.

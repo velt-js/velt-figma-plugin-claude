@@ -18,6 +18,7 @@ import { pathToFileURL, fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { spawnSync } from "node:child_process";
 import { loadProbeExpectations } from "./judge-probe-expectations.mjs";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 const require = createRequire(import.meta.url);
 const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
@@ -628,6 +629,7 @@ async function main() {
 
   const browser = await chromium.connectOverCDP(ws.startsWith("http") ? ws : ws);
   const context = browser.contexts()[0] || await browser.newContext();
+  await installEgressRelay(context);
   let page = context.pages().find((p) => /localhost|127\\.0\\.0\\.1/.test(p.url())) || context.pages()[0];
   if (!page) page = await context.newPage();
   if (!page.url().includes(new URL(url).host)) await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });

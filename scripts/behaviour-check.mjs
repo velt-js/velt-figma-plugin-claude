@@ -25,6 +25,7 @@ import { obsEvent } from "./obs.mjs";   // session-replay record (fail-safe)
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadChromium, acquireBrowser } from "./measure-block.mjs";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -84,11 +85,13 @@ const reuseTab = process.argv.includes("--reuse-tab");
 let page;
 if (reuseTab) {
   const ctx = browser.contexts()[0];
+  await installEgressRelay(ctx);
   const pages = ctx ? ctx.pages() : [];
   page = pages.find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || pages[0];
   if (!page) { console.error("✗ --reuse-tab: no open page to measure"); process.exit(3); }
 } else {
   page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await installEgressRelay(page.context());
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
   await page.waitForTimeout(6000);
 }

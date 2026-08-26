@@ -17,6 +17,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 import { decodePNG } from "./visual-diff.mjs";
+import { installEgressRelay } from "./_egress-relay.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -128,6 +129,7 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true, s
   const chromium = await loadPlaywright();
   const browser = await chromium.connectOverCDP(ws.startsWith("http") ? ws : ws);
   const context = browser.contexts()[0] || await browser.newContext();
+  await installEgressRelay(context);
   let page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
   if (!page) page = await context.newPage();
   if (!page.url().includes(new URL(url).host)) {

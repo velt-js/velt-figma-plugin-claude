@@ -11,6 +11,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
+import { armChromium, globalPlaywrightCore } from "./lib/browser-egress.mjs";   // sandbox egress: Node-side fetch for the page (guide/debugging.md Fix B)
 
 const require = createRequire(import.meta.url);
 
@@ -54,7 +55,7 @@ async function main() {
   }
   const designPaths = await collectAssetPaths(assets);
   let chromium;
-  try { chromium = require("playwright-core").chromium; }
+  try { chromium = armChromium(require(globalPlaywrightCore() || "playwright-core").chromium); }
   catch { console.error("✗ playwright-core required"); process.exit(1); }
   const browser = await chromium.connectOverCDP(ws);
   const context = browser.contexts()[0] || await browser.newContext();

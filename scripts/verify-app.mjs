@@ -19,12 +19,13 @@
 
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { armChromium, globalPlaywrightCore } from "./lib/browser-egress.mjs";   // sandbox egress: Node-side fetch for the page (guide/debugging.md Fix B)
 
 async function loadChromium() {
-  const candidates = [process.env.PLAYWRIGHT_CORE, "playwright-core",
+  const candidates = [process.env.PLAYWRIGHT_CORE, globalPlaywrightCore(), "playwright-core",
     path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js")].filter(Boolean);
   for (const c of candidates) {
-    try { const m = await import(c); return (m.default || m).chromium; } catch { /* try next */ }
+    try { const m = await import(c); return armChromium((m.default || m).chromium); } catch { /* try next */ }
   }
   throw new Error("playwright-core not found — `npm i -D playwright-core` or set $PLAYWRIGHT_CORE");
 }

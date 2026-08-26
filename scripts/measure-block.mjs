@@ -38,13 +38,14 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { BROWSER_PROBE, LAYER_PROBE, CONTRACT_PROBE, STABILITY_PROBE } from "./delta-compare.mjs";
 import { obsEvent, obsSnapshotBlock, obsIterHint } from "./obs.mjs";
+import { armChromium, globalPlaywrightCore } from "./lib/browser-egress.mjs";   // sandbox egress: Node-side fetch for the page (guide/debugging.md Fix B)
 
 const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
 
 export async function loadChromium() {
-  const candidates = [process.env.PLAYWRIGHT_CORE, "playwright-core",
+  const candidates = [process.env.PLAYWRIGHT_CORE, globalPlaywrightCore(), "playwright-core",
     path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js")].filter(Boolean);
-  for (const c of candidates) { try { const m = await import(c); return (m.default || m).chromium; } catch { /* next */ } }
+  for (const c of candidates) { try { const m = await import(c); return armChromium((m.default || m).chromium); } catch { /* next */ } }
   throw new Error("playwright-core not found — `npm i -D playwright-core` or set $PLAYWRIGHT_CORE");
 }
 export async function acquireBrowser(chromium, connectWs, { requireConnect = false } = {}) {

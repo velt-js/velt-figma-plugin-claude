@@ -18,6 +18,7 @@ import { pathToFileURL, fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { spawnSync } from "node:child_process";
 import { loadProbeExpectations } from "./judge-probe-expectations.mjs";
+import { armChromium, globalPlaywrightCore } from "./lib/browser-egress.mjs";   // sandbox egress: Node-side fetch for the page (guide/debugging.md Fix B)
 
 const require = createRequire(import.meta.url);
 const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
@@ -25,6 +26,7 @@ const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
 async function loadPlaywright() {
   const candidates = [
     process.env.PLAYWRIGHT_CORE,
+    globalPlaywrightCore(),
     "playwright-core",
     path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js"),
   ].filter(Boolean);
@@ -32,7 +34,7 @@ async function loadPlaywright() {
     try {
       const mod = c.startsWith("/") || c.startsWith(".") ? require(c) : await import(c);
       const pw = mod.default || mod;
-      if (pw.chromium) return pw.chromium;
+      if (pw.chromium) return armChromium(pw.chromium);
     } catch { /* try next */ }
   }
   throw new Error("playwright-core not found — set $PLAYWRIGHT_CORE or npm i -D playwright-core");

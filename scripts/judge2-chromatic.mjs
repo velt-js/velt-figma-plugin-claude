@@ -21,6 +21,7 @@ import {
   decodePNG, encodePNG, visualDiff, cropImage, resampleImage, textMasksFromSpec, textBoxesFromSpec,
 } from "./visual-diff.mjs";
 import { runJudge2ChromeProbes } from "./judge2-chrome-probes.mjs";
+import { armChromium, globalPlaywrightCore } from "./lib/browser-egress.mjs";   // sandbox egress: Node-side fetch for the page (guide/debugging.md Fix B)
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -352,6 +353,7 @@ async function captureResting(phaseDir, { url, ws }) {
   // simplest: run playwright here once for resting only.
   const chromiumCandidates = [
     process.env.PLAYWRIGHT_CORE,
+    globalPlaywrightCore(),
     "playwright-core",
     path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js"),
   ].filter(Boolean);
@@ -360,7 +362,7 @@ async function captureResting(phaseDir, { url, ws }) {
     try {
       const mod = c.startsWith("/") ? require(c) : await import(c);
       const pw = mod.default || mod;
-      if (pw.chromium) { chromium = pw.chromium; break; }
+      if (pw.chromium) { chromium = armChromium(pw.chromium); break; }
     } catch { /* next */ }
   }
   if (!chromium) throw new Error("playwright-core not found");

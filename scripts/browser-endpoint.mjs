@@ -26,6 +26,7 @@
 // Programmatic: `import { resolveEndpoint } from "./browser-endpoint.mjs"` → returns the ws or null.
 
 import { pathToFileURL } from "node:url";
+import { globalPlaywrightCore } from "./lib/browser-egress.mjs";   // find a GLOBAL playwright install too
 
 async function fromHttp(base) {
   const url = String(base).replace(/\/+$/, "") + "/json/version";
@@ -69,7 +70,7 @@ export function instructions(port = 9222) {
 // answered), and killable without touching the user's browser. Runs until killed — start it as a
 // background task and pin the printed ws. NOT for apps needing the user's real logged-in session.
 async function launchServer({ headed = false, port = 9223 } = {}) {
-  const candidates = [process.env.PLAYWRIGHT_CORE, "playwright-core",
+  const candidates = [process.env.PLAYWRIGHT_CORE, globalPlaywrightCore(), "playwright-core",
     (process.env.HOME || "") + "/.claude/skills/gstack/node_modules/playwright-core/index.js"].filter(Boolean);
   let chromium = null;
   for (const c of candidates) { try { const m = await import(c); chromium = (m.default || m).chromium; break; } catch { /* next */ } }

@@ -23,6 +23,8 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { sandboxLaunchArgs, installSandboxEgress } from "./sandbox-egress.mjs";
+
 async function loadChromium() {
   const candidates = [process.env.PLAYWRIGHT_CORE, "playwright-core",
     path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js")].filter(Boolean);
@@ -43,7 +45,7 @@ async function acquireBrowser(chromium, connectWs, { requireConnect = false } = 
       console.error("✗ --require-connect set but no --connect <ws> given — refusing to capture in a blank headless browser.\n  Resolve a real browser via scripts/browser-endpoint.mjs, then pass --connect <ws>.");
       process.exit(3);
     }
-    return chromium.launch({ headless: true });
+    return chromium.launch({ headless: true, args: [...sandboxLaunchArgs()] });
   }
   const looksCdp = /^https?:|\/devtools\//.test(connectWs);
   const cdp = () => chromium.connectOverCDP(connectWs);
@@ -68,6 +70,7 @@ async function main() {
   const browser = await acquireBrowser(chromium, connectWs, { requireConnect });
   try {
     const ctx = await browser.newContext({ viewport: { width: 1512, height: 900 }, deviceScaleFactor: scale });
+    await installSandboxEgress(ctx).catch(() => {});   // no-op unless VELT_SANDBOX_EGRESS=1
     const page = await ctx.newPage();
     // domcontentloaded (not networkidle): a realtime Velt app holds long-poll/SSE connections that may
     // never go idle; the explicit waitForSelector(liveSelector) below is the real readiness gate.

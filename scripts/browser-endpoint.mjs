@@ -26,6 +26,7 @@
 // Programmatic: `import { resolveEndpoint } from "./browser-endpoint.mjs"` → returns the ws or null.
 
 import { pathToFileURL } from "node:url";
+import { sandboxLaunchArgs } from "./sandbox-egress.mjs";
 
 async function fromHttp(base) {
   const url = String(base).replace(/\/+$/, "") + "/json/version";
@@ -79,7 +80,9 @@ async function launchServer({ headed = false, port = 9223 } = {}) {
   // launchServer browser gives each connection its own ephemeral context and the tab/auth die
   // with every call (measured). This mirrors a user Chrome with --remote-debugging-port, but
   // dedicated and disposable.
-  const browser = await chromium.launch({ headless: !headed, args: [`--remote-debugging-port=${port}`] });
+  // sandboxLaunchArgs() is empty unless VELT_SANDBOX_EGRESS=1; there it whitelists
+  // the egress shim's local cert by SPKI so normal TLS verification stays on.
+  const browser = await chromium.launch({ headless: !headed, args: [`--remote-debugging-port=${port}`, ...sandboxLaunchArgs()] });
   const ws = await fromHttp(`http://127.0.0.1:${port}`);
   if (!ws) { console.error(`✗ launched browser did not expose CDP on :${port}`); await browser.close(); process.exit(3); }
   process.stdout.write(ws + "\n");

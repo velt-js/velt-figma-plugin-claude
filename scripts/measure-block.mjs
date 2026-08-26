@@ -38,6 +38,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { BROWSER_PROBE, LAYER_PROBE, CONTRACT_PROBE, STABILITY_PROBE } from "./delta-compare.mjs";
 import { obsEvent, obsSnapshotBlock, obsIterHint } from "./obs.mjs";
+import { sandboxLaunchArgs, installSandboxEgress } from "./sandbox-egress.mjs";
 
 const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
 
@@ -60,7 +61,7 @@ export async function acquireBrowser(chromium, connectWs, { requireConnect = fal
         "  then pass its output as --connect <ws>. (Unattended --auto launches its own server browser.)");
       process.exit(3);
     }
-    return chromium.launch({ headless: true });   // bare headless: golden/offline calibration only
+    return chromium.launch({ headless: true, args: [...sandboxLaunchArgs()] });   // bare headless: golden/offline calibration only
   }
   const looksCdp = /^https?:|\/devtools\//.test(connectWs);
   // 15s connect timeout: a STALE ws endpoint (Chrome restarted since it was pinned) can hang the
@@ -288,6 +289,10 @@ export async function openPage(browser, url, { scale = 2, selectUser = null, tim
   let ctx, reused = false;
   if (reuseContext && browser.contexts().length) { ctx = browser.contexts()[0]; reused = true; }
   else ctx = await browser.newContext({ viewport: { width: 1512, height: 900 }, deviceScaleFactor: scale });
+  // Sandbox egress shim (no-op unless VELT_SANDBOX_EGRESS=1): in agent sandboxes
+  // Chromium cannot reach the network at all, so without this every measurement
+  // is taken against an app whose Velt SDK never loaded. See sandbox-egress.mjs.
+  await installSandboxEgress(ctx).catch(() => {});
   let page = null, persistentTab = false;
   if (reused && singleTab()) {
     page = await findRunTab(ctx, { originHint: url });

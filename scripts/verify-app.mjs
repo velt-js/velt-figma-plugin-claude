@@ -19,6 +19,7 @@
 
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { sandboxLaunchArgs, installSandboxEgress } from "./sandbox-egress.mjs";
 
 async function loadChromium() {
   const candidates = [process.env.PLAYWRIGHT_CORE, "playwright-core",
@@ -29,7 +30,7 @@ async function loadChromium() {
   throw new Error("playwright-core not found — `npm i -D playwright-core` or set $PLAYWRIGHT_CORE");
 }
 async function acquireBrowser(chromium, connectWs) {
-  if (!connectWs) return chromium.launch({ headless: true });
+  if (!connectWs) return chromium.launch({ headless: true, args: [...sandboxLaunchArgs()] });
   const looksCdp = /^https?:|\/devtools\//.test(connectWs);
   try { return await (looksCdp ? chromium.connectOverCDP(connectWs) : chromium.connect({ wsEndpoint: connectWs })); }
   catch { return await (looksCdp ? chromium.connect({ wsEndpoint: connectWs }) : chromium.connectOverCDP(connectWs)); }
@@ -53,6 +54,9 @@ async function main() {
   const browser = await acquireBrowser(chromium, connectWs);
   try {
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    // No-op unless VELT_SANDBOX_EGRESS=1. Without it, in an agent sandbox this
+    // check reports exactly the "PRESENT BUT NOT BOOTED" state described below.
+    await installSandboxEgress(ctx).catch(() => {});
     const page = await ctx.newPage();
     await page.goto(url, { waitUntil: "domcontentloaded", timeout });
     // Velt BOOT evidence, not mere presence. A cloud run's preflight passed on `veltPresent:true`

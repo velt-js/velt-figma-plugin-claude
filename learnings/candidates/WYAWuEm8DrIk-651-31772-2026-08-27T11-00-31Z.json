@@ -1,0 +1,96 @@
+{
+  "runId": "WYAWuEm8DrIk-651-31772-2026-08-27T11-00-31Z",
+  "phaseId": "WYAWuEm8DrIk-651-31772",
+  "app": "ai-harvey-implementation",
+  "mode": null,
+  "node": null,
+  "pluginSha": "8b8ec9f",
+  "publishedAt": "2026-08-27T11:00:31.462Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "sdk-gotcha",
+      "statement": "Three CommentDialog primitives silently DISCARD R1 children although the manifest marks them acceptsChildren:true — velt-comment-dialog-thread-card, velt-comment-dialog-options-dropdown and velt-comment-dialog-composer-action-button. They behave like the documented non-containers (dialog root / thread host). Compose their PARTS directly in your own markup and bind annotationId+commentId+commentIndex on each leaf.",
+      "evidence": "BEFORE: skeleton-check --presence-only exit 2 with 18 defects (1 zero-size-primitive + 17 missing-primitive, all descendants of thread-card); live element showed <velt-comment-dialog-thread-card ...><!----><!----><!----><!----></...> with none of the placed children. AFTER dropping the host and binding ids on the leaves: 2 defects, both pre-recorded as accepted; 62 cards rendering real names, timestamps, message bodies and avatars. The action-button case is self-reported by the SDK: '[Velt] <velt-comment-dialog-composer-action-button> is not rendering the markup you placed inside it' x6 in console-health.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "sdk-gotcha",
+      "statement": "On the unstyled base the composer's placeholder has NO glyphs: the placeholder is a real attribute on velt-comment-dialog-composer-input, but Velt paints it through a stylesheet setUnstyledMode strips. Render it yourself from the attribute, gated on the primitive having rendered nothing of its own.",
+      "evidence": "measure-block fixture check reported missing:[\"Write something...\"] on state-composer-states-collapsed while a DOM probe confirmed placeholder=\"Write something...\" present on the element. Fixed with `velt-comment-dialog-composer-input:not(:has(*))::before { content: attr(placeholder) }` in the design's placeholder ramp.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "sdk-gotcha",
+      "statement": "A percentage height on a composed surface resolves against the Velt HOST TAG between it and the rail, and a custom element is height:auto by default — so height:100% silently falls back to CONTENT height. Give the host tag the height too.",
+      "evidence": "MEASURED: .vc-sidebar computed 900px tall starting at y=59 inside an 841px rail, pushing the page-mode composer 59px below the fold and painting the page's dark background in the gap. Adding `.hw-rail-inner > velt-comments-sidebar-v2 { display:flex; flex-direction:column; height:100%; min-height:0 }` re-measured y=59 h=841 with the composer visible at y=705.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "model-reliability",
+      "statement": "judge2-chromatic could measure a signed-out and network-starved app: it never signed in, and it bootstraps its own browser so it skipped installSandboxEgress. Both produced full finding sets against an EMPTY sidebar.",
+      "evidence": "Runs 1-2: judge2/live-panel.png showed 'Comments 0' + 'Add your first comment', 30 then 24 findings, all bogus. Discriminator on the same page at the same moment: openPage path 62 thread cards, judge path 0. After adding a real page.selectOption sign-in, a populated-surface wait, and installSandboxEgress(context): 63 real threads and 11 findings.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "script"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "model-reliability",
+      "statement": "measure-block.selectUserRobust cannot sign in through a CONTROLLED React <select value=\"\">: the native-setter + synthetic change fires onChange, but React re-renders the element back to \"\" so `sel.value === u` never holds. Try Playwright's own selectOption first and keep the synthetic path as the fallback.",
+      "evidence": "MEASURED: after selectUserRobust the app was still signed out (#hw-user-select value \"\"), useCommentAnnotations returned 0 and every probe measured an empty surface; page.selectOption('#hw-user-select','user1') signed in on the first try and 62 annotations arrived.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "script"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "model-reliability",
+      "statement": "judge2's normalizeStateBindings overwrites a phase-authored hover binding whenever its selector does not mention 'sidebar', because the weak-selector test is written against V1 wireframe class names. In a primitives build that silently un-judges every hover state. Bindings now opt out with authored:true.",
+      "evidence": "MEASURED: our correct `.vc-thread-card` hover drive was replaced by V1 selectors and the run logged 'state hover NOT captured: no visible match'; with authored:true the same binding drove and confirmed hover, and later all 3 of 3 states.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "script"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "component-difficulty",
+      "statement": "A Figma State frame is often a presentation BOARD, not a surface: a caption (Aeonik 18/600, ~25px) plus a 24px gap above the artwork, or a whole column of labelled variants. plan-style's design-coverage gate already waives those nodes as board furniture, but brief-scaffold still binds them as measurable product elements — so the two gates disagree and the block reports the caption offset as a layout error.",
+      "evidence": "MEASURED: state-composer-states-collapsed/-3/-4 each reported `new-comment-input box.y Δ -41px` and a missing mustSupply slot named after the caption ('Default'/'Hover'/'Typing'). 25px caption + 24px gap = 41px exactly. state-composer-states-default (a 638x2214 ten-variant board) reported content height off by -2214px and 403 elements missing against one live card.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "script"
+    }
+  ]
+}

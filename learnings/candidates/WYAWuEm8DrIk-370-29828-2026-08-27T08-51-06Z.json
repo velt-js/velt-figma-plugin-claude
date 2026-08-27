@@ -1,0 +1,176 @@
+{
+  "runId": "WYAWuEm8DrIk-370-29828-2026-08-27T08-51-06Z",
+  "phaseId": "WYAWuEm8DrIk-370-29828",
+  "app": "privado-velt-app",
+  "mode": null,
+  "node": null,
+  "pluginSha": "5a7753b",
+  "publishedAt": "2026-08-27T08:51:06.616Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "manifest/velt-primitives.json emitsTag suffixes CommentDialogPrimitive tags with -wireframe; against SDK 6.0.8-beta.3 the -wireframe spelling is NOT a registered custom element while the unsuffixed one IS. scaffold-primitives --lint therefore emits false-positive tag-rename warnings, and a builder that obeys them would address elements that do not exist.",
+      "category": "sdk-gotcha",
+      "evidence": "live CDP customElements.get() on the running app: velt-comment-dialog-thread-card-name DEFINED / -name-wireframe undefined; same for -composer, -composer-input, -thread-card-reply",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "A Velt page carries THREE spellings of the same component: velt-X (the custom element the React wrapper renders, what a primitives build composes), velt-X-internal (the SDK default-UI template internals actually in the DOM), and velt-X-wireframe (not registered at all in 6.0.8-beta.3). A selector that does not distinguish velt-X from velt-X-internal silently matches the SDK default UI instead of the composed tree.",
+      "category": "sdk-gotcha",
+      "evidence": "45 velt-*-internal tags enumerated live via CDP on the running app at rest",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "scaffold-primitives seeds r3.reactHook=useCommentDialogConfig for the dialog surface, but that hook is NOT exported by @veltdev/react 6.0.7 (useCommentSidebarData, useCommentUtils, useCommentAnnotations, useCommentAnnotationById, useCurrentUser, useToggleReaction all ARE). A primitives plan must fall back to the element-method + subscribe/unsubscribe path.",
+      "category": "sdk-gotcha",
+      "evidence": "grep of node_modules/@veltdev/react/index.d.ts (9079 lines): zero occurrences of useCommentDialogConfig; manifest reactHookAvailable:false agrees",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "A drive step that waits for velt-comment-sidebar-skeleton-v2[data-velt-hidden=\"true\"] to become VISIBLE can only ever time out — data-velt-hidden=\"true\" is an inline display:none the SDK sets. Planners reach for the skeleton as a loading-cleared signal and invert its polarity. The correct gate is a waitFor on the content that APPEARS when loading clears; scaffold-primitives --lint catches this as waits-for-hidden-element.",
+      "category": "sdk-gotcha",
+      "evidence": "5 of 7 planner-authored drives in this phase carried the inverted wait; in every one the immediately-following step already waited on real post-load content, so deleting the impossible step lost no coverage",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "verify-host-wiring.mjs reports unstyled-base/velt-customization-mount/shadow-dom-false MISSING when the host factors them into separate components instead of colocating them in one file. On a Vite host whose App.tsx renders <UnstyledBase/> (which calls client.setUnstyledMode inside its own module) the script reported 3 required items missing while all three were live and effective. Running --apply on that false negative would DUPLICATE the wiring and can break a load-bearing ordering gate.",
+      "category": "pipeline-trap",
+      "evidence": "live CDP: velt-comment-sidebar-panel-v2-internal present at 380x900 with backgroundColor rgba(0,0,0,0), border 0px none, 0 velt stylesheets — i.e. unstyled base demonstrably applied, while verify-host-wiring printed 3 missing",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "script",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "velt-comment-dialog-composer-action-button projects R1 children ONLY for type=\"submit\". For type=\"attachments\" and type=\"userMentions\" the primitive delegates to app-attachment-button / velt-autocomplete-tool-internal, which render their own 18x18 currentColor glyph and expose no relocation anchor — supplied children are SILENTLY DISCARDED with no error and no data-velt-hidden. A plan that addresses those buttons via :has(<own child class>) produces a selector that can never match. Address them by their type attribute instead, which IS on the element.",
+      "category": "sdk-gotcha",
+      "evidence": "live CDP after the structure build: :has(.vc-composer-attach-icon)=0 and :has(.vc-composer-mention-icon)=0 while [type=\"attachments\"]=1, [type=\"userMentions\"]=1, [type=\"submit\"]=1 and :has(.vc-composer-send-icon)=1",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "commentElement.getComposerData() is declared ComposerTextChangeEvent|null in the 6.0.7 d.ts but returns undefined live for all three call shapes ({targetComposerElementId}, no-arg, {}) even with text in the composer. The method exists and does not throw. A plan relying on a one-shot mount read of composer state is inert; drive state from the composerTextChange subscription instead (that works, as do clearComposer and commentElement.on).",
+      "category": "sdk-gotcha",
+      "evidence": "builder measured all three call shapes live with \"Active state when typing@\" in the composer; composerTextChange subscription drove all 3 states successfully",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "velt-comment-sidebar-list-v2 evaluated with its built-in gate (defaultCondition NOT passed) and zero annotations at mount renders <!----><!----> and DISCARDS its R1 children permanently — 0x0, no data-velt-hidden, and the children never return when the gate later goes true because R1 moved the node out of React reach. Only a full page reload restores them. A primitives plan must pass defaultCondition={false} on a gated CONTAINER whose children it owns; accepting the gate is only safe on leaves.",
+      "category": "sdk-gotcha",
+      "evidence": "builder measured the discard at zero annotations, then created 3 real threads: gate went true, .vc-thread-rows never returned until reload",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "scaffold-primitives seeds r3.getter=getCommentSidebarConfig for the sidebar surface, but neither that method nor listRows exists in @veltdev/react 6.0.7 or @veltdev/types. The published substitute is the facade Observables getAllCommentAnnotations() and getSelectedComments() via subscribe/unsubscribe. COST: that stream is UNFILTERED — a sidebar filter will not narrow a hand-composed list, and no published surface exposes the filtered/sorted row set.",
+      "category": "sdk-gotcha",
+      "evidence": "zero grep hits for getCommentSidebarConfig or listRows across both installed packages; builder substituted comment-element.model.d.ts:22 and :932",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "brief-scaffold writes family smoke specs with a checks[] array, but measure-block.mjs smoke() iterates spec.steps (line 621: for (const step of spec.steps || [])). With only checks[] present the loop body never runs, results is [], ok = [].every(...) === true, and the runner prints \"0/0 steps ok\" and EXITS 0. verdict-gate-blocks only requires results/smoke/<family>.json to exist, so R30 is satisfied by a file that asserted nothing. Every scaffolded smoke suite is a guaranteed false pass.",
+      "category": "pipeline-trap",
+      "evidence": "all 4 families exited 0 with 0/0 steps; after translating checks[] into executable steps[] the same 4 families ran 17 real steps and passed 17/17 including a real-pointer like toggle round-trip",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "script",
+      "fix": "either make smoke() read checks[], or have brief-scaffold emit steps[]; and make the gate reject a smoke result with 0 steps",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "STRICTLY PRIMITIVES: hand-composing a primitive OUTSIDE its sdkParent silently breaks any control whose popover/panel is rendered by that parent. On this run the Reply control, the reaction-tool emoji picker and the sidebar filter button all mounted, painted correctly and flipped their own aria state, yet opened NOTHING — because velt-comment-sidebar-panel-v2 (the sdkParent that hosts those containers) is absent when the rail is your own markup. check-primitive-reachability CANNOT predict this: it scores SLOT PARITY, not popover ownership. A primitives plan must therefore treat every popover-owning control as unreachable unless its sdkParent is composed into the tree.",
+      "category": "component-difficulty",
+      "evidence": "judge real-pointer probes: reply -> [contenteditable] stayed 1, visible-element set-diff 0 appeared/0 disappeared; picker -> emoji-picker 0->0, overlay descendants 0->0; filter -> aria-expanded flips true but filter/menu/listbox 3->3, overlays 0. SDK sweep: openReplyComposer/replyToComment/openReactionPicker/openEmojiPicker/openFilter = 0 occurrences. Every picker/panel form is *Wireframe (VeltReactionsPanelWireframe, VeltReactionToolWireframe, VeltReactionPinWireframe, VeltInlineReactionsSectionWireframe), which the mode forbids; zero emoji-picker primitives exist. DISCRIMINATOR: our own button.vc-like + published useToggleReaction DOES round-trip (confirmed by builder and by smoke 4/4 incl. toggle off), proving this is a mode limit, not a build error.",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "priority": "high",
+      "note": "This is the reachability report reactions:MODE_BLOCKED(14 slots) verdict surfacing in practice — the first time that data has been validated against a real build.",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "R30 SMOKE GATE REPORTS SUCCESS FOR VERIFYING NOTHING. brief-scaffold.mjs writes family smoke specs as checks[]; measure-block.mjs smoke() iterates spec.steps. A scaffolded suite therefore runs ZERO steps and EXITS 0 WITH A TICK: :661 const ok = results.every(r=>r.ok) — [].every() === true; :665 prints \"smoke X: 0/0 steps ok\"; :668 process.exit(ok?0:2). This is categorically worse than the judge2 chromatic/chrome-probe blindness because THOSE FAIL LOUD (exit 3, capture refusal) whereas this reports success on every run. The verdict gate caught it here only because the suites were ABSENT from the results dir, not because it noticed they were empty. THE GUARD ALREADY EXISTS IN THE SAME FILE: measure-block.mjs:174 reads \"<label>.steps is EMPTY on a surface that must be opened/driven — a blank capture would be a false-pass; author real step objects that OPEN the surface\" — the author anticipated this exact failure and guarded the validation path, but smoke() never consults it.",
+      "category": "pipeline-trap",
+      "evidence": "all 4 families exited 0 with 0/0 steps; after translating checks[] into executable steps[] the same 4 families ran 17 real steps and passed 17/17, including a real-pointer like toggle round-trip",
+      "fixA": "smoke() must treat empty/absent steps[] as INVALID with a distinct non-zero exit, mirroring judge2-chrome-probes exit 3 and its measured-NOTHING-is-not-a-pass comment — the precedent is already in the codebase",
+      "fixB": "resolve the schema drift at the root: brief-scaffold emits steps[], or smoke() accepts checks[]. The 17 hand-translated steps prove the suites are executable once the schema agrees.",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "script",
+      "priority": "critical",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "The verification layer configures itself from hardcoded Harvey-demo constants instead of the phase artifacts already on disk. judge2-chromatic.mjs panel list (app-comment-sidebar-panel/.vc-panel/.hw-rail-inner/.hw-rail), judge2-chrome-probes.mjs (.vc-body/.vc-avatar/.vc-connector), and the block probe element map all ignore blocks.json liveSelectors, plan-primitives vcClasses and dom-snapshot. On a strictly-primitives surface judge2-chromatic REFUSED to capture, all four chrome probes were vacuous, and every relation row resolved unknown because probes.elements was EMPTY — the probe reported the absence of its own configuration as a UI defect.",
+      "category": "pipeline-trap",
+      "evidence": "judge could not capture until an inert live-DOM alias was installed (proven inert: 0 matching rules across all 1076 rules); re-running the same four probes by hand against the real selectors returned all four CLEAN. Relation rows: probes.elements keys = (EMPTY), relations = [].",
+      "fix": "probe-selectors.mjs is the template — it resolves card on a leaves-only tree via a deepest-common-ancestor fallback and writes probe-selectors.json. Sequence 5c must CALL it, and the probes must read the phase artifacts.",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "script",
+      "priority": "high",
+      "scope": "general"
+    }
+  ]
+}

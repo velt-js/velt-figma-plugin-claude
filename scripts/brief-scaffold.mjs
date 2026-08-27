@@ -1137,6 +1137,24 @@ async function main() {
     // the shared wireframe base; discovered late this costs a measure iteration. WARNINGS only —
     // they never change the exit code; the Planner resolves intentionally (state-scope the
     // selector or confirm the divergence).
+    // SILENT SOURCE-OF-TRUTH DIVERGENCE — blocks.json vs briefs/<id>.probes.json.
+    // dom-snapshot.mjs resolves `brief?.liveSelector || b.liveSelector` and takes the block's
+    // `drive` from the BRIEF, so blocks.json is only a fallback. Editing blocks.json while the
+    // brief carries its own value therefore has ZERO effect and says nothing — measured on the
+    // privado phase-2 run, where a corrected drive was written to blocks.json, changed nothing,
+    // and the stage kept failing for the original reason. Report the disagreement and name the
+    // winner so the edit lands where it is read.
+    for (const b of blocks.blocks || []) {
+      const brief = await loadJson(path.join(briefsDir, `${b.id}.probes.json`)).catch(() => null);
+      if (!brief) continue;
+      if (b.liveSelector && brief.liveSelector && b.liveSelector !== brief.liveSelector)
+        console.log(`⚠ ${b.id}: liveSelector differs — blocks.json '${b.liveSelector}' vs brief '${brief.liveSelector}'. The BRIEF wins (dom-snapshot reads brief?.liveSelector || b.liveSelector); edit the brief.`);
+      const aOf = (d) => (d && d.assert ? String(d.assert) : "");
+      const nOf = (d) => (d && Array.isArray(d.steps) ? d.steps.length : -1);
+      if (b.drive && brief.drive && (aOf(b.drive) !== aOf(brief.drive) || nOf(b.drive) !== nOf(brief.drive)))
+        console.log(`⚠ ${b.id}: drive differs — blocks.json (${nOf(b.drive)} step(s), assert '${aOf(b.drive).slice(0, 40)}') vs brief (${nOf(brief.drive)} step(s), assert '${aOf(brief.drive).slice(0, 40)}'). The BRIEF wins; edit the brief.`);
+    }
+
     // AMBIGUOUS BINDING — two DIFFERENT design nodes asserted against ONE selector.
     // When two nodes have coincident boxes (a wrapper and its only child), the scaffold can bind
     // both to the same live selector; the wrapper's decls are then asserted against its child and

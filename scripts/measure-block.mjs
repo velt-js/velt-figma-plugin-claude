@@ -638,6 +638,18 @@ async function smoke(phaseDir, familyId, opts) {
       try {
         await runSteps(page, step.actions, { timeout: opts.timeout });
         if (step.assert) await waitVisible(page, step.assert, 8000);
+        // evalAssert — a JS predicate evaluated in the page; falsy or throwing fails the step.
+        // It exists because `assert` is waitVisible, which cannot check anything about an element
+        // the SDK has hidden (display:none) — e.g. "the placeholder is MOUNTED while its own gate
+        // hides it", which distinguishes correctly-hidden from never-built. The field was already
+        // being authored into briefs (phase 1 and 2) and silently IGNORED here, so those steps ran
+        // zero checks and passed on console-silence alone — the same false-pass R31 names, arriving
+        // through a field the runner simply did not read.
+        if (step.evalAssert) {
+          const fn = String(step.evalAssert).trim();
+          const ok = await page.evaluate(`(() => { ${/\breturn\b/.test(fn) ? fn : `return (${fn});`} })()`);
+          if (!ok) throw new Error(`evalAssert falsy: ${fn.slice(0, 120)}`);
+        }
         if (step.assertAbsent) {
           const still = await page.locator(`${step.assertAbsent} >> visible=true`).count();
           if (still) throw new Error(`'${step.assertAbsent}' still visible (${still})`);

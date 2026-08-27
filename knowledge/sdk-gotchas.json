@@ -65,7 +65,7 @@
       "veltVersion": "6.x",
       "component": "composer / velt-composer-open",
       "kind": "behavior",
-      "symptom": "velt-composer-open is a one-way SDK state with no revert prop \u2014 once opened it cannot be programmatically reverted, so a flow that needs the collapsed state after opening can't reach it.",
+      "symptom": "velt-composer-open is a one-way SDK state with no revert prop — once opened it cannot be programmatically reverted, so a flow that needs the collapsed state after opening can't reach it.",
       "fix": "Anchor collapsed-state layout/visibility on a STABLE selector, not on toggling velt-composer-open back off (R27). Treat 'return to collapsed' as unreachable and blocker it rather than grinding.",
       "confidence": "confirmed",
       "seenOn": [
@@ -78,7 +78,7 @@
       "veltVersion": "6.x",
       "component": "any VeltWireframe registration",
       "kind": "behavior",
-      "symptom": "Velt clones wireframe TEMPLATES into the plain DOM carrying the .vc-* classes but DROPS the velt-*-wireframe tag \u2014 so a probe/selector keyed to the wireframe tag dies at runtime.",
+      "symptom": "Velt clones wireframe TEMPLATES into the plain DOM carrying the .vc-* classes but DROPS the velt-*-wireframe tag — so a probe/selector keyed to the wireframe tag dies at runtime.",
       "fix": "Key every runtime selector to a stable velt-* class or your own .vc-* class, never the velt-*-wireframe registry tag (which exists only in the 0-size registry twin).",
       "confidence": "confirmed",
       "seenOn": [
@@ -91,8 +91,8 @@
       "veltVersion": "n/a",
       "component": "measurement harness / any content-bearing surface (comments, notifications, lists)",
       "kind": "measurement",
-      "symptom": "Whole-surface pixel-diff of a LIVE list against the Figma frame is invalid: the design is DUMMY data (e.g. 2 example comments, made-up names/timestamps) and the app is REAL data (e.g. 11 comments, real text/users). The count/text/avatars/times NEVER match, so pixel-diff either false-FAILs every content-bearing surface (regions everywhere) or gets waved off as 'artifact' \u2014 which hides real style defects (the RUN-3 hole: a missing inter-card gap + wrong reaction icons shipped while delta-compare passed on a spec that never checked them).",
-      "fix": "Verify CONTENT-INDEPENDENT style, not screenshots. deltaCompare (per-element computed style + box + inter-card GAP) is the AUTHORITY \u2014 it checks the look of ONE card template, identical whether the app shows 2 cards or 200. Whole-surface visualDiff is ADVISORY only: spot a region, then confirm it as a concrete delta assertion (which gates). NEVER flag content (comment count, message text, names, timestamps, reaction counts). The gate rejects a delta spec that covered too little as INCOMPLETE: brief-scaffold auto-derives the inter-card gap + per-slot style elements from the design slice; reaction/action icon identity is icon-lint. A data-controlled single-card capture may set dataMatched to re-enable pixel gating.",
+      "symptom": "Whole-surface pixel-diff of a LIVE list against the Figma frame is invalid: the design is DUMMY data (e.g. 2 example comments, made-up names/timestamps) and the app is REAL data (e.g. 11 comments, real text/users). The count/text/avatars/times NEVER match, so pixel-diff either false-FAILs every content-bearing surface (regions everywhere) or gets waved off as 'artifact' — which hides real style defects (the RUN-3 hole: a missing inter-card gap + wrong reaction icons shipped while delta-compare passed on a spec that never checked them).",
+      "fix": "Verify CONTENT-INDEPENDENT style, not screenshots. deltaCompare (per-element computed style + box + inter-card GAP) is the AUTHORITY — it checks the look of ONE card template, identical whether the app shows 2 cards or 200. Whole-surface visualDiff is ADVISORY only: spot a region, then confirm it as a concrete delta assertion (which gates). NEVER flag content (comment count, message text, names, timestamps, reaction counts). The gate rejects a delta spec that covered too little as INCOMPLETE: brief-scaffold auto-derives the inter-card gap + per-slot style elements from the design slice; reaction/action icon identity is icon-lint. A data-controlled single-card capture may set dataMatched to re-enable pixel gating.",
       "confidence": "confirmed",
       "seenOn": [
         "privado",
@@ -126,8 +126,8 @@
         ".velt-composer-open",
         "velt-composer-input-focused"
       ],
-      "symptom": "The composer renders as a raw blue-outlined <textarea> with a misaligned @/send, and has no collapsed\u2192active\u2192typing states. TWO causes: (1) the custom CSS never reached the input \u2014 the surface is missing shadowDom={false} (or injectCustomCss) so selector CSS can't override Velt's shadow-DOM defaults; (2) the 3 states were never wired \u2014 'active' keys off the .velt-composer-open ancestor class and 'typing' off velt-composer-input-focused, not authored markup.",
-      "fix": "Set shadowDom={false} (or injectCustomCss) on the surface so .velt-composer* selector CSS applies (R6). Build a composer SKELETON (rounded pill container + action row with attach/mention left + circular send right) and wire the 3 states to the real Velt classes: collapsed = default, active = .velt-composer-open ancestor, typing = velt-composer-input-focused. The Judge must DRIVE focus\u2192type and assert all three (a static default capture false-passes the state work).",
+      "symptom": "The composer renders as a raw blue-outlined <textarea> with a misaligned @/send, and has no collapsed→active→typing states. TWO causes: (1) the custom CSS never reached the input — the surface is missing shadowDom={false} (or injectCustomCss) so selector CSS can't override Velt's shadow-DOM defaults; (2) the 3 states were never wired — 'active' keys off the .velt-composer-open ancestor class and 'typing' off velt-composer-input-focused, not authored markup.",
+      "fix": "Set shadowDom={false} (or injectCustomCss) on the surface so .velt-composer* selector CSS applies (R6). Build a composer SKELETON (rounded pill container + action row with attach/mention left + circular send right) and wire the 3 states to the real Velt classes: collapsed = default, active = .velt-composer-open ancestor, typing = velt-composer-input-focused. The Judge must DRIVE focus→type and assert all three (a static default capture false-passes the state work).",
       "confidence": "confirmed",
       "seenOn": [
         "privado"
@@ -143,7 +143,7 @@
         ".velt-reaction-pin-emoji",
         "[class*='reaction-pin']"
       ],
-      "symptom": "On-card reactions render as GIANT stacked emoji IMAGES instead of small inline pills with counts \u2014 the pin emoji (VeltReactionPin \u2192 Emoji/Count) has no width/height and no inline-pill layout, so it paints at the image's natural size. (Also easy to mis-wire the big picker VeltReactionsPanel Item\u2192Emoji in place of the on-card pin.)",
+      "symptom": "On-card reactions render as GIANT stacked emoji IMAGES instead of small inline pills with counts — the pin emoji (VeltReactionPin → Emoji/Count) has no width/height and no inline-pill layout, so it paints at the image's natural size. (Also easy to mis-wire the big picker VeltReactionsPanel Item→Emoji in place of the on-card pin.)",
       "fix": "Lay velt-reaction-pin out as an inline-flex PILL (emoji + count, small gap) and SIZE the pin emoji to the design (velt-reaction-pin-emoji ~16-20px, never natural image size). Distinguish the on-CARD pin (small) from the PICKER panel emoji (larger). brief-scaffold must auto-derive a reaction-pill element so the Judge asserts its box and a giant emoji FAILS as a delta row (the RUN-3 blind spot the KB named but the scaffold never emitted).",
       "confidence": "confirmed",
       "seenOn": [
@@ -159,8 +159,8 @@
         "velt-comment-dialog-thread-card-reactions-wireframe",
         "velt-comment-dialog-thread-card-reaction-tool-wireframe"
       ],
-      "symptom": "TWO identical 'add reaction' (smiley+) buttons render on a comment because BOTH ThreadCard.Reactions AND ThreadCard.ReactionTool were declared. Reactions is the composite row that ALREADY contains the add-reaction trigger; ReactionTool is the STANDALONE add button \u2014 declaring both renders the add affordance twice.",
-      "fix": "Use ThreadCard.Reactions (full row: pills + add-reaction tool) OR (ReactionTool + ReactionPin) \u2014 never Reactions alongside ReactionTool. lint-customization flags co-declaration of thread-card-reactions AND thread-card-reaction-tool; icon-lint flags two identical reaction-tool glyphs.",
+      "symptom": "TWO identical 'add reaction' (smiley+) buttons render on a comment because BOTH ThreadCard.Reactions AND ThreadCard.ReactionTool were declared. Reactions is the composite row that ALREADY contains the add-reaction trigger; ReactionTool is the STANDALONE add button — declaring both renders the add affordance twice.",
+      "fix": "Use ThreadCard.Reactions (full row: pills + add-reaction tool) OR (ReactionTool + ReactionPin) — never Reactions alongside ReactionTool. lint-customization flags co-declaration of thread-card-reactions AND thread-card-reaction-tool; icon-lint flags two identical reaction-tool glyphs.",
       "confidence": "confirmed",
       "seenOn": [
         "privado"
@@ -175,8 +175,8 @@
         "velt-comment-dialog-wireframe",
         "velt-comment-composer-wireframe"
       ],
-      "symptom": "The comment dialog renders with NO composer at all. The dialog root was registered as a container wireframe but the Composer subtree was not DECLARED \u2014 undeclared children of a container wireframe DISAPPEAR (they do NOT fall back to Velt's default). Easy to miss because an unselected dialog legitimately hides the composer until a pin is selected.",
-      "fix": "Declare the Composer (and Body\u2192Threads\u2192ThreadCard) subtree inside the dialog wireframe. Put Composer in the dialog manifest mustSupply so first-shot + the gate flag its absence. lint-customization's container-completeness check requires declared children when a container root is registered. Judge smoke must drive pin SELECTION and assert the reply composer renders in the dialog.",
+      "symptom": "The comment dialog renders with NO composer at all. The dialog root was registered as a container wireframe but the Composer subtree was not DECLARED — undeclared children of a container wireframe DISAPPEAR (they do NOT fall back to Velt's default). Easy to miss because an unselected dialog legitimately hides the composer until a pin is selected.",
+      "fix": "Declare the Composer (and Body→Threads→ThreadCard) subtree inside the dialog wireframe. Put Composer in the dialog manifest mustSupply so first-shot + the gate flag its absence. lint-customization's container-completeness check requires declared children when a container root is registered. Judge smoke must drive pin SELECTION and assert the reply composer renders in the dialog.",
       "confidence": "confirmed",
       "seenOn": [
         "privado"
@@ -187,8 +187,8 @@
       "veltVersion": "6.x",
       "component": "any surface on the unstyled base (setUnstyledMode(true,{keepFunctionalStyles:true}))",
       "kind": "behavior",
-      "symptom": "Own-markup wrappers and slot hosts render with browser defaults (display:block/inline, gap:normal, no flex) \u2014 every row STACKS vertically. Measured on a clean build: 28 of ~40 real diffs on the simplest card were pure layout props (display/flex-direction/gap/justify-content/align-items/align-self/padding), and ALL 12 of the builder's appearance-pass fixes were layout reconstruction the plan never carried.",
-      "fix": "The style plan MUST carry the design's layout props for every composing container \u2014 the Figma auto-layout frames (brief nodeKind:'layout-frame') hold exactly these decls; map each frame's display/flex-direction/gap/justify/align/padding onto the live container it corresponds to. Layout left unplanned = the builder improvises it per run = inconsistent results.",
+      "symptom": "Own-markup wrappers and slot hosts render with browser defaults (display:block/inline, gap:normal, no flex) — every row STACKS vertically. Measured on a clean build: 28 of ~40 real diffs on the simplest card were pure layout props (display/flex-direction/gap/justify-content/align-items/align-self/padding), and ALL 12 of the builder's appearance-pass fixes were layout reconstruction the plan never carried.",
+      "fix": "The style plan MUST carry the design's layout props for every composing container — the Figma auto-layout frames (brief nodeKind:'layout-frame') hold exactly these decls; map each frame's display/flex-direction/gap/justify/align/padding onto the live container it corresponds to. Layout left unplanned = the builder improvises it per run = inconsistent results.",
       "confidence": "tentative",
       "seenOn": [
         "harvey (clean-run measured 2026-07-21)"
@@ -204,11 +204,11 @@
         ".s-user-avatar-container",
         ".s-user-avatar-initial-container"
       ],
-      "symptom": "The SDK renders snippyly-user-avatar as a 32\u00d732 subtree with its visible initial-container anchored TOP-LEFT. Sizing/clipping only the slot HOST to the design's avatar size (overflow:hidden) crops the subtree to its top-left corner \u2014 renders as a dark irregular 'blob', not a circle.",
+      "symptom": "The SDK renders snippyly-user-avatar as a 32×32 subtree with its visible initial-container anchored TOP-LEFT. Sizing/clipping only the slot HOST to the design's avatar size (overflow:hidden) crops the subtree to its top-left corner — renders as a dark irregular 'blob', not a circle.",
       "fix": "Size the WHOLE chain to the design's avatar size and center each level: the slot host AND snippyly-user-avatar AND .s-user-avatar-container AND .s-user-avatar-initial-container (width/height/min-width + flex centering). Never clip the 32px subtree into a smaller box. Verified live: all four levels concentric at the design size, letter centered.",
       "confidence": "confirmed",
       "seenOn": [
-        "harvey (measured live 2026-07-21, blob\u2192clean verified)"
+        "harvey (measured live 2026-07-21, blob→clean verified)"
       ]
     },
     {
@@ -220,11 +220,11 @@
         ".s-user-avatar-initial-container",
         ".velt-user-avatar--initial-container"
       ],
-      "symptom": "The SDK writes the per-user avatar color as an INLINE style attribute (style=\"background-color: rgb(253,161,146)\") on .s-user-avatar-initial-container \u2014 a design's avatar fill rule silently loses to it and the SDK's default palette (salmon/etc.) ships.",
-      "fix": "A design-specified avatar fill needs !important to beat the inline style. If the design KEEPS per-user colors, do NOT override \u2014 record a defaultOk instead. The value is design-specific; never bake a fixed color globally.",
+      "symptom": "The SDK writes the per-user avatar color as an INLINE style attribute (style=\"background-color: rgb(253,161,146)\") on .s-user-avatar-initial-container — a design's avatar fill rule silently loses to it and the SDK's default palette (salmon/etc.) ships.",
+      "fix": "A design-specified avatar fill needs !important to beat the inline style. If the design KEEPS per-user colors, do NOT override — record a defaultOk instead. The value is design-specific; never bake a fixed color globally.",
       "confidence": "confirmed",
       "seenOn": [
-        "harvey (measured live: inline salmon \u2192 !important design fill applied)"
+        "harvey (measured live: inline salmon → !important design fill applied)"
       ]
     },
     {
@@ -236,24 +236,24 @@
         ".s-user-avatar-initial",
         ".velt-user-avatar--initial"
       ],
-      "symptom": "The avatar initial <span> is EMPTY \u2014 the letter lives in its data-modal-author-initial attribute and Velt paints it via CSS content:attr(...). The unstyled base STRIPS that painter, so avatars render with no letter (a correctly-styled empty element, invisible to text checks).",
+      "symptom": "The avatar initial <span> is EMPTY — the letter lives in its data-modal-author-initial attribute and Velt paints it via CSS content:attr(...). The unstyled base STRIPS that painter, so avatars render with no letter (a correctly-styled empty element, invisible to text checks).",
       "cssFix": ".s-user-avatar-initial:empty::before, .velt-user-avatar--initial:empty::before { content: attr(data-modal-author-initial) !important; }",
       "confidence": "confirmed",
       "seenOn": [
-        "harvey (verified live twice: empty span \u2192 rendered letter via ::before)"
+        "harvey (verified live twice: empty span → rendered letter via ::before)"
       ]
     },
     {
       "id": "slot-clone-wrapper-blocks-flex",
       "veltVersion": "6.x",
-      "component": "child-bearing slots (ToggleReply, Composer, \u2026)",
+      "component": "child-bearing slots (ToggleReply, Composer, …)",
       "kind": "behavior",
       "selectorHints": [
         ".vc-reply > div",
         "div.velt-comment-dialog-composer"
       ],
-      "symptom": "Velt clones a plain BLOCK div (often role=button, e.g. div.velt-comment-dialog-composer) BETWEEN the slot host and your supplied children \u2014 flex on the host never reaches the children, so an icon+label or avatar+input+send row STACKS even though the host has display:flex.",
-      "fix": "After flexing the slot host, inspect the live DOM for an intervening clone-wrapper and give IT the row layout too (e.g. `.vc-reply > div { display:flex; align-items:center; gap:<design> }`). The dom-snapshot lists these wrappers \u2014 the style plan should carry a disposition for each.",
+      "symptom": "Velt clones a plain BLOCK div (often role=button, e.g. div.velt-comment-dialog-composer) BETWEEN the slot host and your supplied children — flex on the host never reaches the children, so an icon+label or avatar+input+send row STACKS even though the host has display:flex.",
+      "fix": "After flexing the slot host, inspect the live DOM for an intervening clone-wrapper and give IT the row layout too (e.g. `.vc-reply > div { display:flex; align-items:center; gap:<design> }`). The dom-snapshot lists these wrappers — the style plan should carry a disposition for each.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (ToggleReply verified live; Composer clone-wrapper verified in the prior build)"
@@ -264,7 +264,7 @@
       "veltVersion": "6.x",
       "component": "page-mode / dialog composer hosts",
       "kind": "behavior",
-      "symptom": "A composer host whose internals haven't mounted (unselected card, empty state) collapses to ~18px \u2014 the design's ~40px input row renders as a squashed pill.",
+      "symptom": "A composer host whose internals haven't mounted (unselected card, empty state) collapses to ~18px — the design's ~40px input row renders as a squashed pill.",
       "fix": "Give the composer host the design row's min-height (design-specific value from the spec node). If the design shows the composer ONLY in a selected state, scope its visibility to the stable selected condition instead of min-heighting every instance.",
       "confidence": "tentative",
       "seenOn": [
@@ -276,11 +276,11 @@
       "veltVersion": "n/a",
       "component": "own-markup decorative elements (thread connector lines, spacers)",
       "kind": "behavior",
-      "symptom": "An own-markup decorative <span> (e.g. the thread connector line in the avatar gutter) renders 0\u00d70 inline and is invisible \u2014 it has no intrinsic size and the plan carried no box for it.",
+      "symptom": "An own-markup decorative <span> (e.g. the thread connector line in the avatar gutter) renders 0×0 inline and is invisible — it has no intrinsic size and the plan carried no box for it.",
       "fix": "Every decorative own-markup element needs explicit display + width/height + paint, and gutter/connector lines need position:absolute inside a position:relative SDK container (e.g. .velt-thread-card--container) with offsets derived from the design (avatar center column). Hide the trailing instance (:last-child) when the design shows no dangling connector.",
       "confidence": "confirmed",
       "seenOn": [
-        "harvey (0\u00d70 \u2192 1px\u00d730-50px line verified live)"
+        "harvey (0×0 → 1px×30-50px line verified live)"
       ]
     },
     {
@@ -288,8 +288,8 @@
       "veltVersion": "6.x",
       "component": "VeltComments replyPlaceholder",
       "kind": "behavior",
-      "symptom": "replyPlaceholder is a PLAIN STRING \u2014 a '{name}' token renders literally in the reply composer placeholder ('Reply to {name}\u2026'), it is never interpolated per-user.",
-      "fix": "Use a static placeholder string, or reproduce per-user text via wireframe tokens (velt-data) in own markup \u2014 never pass {tokens} into placeholder props.",
+      "symptom": "replyPlaceholder is a PLAIN STRING — a '{name}' token renders literally in the reply composer placeholder ('Reply to {name}…'), it is never interpolated per-user.",
+      "fix": "Use a static placeholder string, or reproduce per-user text via wireframe tokens (velt-data) in own markup — never pass {tokens} into placeholder props.",
       "confidence": "tentative",
       "seenOn": [
         "harvey (build-structure trial, live-verified)"
@@ -305,8 +305,8 @@
         ".vc-options-trigger",
         ".options-trigger-container"
       ],
-      "symptom": "Design kebab inside Options.Trigger is invisible (resolve may still show) after a prior patch collapsed .vc-options to 0\u00d70 overflow:hidden to hide the SDK default \u2022\u2022\u2022.",
-      "cssFix": "/* knowledge:options-collapse-clips-design-trigger \u2014 size Options host; hide only SDK \u2022\u2022\u2022 glyph */\n.vc-options { width: 16px !important; height: 16px !important; overflow: visible !important; }\n.vc-options svg.comment-dialog-options-dropdown-trigger { width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; }\n.vc-options .options-trigger-container,\n.vc-options .mat-mdc-menu-trigger,\n.vc-options .v-dropdown-menu-trigger { width: 16px !important; height: 16px !important; overflow: visible !important; opacity: 1 !important; pointer-events: auto !important; }",
+      "symptom": "Design kebab inside Options.Trigger is invisible (resolve may still show) after a prior patch collapsed .vc-options to 0×0 overflow:hidden to hide the SDK default •••.",
+      "cssFix": "/* knowledge:options-collapse-clips-design-trigger — size Options host; hide only SDK ••• glyph */\n.vc-options { width: 16px !important; height: 16px !important; overflow: visible !important; }\n.vc-options svg.comment-dialog-options-dropdown-trigger { width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important; }\n.vc-options .options-trigger-container,\n.vc-options .mat-mdc-menu-trigger,\n.vc-options .v-dropdown-menu-trigger { width: 16px !important; height: 16px !important; overflow: visible !important; opacity: 1 !important; pointer-events: auto !important; }",
       "fix": "Never zero the Options host or the mat trigger container when the design glyph lives inside Options.Trigger. Rest-hide via opacity on .vc-options; reveal on card/dialog hover.",
       "confidence": "confirmed",
       "seenOn": [
@@ -324,7 +324,7 @@
         "app-comment-sidebar-list.vc-list",
         ".velt-sidebar-content"
       ],
-      "symptom": "Long comment lists are clipped by the host rail with no working scroll \u2014 list/content grow with min-height:auto until overflow:hidden ancestors clip them.",
+      "symptom": "Long comment lists are clipped by the host rail with no working scroll — list/content grow with min-height:auto until overflow:hidden ancestors clip them.",
       "cssFix": "/* knowledge:sidebar-flex-scrollport */\nvelt-comments-sidebar { height: 100% !important; max-height: 100% !important; min-height: 0 !important; overflow: hidden !important; }\n.vc-panel, app-comment-sidebar-panel.vc-panel { flex: 1 1 0 !important; min-height: 0 !important; overflow: hidden !important; height: 100% !important; }\n.vc-list, app-comment-sidebar-list.vc-list { flex: 1 1 0 !important; min-height: 0 !important; overflow: auto !important; }\n.velt-sidebar-content { flex: 0 0 auto !important; height: auto !important; overflow: visible !important; }",
       "fix": "Scrollport = the list (flex:1 + min-height:0 + overflow:auto). Do not pin the sidebar to a mock frame height (e.g. 832px) that fights the host rail.",
       "confidence": "confirmed",
@@ -337,7 +337,7 @@
       "veltVersion": "6.x",
       "component": "ToggleReply / reply composer",
       "kind": "behavior",
-      "symptom": "Body-level ToggleReply stays display:none on every thread because a CSS :has() keyed on composer NOT having inline style display:none \u2014 composer is always mounted and only hidden via a CSS class.",
+      "symptom": "Body-level ToggleReply stays display:none on every thread because a CSS :has() keyed on composer NOT having inline style display:none — composer is always mounted and only hidden via a CSS class.",
       "fix": "Hide Reply only under .velt-comment-dialog--selected / .selected. Never gate on :has(.vc-reply-composer:not([style*=\"display: none\"])).",
       "confidence": "confirmed",
       "seenOn": [
@@ -349,11 +349,11 @@
       "veltVersion": "6.x",
       "component": "Composer.ActionButton (wireframe slot)",
       "kind": "behavior",
-      "symptom": "A wireframe Composer.ActionButton supplied WITHOUT its required `type` prop throws Angular NG0950 (required input has no value) on every render tick \u2014 measured live at ~260 errors/sec across all blocks, disrupting cold renders, polluting measurements, and growing the dev log to 1.2 GB before anything looked at the console.",
-      "fix": "Always pass the required `type` prop on Composer.ActionButton in the wireframe markup \u2014 type=\"submit\" for the send button (other roles per guide/reference/wireframe-components.md). The structure builder includes it in first-shot markup; console-health.mjs (run right after build-structure) catches the storm mechanically if it ever slips through.",
+      "symptom": "A wireframe Composer.ActionButton supplied WITHOUT its required `type` prop throws Angular NG0950 (required input has no value) on every render tick — measured live at ~260 errors/sec across all blocks, disrupting cold renders, polluting measurements, and growing the dev log to 1.2 GB before anything looked at the console.",
+      "fix": "Always pass the required `type` prop on Composer.ActionButton in the wireframe markup — type=\"submit\" for the send button (other roles per guide/reference/wireframe-components.md). The structure builder includes it in first-shot markup; console-health.mjs (run right after build-structure) catches the storm mechanically if it ever slips through.",
       "confidence": "confirmed",
       "seenOn": [
-        "harvey (cursor cloud run 2026-07-28, Judge DEFECT-1: NG0950 ~260/s, 1.2 GB dev log; fixed type=\"submit\" \u2192 re-verified 0 occurrences/session)"
+        "harvey (cursor cloud run 2026-07-28, Judge DEFECT-1: NG0950 ~260/s, 1.2 GB dev log; fixed type=\"submit\" → re-verified 0 occurrences/session)"
       ]
     },
     {
@@ -362,7 +362,7 @@
       "component": "primitives",
       "kind": "behavior",
       "symptom": "A primitive from the SDK tag registry renders nothing and throws nothing. If it is the R2 context anchor, the entire subtree is silently dead.",
-      "fix": "8 of 441 registry tags are never passed to defineCustomElement (velt-comment-dialog-body/-header/-options/-priority/-private-banner/-status, velt-comment-sidebar-v2, snippyly-comment-pin). Six are container-shaped names \u2014 exactly what a planner reaches for to wrap and anchor. Verify registration with customElements.get() before emitting; manifest/velt-primitives.json now carries registered:true|false.",
+      "fix": "8 of 441 registry tags are never passed to defineCustomElement (velt-comment-dialog-body/-header/-options/-priority/-private-banner/-status, velt-comment-sidebar-v2, snippyly-comment-pin). Six are container-shaped names — exactly what a planner reaches for to wrap and anchor. Verify registration with customElements.get() before emitting; manifest/velt-primitives.json now carries registered:true|false.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run, SDK 1.0.0 local build, 2026-08-13)"
@@ -385,7 +385,7 @@
       "veltVersion": "n/a",
       "component": "all",
       "kind": "measurement",
-      "symptom": "A behavioural probe reports a working control as dead \u2014 the natural response is to \"fix\" code that is already correct.",
+      "symptom": "A behavioural probe reports a working control as dead — the natural response is to \"fix\" code that is already correct.",
       "fix": "Velt Angular handlers ignore element.dispatchEvent(new MouseEvent/PointerEvent). Verified: a synthetic click on Show-N-replies changed nothing; a real OS click expanded the thread 170->173 cards. Drive behavioural probes through CDP Input.dispatchMouseEvent or Playwright locator.click() at freshly-measured coordinates.",
       "confidence": "confirmed",
       "seenOn": [
@@ -399,7 +399,7 @@
       "component": "primitives",
       "kind": "behavior",
       "symptom": "Toggling a menu or popover composed from primitives throws `NotFoundError: The node to be removed is not a child of this node` and unmounts the whole React root.",
-      "fix": "R1 MOVES customer children out of the host into the primitive's anchor, but React still records the HOST as their parent. Unmounting a direct child of a primitive makes React call removeChild(host, node) on a node whose real parent is now elsewhere. Mount it unconditionally and hide it with CSS off a data-* attribute on your own ancestor. The rule is narrow on purpose: only a node R1 RELOCATED is at risk \u2014 a conditional nested inside your own markup is untouched and safe. Lint P9.",
+      "fix": "R1 MOVES customer children out of the host into the primitive's anchor, but React still records the HOST as their parent. Unmounting a direct child of a primitive makes React call removeChild(host, node) on a node whose real parent is now elsewhere. Mount it unconditionally and hide it with CSS off a data-* attribute on your own ancestor. The rule is narrow on purpose: only a node R1 RELOCATED is at risk — a conditional nested inside your own markup is untouched and safe. Lint P9.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
@@ -410,8 +410,8 @@
       "veltVersion": "1.x",
       "component": "primitives",
       "kind": "behavior",
-      "symptom": "Collapsing and re-expanding a row quickly brings it back as an empty shell \u2014 permanently, and only under fast toggling.",
-      "fix": "@angular/elements destroys a disconnected element after a 10ms delay. A fast collapse/expand reconnects the host INSIDE that window, so the component never re-runs the init that resolves its entity from R2 context. Measured: the message element's innerHTML was 77 bytes against 660+ on a working row, while the host's __veltContext still carried the correct comment-id. Keep the element CONNECTED and collapse with display:none on the HOST \u2014 a 0-height host is still a flex item and still draws the parent's gap.",
+      "symptom": "Collapsing and re-expanding a row quickly brings it back as an empty shell — permanently, and only under fast toggling.",
+      "fix": "@angular/elements destroys a disconnected element after a 10ms delay. A fast collapse/expand reconnects the host INSIDE that window, so the component never re-runs the init that resolves its entity from R2 context. Measured: the message element's innerHTML was 77 bytes against 660+ on a working row, while the host's __veltContext still carried the correct comment-id. Keep the element CONNECTED and collapse with display:none on the HOST — a 0-height host is still a flex item and still draws the parent's gap.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
@@ -423,7 +423,7 @@
       "component": "primitives",
       "kind": "behavior",
       "symptom": "A composed control looks live and does nothing, or an invisible primitive keeps its box and drags the layout.",
-      "fix": "There are TWO signals and a composed UI needs both. (1) The primitive parked your children: it sets data-velt-hidden=\"true\" AND an inline display:none on the host \u2014 an !important author rule beats a non-important inline style, so a layout rule like `display:flex !important` on that host keeps it visible and painting orphaned children. Collapse with `[data-velt-hidden='true'] { display:none !important }`. (2) The primitive rendered nothing at all: it sets NO attribute, so the test is `:not(:has(*))`. Measured: a Delete row reported data-velt-hidden=true and style.display=none yet computed to display:flex, 36px tall, on another user's comment.",
+      "fix": "There are TWO signals and a composed UI needs both. (1) The primitive parked your children: it sets data-velt-hidden=\"true\" AND an inline display:none on the host — an !important author rule beats a non-important inline style, so a layout rule like `display:flex !important` on that host keeps it visible and painting orphaned children. Collapse with `[data-velt-hidden='true'] { display:none !important }`. (2) The primitive rendered nothing at all: it sets NO attribute, so the test is `:not(:has(*))`. Measured: a Delete row reported data-velt-hidden=true and style.display=none yet computed to display:flex, 36px tall, on another user's comment.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
@@ -435,7 +435,7 @@
       "component": "primitives",
       "kind": "behavior",
       "symptom": "`defaultCondition` typechecks on every primitive and appears to control visibility; on most tags nothing reads it.",
-      "fix": "It is declared on the shared primitive bases, so it compiles anywhere. 216 of 441 registry tags never call defaultCondition() \u2014 the whole sidebar-V2 filter-dropdown family among them. Passing it there is worse than useless: it documents a gate that does not exist. manifest/velt-primitives.json now carries readsDefaultCondition, derived from the SDK's component sources; lint P10 warns. Where it IS read, it is an opt-OUT of a real condition \u2014 name the condition you are overriding.",
+      "fix": "It is declared on the shared primitive bases, so it compiles anywhere. 216 of 441 registry tags never call defaultCondition() — the whole sidebar-V2 filter-dropdown family among them. Passing it there is worse than useless: it documents a gate that does not exist. manifest/velt-primitives.json now carries readsDefaultCondition, derived from the SDK's component sources; lint P10 warns. Where it IS read, it is an opt-OUT of a real condition — name the condition you are overriding.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
@@ -447,7 +447,7 @@
       "component": "primitives",
       "kind": "behavior",
       "symptom": "A status filter works in the demo workspace and silently empties the list for a customer who configured their own statuses.",
-      "fix": "\"OPEN\"/\"IN_PROGRESS\"/\"RESOLVED\" are only CustomFilterService's fallback ids. A configured workspace has its own, classified by status.type ('terminal' for resolved-like). There is no public getter for the catalog (setCustomStatus is a setter with no counterpart), so derive the id sets from the live UNFILTERED annotations by status.type \u2014 unfiltered, so the derivation still sees resolved threads while the filter is hiding them. Test resolved-ness with status.type === 'terminal', never status.id === 'RESOLVED'. Lint P11.",
+      "fix": "\"OPEN\"/\"IN_PROGRESS\"/\"RESOLVED\" are only CustomFilterService's fallback ids. A configured workspace has its own, classified by status.type ('terminal' for resolved-like). There is no public getter for the catalog (setCustomStatus is a setter with no counterpart), so derive the id sets from the live UNFILTERED annotations by status.type — unfiltered, so the derivation still sees resolved threads while the filter is hiding them. Test resolved-ness with status.type === 'terminal', never status.id === 'RESOLVED'. Lint P11.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
@@ -459,7 +459,7 @@
       "component": "primitives",
       "kind": "behavior",
       "symptom": "Un-selecting a filter does nothing; the previous filter stays applied.",
-      "fix": "setCommentSidebarFilters MERGES: a present key overwrites that field, [] clears just that field, an ABSENT key keeps the previous value, {} clears everything. Build the object by VALUE \u2014 send every key the menu owns on every call, with [] for the off state \u2014 never by omission. Measured: mentions-on gave 2 of 10 threads and mentions-off gave the same 2, because the following call carried no `tagged` key at all. Also call it from the handler: an updater passed to setState must be pure, and React runs updaters twice in StrictMode (lint P13).",
+      "fix": "setCommentSidebarFilters MERGES: a present key overwrites that field, [] clears just that field, an ABSENT key keeps the previous value, {} clears everything. Build the object by VALUE — send every key the menu owns on every call, with [] for the off state — never by omission. Measured: mentions-on gave 2 of 10 threads and mentions-off gave the same 2, because the following call carried no `tagged` key at all. Also call it from the handler: an updater passed to setState must be pure, and React runs updaters twice in StrictMode (lint P13).",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
@@ -471,7 +471,7 @@
       "component": "primitives",
       "kind": "behavior",
       "symptom": "A control is written off as unreachable because no method for it exists on the element facade, and gets faked with customer state.",
-      "fix": "\"No method on the element facade\" is not the same as \"no public API\". Check the primitive's own INPUTS first. velt-comment-sidebar-filter-dropdown-content-list-item-v2 accepts group-id + item-id, resolves the canonical item from the SDK's quick-filter registry and runs the real updateSort on click \u2014 the sort rows had been emitted inert with a hardcoded tick.",
+      "fix": "\"No method on the element facade\" is not the same as \"no public API\". Check the primitive's own INPUTS first. velt-comment-sidebar-filter-dropdown-content-list-item-v2 accepts group-id + item-id, resolves the canonical item from the SDK's quick-filter registry and runs the real updateSort on click — the sort rows had been emitted inert with a hardcoded tick.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
@@ -483,7 +483,7 @@
       "component": "primitives",
       "kind": "behavior",
       "symptom": "A className on a Velt primitive typechecks and never reaches the DOM.",
-      "fix": "The wrapper prop types extend HTMLAttributes, so className/style/id typecheck, but the wrappers destructure only their declared props plus children and forward nothing else \u2014 1269 of 1269 wrappers. Put your own classes on your OWN markup and address the primitive by tag name, scoped under a class you control.",
+      "fix": "The wrapper prop types extend HTMLAttributes, so className/style/id typecheck, but the wrappers destructure only their declared props plus children and forward nothing else — 1269 of 1269 wrappers. Put your own classes on your OWN markup and address the primitive by tag name, scoped under a class you control.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
@@ -494,8 +494,8 @@
       "veltVersion": "1.x",
       "component": "primitives",
       "kind": "behavior",
-      "symptom": "On refresh, mutually exclusive surfaces flash together for a frame \u2014 an empty placeholder over a thread list, sometimes escaping its container entirely.",
-      "fix": "Before @angular/elements upgrades the tags, every primitive is an unknown inline element with no condition of its own, so all of them paint. A second window follows: after the upgrade but while uiState.skeletonLoading is true, conditions that gate on CONTENT still conclude 'empty'. Gate on the skeleton primitive's own data-velt-hidden \u2014 it covers both windows with one signal. Two matching hazards: any absolute/inset rule anchored to a container VELT renders has no containing block before boot (measured: an inset:0 empty state resolved against the page at 1280x176), so anchor it to your own wrapper; and any markup that paints pre-boot must be styled entirely by your own stylesheet.",
+      "symptom": "On refresh, mutually exclusive surfaces flash together for a frame — an empty placeholder over a thread list, sometimes escaping its container entirely.",
+      "fix": "Before @angular/elements upgrades the tags, every primitive is an unknown inline element with no condition of its own, so all of them paint. A second window follows: after the upgrade but while uiState.skeletonLoading is true, conditions that gate on CONTENT still conclude 'empty'. Gate on the skeleton primitive's own data-velt-hidden — it covers both windows with one signal. Two matching hazards: any absolute/inset rule anchored to a container VELT renders has no containing block before boot (measured: an inset:0 empty state resolved against the page at 1280x176), so anchor it to your own wrapper; and any markup that paints pre-boot must be styled entirely by your own stylesheet.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (strictly primitives run 4, SDK 1.0.0 local build, branch cursor/harvey-primitives-run-4-98f8, 2026-08-21)"
@@ -507,7 +507,7 @@
       "component": "primitives",
       "kind": "behavior",
       "symptom": "A className passed to a Velt primitive typechecks, renders nothing in the DOM, and the stylesheet keyed to it silently never matches.",
-      "fix": "The wrapper prop types extend HTMLAttributes, but 73 of the 441 primitive tags are rendered through a wrapper that destructures its DECLARED props plus children and drops the rest \u2014 className and style among them. Put contract classes on your own markup and address the primitive by tag. manifest/velt-primitives.json now carries forwardsClassName per tag (derived from the installed package's ESM bundle); scaffold-primitives --lint errors with undeliverable-vcclass.",
+      "fix": "The wrapper prop types extend HTMLAttributes, but 73 of the 441 primitive tags are rendered through a wrapper that destructures its DECLARED props plus children and drops the rest — className and style among them. Put contract classes on your own markup and address the primitive by tag. manifest/velt-primitives.json now carries forwardsClassName per tag (derived from the installed package's ESM bundle); scaffold-primitives --lint errors with undeliverable-vcclass.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run 5, @veltdev/react 6.0.0-beta.15, 2026-08-24)"
@@ -518,11 +518,13 @@
       "veltVersion": "6.0.0-beta.15",
       "component": "primitives",
       "kind": "behavior",
+      "status": "SUPERSEDED",
       "symptom": "A selector or probe built from the manifest tag name matches nothing, though the primitive is clearly on screen.",
-      "fix": "366 of the 441 primitive tags are rendered through a -wireframe-suffixed element: VeltCommentDialogComposerInput emits <velt-comment-dialog-composer-input-wireframe>, not <velt-comment-dialog-composer-input>. The manifest records emitsTag per tag; build every selector, probe and snapshot assertion from THAT, not from the registry name.",
-      "confidence": "confirmed",
+      "fix": "SUPERSEDED — do not apply. The original claim (\"366 of 441 primitive tags render through a -wireframe-suffixed element\") was not an SDK behaviour at all: it was the output of a sync-primitives.mjs collision bug. Two React wrappers share each reactName — the PRIMITIVE one emitting the plain tag and a separate wireframe one emitting <tag>-wireframe — and they collapsed to the same manifest key, where the old  tiebreak always picked the wireframe twin (only that twin __rest-forwards). The same bug also recorded forwardsClassName:true for 363 wrappers that actually DROP className. Fixed 2026-08-27; the manifest was regenerated and now records the primitive wrapper, so ZERO primitives carry a -wireframe emitsTag. Still read emitsTag rather than assuming — but for primitives it now equals the manifest tag. Verified in @veltdev/react 6.0.0-beta.15: esm/index.js:2918 emits velt-comment-dialog-thread-card-message, :5109 emits the -wireframe twin.",
+      "confidence": "deprecated",
+      "supersededBy": "manifest/velt-primitives.json (regenerated 2026-08-27) + guide/reference/primitives-capabilities.md",
       "seenOn": [
-        "harvey (primitives run 5, @veltdev/react 6.0.0-beta.15, 2026-08-24)"
+        "harvey (primitives run 5, @veltdev/react 6.0.0-beta.15, 2026-08-24) — claim later shown to be a tooling artifact, not SDK behaviour"
       ]
     },
     {
@@ -531,7 +533,7 @@
       "component": "primitives",
       "kind": "behavior",
       "symptom": "A composed surface flickers, or shows an empty state over a populated document, or disagrees with the built-in in a way no pixel diff explains.",
-      "fix": "407 of 441 primitives evaluate their own visibility \u2014 some via a `shouldShow` computed on the component, some via `shouldShowFor*` helpers inherited from a shared base. Matching only the first style reported a confident ZERO for NotificationsPanel, ActivityLog and NotificationsTool, which all gate themselves. Re-deriving it customer-side can only disagree: the sidebar empty placeholder reads uiState.noCommentsFound || uiState.noCommentsFoundForAppliedFilters, which separates 'empty document' from 'empty under filters' \u2014 a data.listRows count cannot. Mount such a primitive unconditionally and let it decide. manifest ownsVisibility records the exact fields; scaffold-primitives --lint errors with reimplements-own-condition.",
+      "fix": "407 of 441 primitives evaluate their own visibility — some via a `shouldShow` computed on the component, some via `shouldShowFor*` helpers inherited from a shared base. Matching only the first style reported a confident ZERO for NotificationsPanel, ActivityLog and NotificationsTool, which all gate themselves. Re-deriving it customer-side can only disagree: the sidebar empty placeholder reads uiState.noCommentsFound || uiState.noCommentsFoundForAppliedFilters, which separates 'empty document' from 'empty under filters' — a data.listRows count cannot. Mount such a primitive unconditionally and let it decide. manifest ownsVisibility records the exact fields; scaffold-primitives --lint errors with reimplements-own-condition.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run 5, SDK local build mayank/primitives-r3-data, 2026-08-24)"
@@ -543,7 +545,7 @@
       "component": "primitives",
       "kind": "behavior",
       "symptom": "A plan records 'no published action' / 'no published field' for composer cancel or composer content, and falls back to reading the contenteditable.",
-      "fix": "Both are published. clearComposer({ targetComposerElementId }) clears a composer instance; composerTextChange streams its text and getComposerData() fetches it once. Register the composer under a stable targetComposerElementId so both can address it. The 19 element facades publish 434 members and 118 events \u2014 manifest elementApis carries the inventory (byFacade for the per-family view; scanning only comment-element made it silently wrong for every other family); scaffold-primitives --lint errors with unchecked-absence when a denial cites nothing.",
+      "fix": "Both are published. clearComposer({ targetComposerElementId }) clears a composer instance; composerTextChange streams its text and getComposerData() fetches it once. Register the composer under a stable targetComposerElementId so both can address it. The 19 element facades publish 434 members and 118 events — manifest elementApis carries the inventory (byFacade for the per-family view; scanning only comment-element made it silently wrong for every other family); scaffold-primitives --lint errors with unchecked-absence when a denial cites nothing.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run 5, @veltdev/types 6.0.0-beta.15, 2026-08-24)"
@@ -554,7 +556,7 @@
       "veltVersion": "1.x",
       "component": "primitives",
       "kind": "behavior",
-      "symptom": "Every planned value is correct and the composed surface still looks nothing like the design \u2014 boxes too tall, content indented, no single rule to blame.",
+      "symptom": "Every planned value is correct and the composed surface still looks nothing like the design — boxes too tall, content indented, no single rule to blame.",
       "fix": "Between your element and its content the SDK inserts a CHAIN of hosts (page-mode-composer > dialog-composer > composer-input > input--container). None of them paints, so a paint-only audit never lists them, but each carries its own display/width/padding and they stack. Neutralise the whole chain: display:block, width:100%, min-width:0, padding/margin/border 0, background transparent, box-shadow none, min-height 0. dom-snapshot's unstyledVeltInternals hint now lists layout-only wrappers too (layoutOnly:true).",
       "confidence": "confirmed",
       "seenOn": [
@@ -566,8 +568,8 @@
       "veltVersion": "1.x",
       "component": "primitives",
       "kind": "behavior",
-      "symptom": "Neutralising the SDK wrapper chain blanks the thing it was wrapping \u2014 avatars become empty rings, the send button disappears.",
-      "fix": "A wrapper is a PASS-THROUGH container. An element that renders content of its own \u2014 button/input/svg/img, or anything named avatar/initial/icon/glyph/badge \u2014 is not a wrapper, and zeroing its box erases what it draws. The hint now excludes controls and leaf painters; keep them styled, never neutralised.",
+      "symptom": "Neutralising the SDK wrapper chain blanks the thing it was wrapping — avatars become empty rings, the send button disappears.",
+      "fix": "A wrapper is a PASS-THROUGH container. An element that renders content of its own — button/input/svg/img, or anything named avatar/initial/icon/glyph/badge — is not a wrapper, and zeroing its box erases what it draws. The hint now excludes controls and leaf painters; keep them styled, never neutralised.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run 5, measured: blanket neutralisation emptied every avatar, 2026-08-24)"
@@ -579,7 +581,7 @@
       "component": "all",
       "kind": "behavior",
       "symptom": "A verbatim-copied declaration lays the surface out wrongly even though it came straight from the design.",
-      "fix": "Copy the VALUES, but read the frame's role before adopting layout declarations. A frame named 'justification' carried justify-content:center and centred every comment body; a header row carried justify-content:space-between which is correct in Figma \u2014 where a second child (the options kebab) sits at the far edge \u2014 but throws the group to the middle when that child is not built in this phase. Adopting space-between from a frame whose sibling you do not render is the common case.",
+      "fix": "Copy the VALUES, but read the frame's role before adopting layout declarations. A frame named 'justification' carried justify-content:center and centred every comment body; a header row carried justify-content:space-between which is correct in Figma — where a second child (the options kebab) sits at the far edge — but throws the group to the middle when that child is not built in this phase. Adopting space-between from a frame whose sibling you do not render is the common case.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run 5, style stage, 2026-08-24)"
@@ -591,7 +593,7 @@
       "component": "all",
       "kind": "behavior",
       "symptom": "Every planned font-family is applied and the whole surface still renders in the browser serif.",
-      "fix": "The design's face was never loaded by the app \u2014 the host loads its own (Inter here) and the planned family silently falls back. document.fonts.check('16px Poppins') returns TRUE in that state, because it answers 'is this family usable' (fallback included), not 'is this face loaded'; the reliable test is document.fonts, which listed only Inter and Geist. Import the design's face in the customization stylesheet. Measured: the free-drawn mock scored 4.9% against Figma precisely because it imported the face, and that one difference was most of the remaining visual gap.",
+      "fix": "The design's face was never loaded by the app — the host loads its own (Inter here) and the planned family silently falls back. document.fonts.check('16px Poppins') returns TRUE in that state, because it answers 'is this family usable' (fallback included), not 'is this face loaded'; the reliable test is document.fonts, which listed only Inter and Geist. Import the design's face in the customization stylesheet. Measured: the free-drawn mock scored 4.9% against Figma precisely because it imported the face, and that one difference was most of the remaining visual gap.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run 5, style stage, 2026-08-24)"
@@ -603,7 +605,7 @@
       "component": "primitives",
       "kind": "behavior",
       "symptom": "A whole composed surface collapses to a fraction of the rail width and its children stack vertically, while every planned value on the leaves is correct.",
-      "fix": "Each surface root is a flex CHILD of the SDK's panel. With no width or align-self of its own it shrink-wraps to content \u2014 measured: the sidebar header rendered 91px of a 322px rail, so its title and filter stacked instead of sitting on one row. Plan the ROOT's own box (display, align-self:stretch, width:100%, box-sizing), not just its leaves. The reference build carries exactly this rule on every surface root.",
+      "fix": "Each surface root is a flex CHILD of the SDK's panel. With no width or align-self of its own it shrink-wraps to content — measured: the sidebar header rendered 91px of a 322px rail, so its title and filter stacked instead of sitting on one row. Plan the ROOT's own box (display, align-self:stretch, width:100%, box-sizing), not just its leaves. The reference build carries exactly this rule on every surface root.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run 5, style stage, 2026-08-24)"
@@ -614,8 +616,8 @@
       "veltVersion": "1.x",
       "component": "primitives",
       "kind": "behavior",
-      "symptom": "A control the design draws is placed, passes every lint, and is invisible \u2014 and the markup you put inside it is not in the DOM either.",
-      "fix": "A primitive that READS defaultCondition and is left un-passed keeps the SDK's own visibility gate. Where that gate is false the primitive renders 0x0 AND silently discards its hand-placed children, so the glyph and label you composed never appear. Passing defaultCondition={false} is the documented way to take the visibility over. Measured: 16 Reply controls planned as accept-divergence, 0 with a box. Deciding is not enough \u2014 the decision has to achieve what the design shows; skeleton-check now fails a planned primitive that renders zero-size in every state.",
+      "symptom": "A control the design draws is placed, passes every lint, and is invisible — and the markup you put inside it is not in the DOM either.",
+      "fix": "A primitive that READS defaultCondition and is left un-passed keeps the SDK's own visibility gate. Where that gate is false the primitive renders 0x0 AND silently discards its hand-placed children, so the glyph and label you composed never appear. Passing defaultCondition={false} is the documented way to take the visibility over. Measured: 16 Reply controls planned as accept-divergence, 0 with a box. Deciding is not enough — the decision has to achieve what the design shows; skeleton-check now fails a planned primitive that renders zero-size in every state.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run 5, judge stage, 2026-08-24)"
@@ -627,7 +629,7 @@
       "component": "primitives",
       "kind": "behavior",
       "symptom": "A long list stops scrolling and grows the panel instead, after the SDK wrapper chain is neutralised.",
-      "fix": "One of those wrappers is the SCROLLPORT. Flattening it to display:block strips the overflow-y and the min-height:0 that let a flex child scroll at all. Neutralise its PAINT and keep overflow/min-height/flex \u2014 the reference build carries exactly that on velt-comment-sidebar-list-v2 (flex:1 1 auto, min-height:0, overflow-y:auto). dom-snapshot now marks these isScrollport.",
+      "fix": "One of those wrappers is the SCROLLPORT. Flattening it to display:block strips the overflow-y and the min-height:0 that let a flex child scroll at all. Neutralise its PAINT and keep overflow/min-height/flex — the reference build carries exactly that on velt-comment-sidebar-list-v2 (flex:1 1 auto, min-height:0, overflow-y:auto). dom-snapshot now marks these isScrollport.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run 5, style stage, 2026-08-24)"
@@ -639,7 +641,7 @@
       "component": "all",
       "kind": "behavior",
       "symptom": "A spacing or padding the design clearly shows is simply absent, and no gate says anything.",
-      "fix": "Coverage was only checked one way \u2014 is every LIVE element claimed by a rule. An unmapped DESIGN node has no live element to go unclaimed, so the requirement just never arrives. Measured: 611:31382 carries the 16px gap between thread cards and 611:31358 the panel's 12px/16px padding; neither was mapped, both rendered 0, every gate green. brief-scaffold --lint-style now also checks the design\u2192rule direction and refuses a node carrying real values that no rule cites, unless waived in plan-style.unmappedNodes[].",
+      "fix": "Coverage was only checked one way — is every LIVE element claimed by a rule. An unmapped DESIGN node has no live element to go unclaimed, so the requirement just never arrives. Measured: 611:31382 carries the 16px gap between thread cards and 611:31358 the panel's 12px/16px padding; neither was mapped, both rendered 0, every gate green. brief-scaffold --lint-style now also checks the design→rule direction and refuses a node carrying real values that no rule cites, unless waived in plan-style.unmappedNodes[].",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run 5, judge stage, 2026-08-24)"
@@ -652,7 +654,7 @@
       "kind": "behavior",
       "cssFix": ".velt-composer-input--message:empty::before { content: attr(placeholder) !important; }",
       "symptom": "The composer renders an empty box: the placeholder string is set, the prop is accepted, and no text appears.",
-      "fix": "Velt paints the placeholder with CSS content on an ::before, and the unstyled base strips that painter \u2014 exactly like the avatar-initial trap. The text lives on the element's `placeholder` attribute, so restore the CONTENT with content:attr(placeholder); the TYPE comes from the design node as a normal rule. Checking the DOM for text finds nothing, which is why this reads as 'the prop did not work'.",
+      "fix": "Velt paints the placeholder with CSS content on an ::before, and the unstyled base strips that painter — exactly like the avatar-initial trap. The text lives on the element's `placeholder` attribute, so restore the CONTENT with content:attr(placeholder); the TYPE comes from the design node as a normal rule. Checking the DOM for text finds nothing, which is why this reads as 'the prop did not work'.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run 5, style stage, 2026-08-25)"
@@ -664,7 +666,7 @@
       "component": "all",
       "kind": "behavior",
       "symptom": "Cards or rows are clipped at the right edge of the panel.",
-      "fix": "A Figma frame's width is the width it had IN THAT FRAME \u2014 322px inside a 354px rail. Copied verbatim into a container that also carries padding, it overflows by exactly the padding. The reference build sets align-self:stretch on the row instead and lets the container decide, keeping the design's width as the outcome rather than the input.",
+      "fix": "A Figma frame's width is the width it had IN THAT FRAME — 322px inside a 354px rail. Copied verbatim into a container that also carries padding, it overflows by exactly the padding. The reference build sets align-self:stretch on the row instead and lets the container decide, keeping the design's width as the outcome rather than the input.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run 5, style stage, 2026-08-25)"
@@ -676,7 +678,7 @@
       "component": "all",
       "kind": "behavior",
       "symptom": "A composed control (icon + label) sits centred or right-shifted in a row the design draws left-aligned.",
-      "fix": "The design's frame is centred because its CONTENT fills it. Copy the frame's justify-content verbatim and the group shrink-wraps to the middle instead. The reference build gives the TEXT child flex:1 1 0 so it fills the row after the fixed-size glyph \u2014 the label then measures the design's box exactly and the group reads left-aligned.",
+      "fix": "The design's frame is centred because its CONTENT fills it. Copy the frame's justify-content verbatim and the group shrink-wraps to the middle instead. The reference build gives the TEXT child flex:1 1 0 so it fills the row after the fixed-size glyph — the label then measures the design's box exactly and the group reads left-aligned.",
       "confidence": "confirmed",
       "seenOn": [
         "harvey (primitives run 5, style stage, 2026-08-25)"

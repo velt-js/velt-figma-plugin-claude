@@ -382,12 +382,24 @@ async function captureResting(phaseDir, { url, ws }) {
   await installSandboxEgress(context).catch(() => {});
   let page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
   if (!page) page = await context.newPage();
+  // STALE BUNDLE (BUG-9, found live on the harvey primitives run). The judge runs AFTER a style
+  // fix has rewritten styles.css, so it must measure the CSS that is on disk now. Two things
+  // defeated that: when the page already sat on the pinned URL this reused it with no navigation
+  // at all, and even a same-URL goto lets the dev server's cached chunk answer. A judge run
+  // scored a fix that was already applied, because it was looking at the previous bundle.
+  // Disable the cache for this session and always re-navigate.
+  try {
+    const cdp = await context.newCDPSession(page);
+    await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
+  } catch { /* CDP session unavailable — the reload below still helps */ }
   // Prefer the pinned run URL (documentId isolation) — host match alone can leave the wrong doc.
   try {
     const want = new URL(url);
     const have = new URL(page.url());
     if (have.host !== want.host || have.search !== want.search || have.pathname !== want.pathname) {
       await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+    } else {
+      await page.reload({ waitUntil: "domcontentloaded", timeout: 60000 });
     }
   } catch {
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });

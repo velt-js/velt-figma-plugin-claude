@@ -1,0 +1,248 @@
+{
+  "runId": "WYAWuEm8DrIk-370-29828-2026-08-27T09-03-23Z",
+  "phaseId": "WYAWuEm8DrIk-370-29828",
+  "app": "privado-velt-app",
+  "mode": null,
+  "node": null,
+  "pluginSha": "5a7753b",
+  "publishedAt": "2026-08-27T09:03:23.343Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "RUN-DOMINANT PATTERN — SILENT SUCCESS: five independent operations across unrelated scripts reported success while persisting or verifying NOTHING. This is the single biggest finding of the run, larger than any individual bug: the plugin repeatedly emits a green signal that stands in for work that never happened. Each instance is separately fixable, but the CLASS is the point — any operation that can produce an empty or absent result must FAIL LOUD with a distinct non-zero exit, never return the success path. judge2-chrome-probes' exit 3 (\"measured NOTHING is not a pass\") and measure-block.mjs:174 (\"a blank capture would be a false-pass\") are the correct in-codebase precedents; both already existed and both were bypassed elsewhere.",
+      "category": "meta-pattern",
+      "severity": "critical",
+      "instances": [
+        "R30 smoke: measure-block.mjs:661 — results.every() on [] === true, so a scaffolded suite prints a tick with 0/0 steps and exits 0. Ran on EVERY prior run. Fixed this run (now exit 3).",
+        "Style planner emit-without-write: plan-style.json lost TWICE (19:14Z API cut mid-draft; 06:05Z emitted but never written). The read-only planner has no write path, so persistence depends on relaying a large return value through the orchestrator — exactly what a cut destroys.",
+        "Oversized --data payloads silently dropped from obs/events.jsonl: two of three learning writeups never landed and had to be re-added; the write reported success.",
+        "GAP-masking: verdict-gate-blocks.mjs exits 0 PASS while unrelated fixable defects ride invisibly under a block's terminal disposition (see the gate-defect entry).",
+        "report-block.mjs account silently failed: printed nothing, exit appeared clean, note unchanged on disk. Caught only by reading the file back."
+      ],
+      "evidence": "phase WYAWuEm8DrIk-370-29828 — all five observed in ONE run across measure-block.mjs, the style-planner relay, obs.mjs, verdict-gate-blocks.mjs and report-block.mjs. Four were caught only by a human or agent reading state back off disk rather than trusting the exit code.",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "guide",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "A DELTA ROW DISAPPEARING IS ONLY EVIDENCE OF A FIX WHEN THE ASSERTION IS BOUND TO THE RIGHT ELEMENT. A mis-bound assertion is not merely noisy — it actively INVITES a plausible-looking fix that paints a literal onto the wrong element, and the delta metric then REWARDS that fix by dropping the row. The measurement improves while the design gets no closer. Before treating a closed row as a fix, confirm the selector the assertion carries maps to the same element plan-style.json maps that specNode to. If two selectors claim one specNode, the assertion is mis-bound and must be RE-BOUND, not satisfied.",
+      "category": "verification-discipline",
+      "severity": "high",
+      "evidence": "phase WYAWuEm8DrIk-370-29828, FU1: the brief's browser.elements[] bound specNode 370:29863 to .vc-comment-card, while plan-style.json maps it to .vc-thread-rows (which already carried align-items:center at styles.css:354). Applying the brief's value dropped the delta row 14->12 while measuring headIndentVsBody:0 — literally zero pixels changed, because .vc-card-head sits inside .vc-card-main so the card's align-items never reaches it. delta.json collisionsAdvisory showed one probe selector bound to TWO specNodes (comment-dialog + comment-master): the same name-based binding bug as the 24 glyph assertion repoints, therefore a second independent sighting and systemic. CONTRAST FU3 in the same pass: checking live computed paint against the plan BEFORE acting produced a correct refusal to paint (R0 upheld). The difference between the two was checking the binding first.",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "guide",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "manifest/velt-primitives.json emitsTag suffixes CommentDialogPrimitive tags with -wireframe; against SDK 6.0.8-beta.3 the -wireframe spelling is NOT a registered custom element while the unsuffixed one IS. scaffold-primitives --lint therefore emits false-positive tag-rename warnings, and a builder that obeys them would address elements that do not exist.",
+      "category": "sdk-gotcha",
+      "evidence": "live CDP customElements.get() on the running app: velt-comment-dialog-thread-card-name DEFINED / -name-wireframe undefined; same for -composer, -composer-input, -thread-card-reply",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "A Velt page carries THREE spellings of the same component: velt-X (the custom element the React wrapper renders, what a primitives build composes), velt-X-internal (the SDK default-UI template internals actually in the DOM), and velt-X-wireframe (not registered at all in 6.0.8-beta.3). A selector that does not distinguish velt-X from velt-X-internal silently matches the SDK default UI instead of the composed tree.",
+      "category": "sdk-gotcha",
+      "evidence": "45 velt-*-internal tags enumerated live via CDP on the running app at rest",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "scaffold-primitives seeds r3.reactHook=useCommentDialogConfig for the dialog surface, but that hook is NOT exported by @veltdev/react 6.0.7 (useCommentSidebarData, useCommentUtils, useCommentAnnotations, useCommentAnnotationById, useCurrentUser, useToggleReaction all ARE). A primitives plan must fall back to the element-method + subscribe/unsubscribe path.",
+      "category": "sdk-gotcha",
+      "evidence": "grep of node_modules/@veltdev/react/index.d.ts (9079 lines): zero occurrences of useCommentDialogConfig; manifest reactHookAvailable:false agrees",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "A drive step that waits for velt-comment-sidebar-skeleton-v2[data-velt-hidden=\"true\"] to become VISIBLE can only ever time out — data-velt-hidden=\"true\" is an inline display:none the SDK sets. Planners reach for the skeleton as a loading-cleared signal and invert its polarity. The correct gate is a waitFor on the content that APPEARS when loading clears; scaffold-primitives --lint catches this as waits-for-hidden-element.",
+      "category": "sdk-gotcha",
+      "evidence": "5 of 7 planner-authored drives in this phase carried the inverted wait; in every one the immediately-following step already waited on real post-load content, so deleting the impossible step lost no coverage",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "verify-host-wiring.mjs reports unstyled-base/velt-customization-mount/shadow-dom-false MISSING when the host factors them into separate components instead of colocating them in one file. On a Vite host whose App.tsx renders <UnstyledBase/> (which calls client.setUnstyledMode inside its own module) the script reported 3 required items missing while all three were live and effective. Running --apply on that false negative would DUPLICATE the wiring and can break a load-bearing ordering gate.",
+      "category": "pipeline-trap",
+      "evidence": "live CDP: velt-comment-sidebar-panel-v2-internal present at 380x900 with backgroundColor rgba(0,0,0,0), border 0px none, 0 velt stylesheets — i.e. unstyled base demonstrably applied, while verify-host-wiring printed 3 missing",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "script",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "velt-comment-dialog-composer-action-button projects R1 children ONLY for type=\"submit\". For type=\"attachments\" and type=\"userMentions\" the primitive delegates to app-attachment-button / velt-autocomplete-tool-internal, which render their own 18x18 currentColor glyph and expose no relocation anchor — supplied children are SILENTLY DISCARDED with no error and no data-velt-hidden. A plan that addresses those buttons via :has(<own child class>) produces a selector that can never match. Address them by their type attribute instead, which IS on the element.",
+      "category": "sdk-gotcha",
+      "evidence": "live CDP after the structure build: :has(.vc-composer-attach-icon)=0 and :has(.vc-composer-mention-icon)=0 while [type=\"attachments\"]=1, [type=\"userMentions\"]=1, [type=\"submit\"]=1 and :has(.vc-composer-send-icon)=1",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "commentElement.getComposerData() is declared ComposerTextChangeEvent|null in the 6.0.7 d.ts but returns undefined live for all three call shapes ({targetComposerElementId}, no-arg, {}) even with text in the composer. The method exists and does not throw. A plan relying on a one-shot mount read of composer state is inert; drive state from the composerTextChange subscription instead (that works, as do clearComposer and commentElement.on).",
+      "category": "sdk-gotcha",
+      "evidence": "builder measured all three call shapes live with \"Active state when typing@\" in the composer; composerTextChange subscription drove all 3 states successfully",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "velt-comment-sidebar-list-v2 evaluated with its built-in gate (defaultCondition NOT passed) and zero annotations at mount renders <!----><!----> and DISCARDS its R1 children permanently — 0x0, no data-velt-hidden, and the children never return when the gate later goes true because R1 moved the node out of React reach. Only a full page reload restores them. A primitives plan must pass defaultCondition={false} on a gated CONTAINER whose children it owns; accepting the gate is only safe on leaves.",
+      "category": "sdk-gotcha",
+      "evidence": "builder measured the discard at zero annotations, then created 3 real threads: gate went true, .vc-thread-rows never returned until reload",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "scaffold-primitives seeds r3.getter=getCommentSidebarConfig for the sidebar surface, but neither that method nor listRows exists in @veltdev/react 6.0.7 or @veltdev/types. The published substitute is the facade Observables getAllCommentAnnotations() and getSelectedComments() via subscribe/unsubscribe. COST: that stream is UNFILTERED — a sidebar filter will not narrow a hand-composed list, and no published surface exposes the filtered/sorted row set.",
+      "category": "sdk-gotcha",
+      "evidence": "zero grep hits for getCommentSidebarConfig or listRows across both installed packages; builder substituted comment-element.model.d.ts:22 and :932",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "brief-scaffold writes family smoke specs with a checks[] array, but measure-block.mjs smoke() iterates spec.steps (line 621: for (const step of spec.steps || [])). With only checks[] present the loop body never runs, results is [], ok = [].every(...) === true, and the runner prints \"0/0 steps ok\" and EXITS 0. verdict-gate-blocks only requires results/smoke/<family>.json to exist, so R30 is satisfied by a file that asserted nothing. Every scaffolded smoke suite is a guaranteed false pass.",
+      "category": "pipeline-trap",
+      "evidence": "all 4 families exited 0 with 0/0 steps; after translating checks[] into executable steps[] the same 4 families ran 17 real steps and passed 17/17 including a real-pointer like toggle round-trip",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "script",
+      "fix": "either make smoke() read checks[], or have brief-scaffold emit steps[]; and make the gate reject a smoke result with 0 steps",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "STRICTLY PRIMITIVES: hand-composing a primitive OUTSIDE its sdkParent silently breaks any control whose popover/panel is rendered by that parent. On this run the Reply control, the reaction-tool emoji picker and the sidebar filter button all mounted, painted correctly and flipped their own aria state, yet opened NOTHING — because velt-comment-sidebar-panel-v2 (the sdkParent that hosts those containers) is absent when the rail is your own markup. check-primitive-reachability CANNOT predict this: it scores SLOT PARITY, not popover ownership. A primitives plan must therefore treat every popover-owning control as unreachable unless its sdkParent is composed into the tree.",
+      "category": "component-difficulty",
+      "evidence": "judge real-pointer probes: reply -> [contenteditable] stayed 1, visible-element set-diff 0 appeared/0 disappeared; picker -> emoji-picker 0->0, overlay descendants 0->0; filter -> aria-expanded flips true but filter/menu/listbox 3->3, overlays 0. SDK sweep: openReplyComposer/replyToComment/openReactionPicker/openEmojiPicker/openFilter = 0 occurrences. Every picker/panel form is *Wireframe (VeltReactionsPanelWireframe, VeltReactionToolWireframe, VeltReactionPinWireframe, VeltInlineReactionsSectionWireframe), which the mode forbids; zero emoji-picker primitives exist. DISCRIMINATOR: our own button.vc-like + published useToggleReaction DOES round-trip (confirmed by builder and by smoke 4/4 incl. toggle off), proving this is a mode limit, not a build error.",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "knowledge",
+      "priority": "high",
+      "note": "This is the reachability report reactions:MODE_BLOCKED(14 slots) verdict surfacing in practice — the first time that data has been validated against a real build.",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "R30 SMOKE GATE REPORTS SUCCESS FOR VERIFYING NOTHING. brief-scaffold.mjs writes family smoke specs as checks[]; measure-block.mjs smoke() iterates spec.steps. A scaffolded suite therefore runs ZERO steps and EXITS 0 WITH A TICK: :661 const ok = results.every(r=>r.ok) — [].every() === true; :665 prints \"smoke X: 0/0 steps ok\"; :668 process.exit(ok?0:2). This is categorically worse than the judge2 chromatic/chrome-probe blindness because THOSE FAIL LOUD (exit 3, capture refusal) whereas this reports success on every run. The verdict gate caught it here only because the suites were ABSENT from the results dir, not because it noticed they were empty. THE GUARD ALREADY EXISTS IN THE SAME FILE: measure-block.mjs:174 reads \"<label>.steps is EMPTY on a surface that must be opened/driven — a blank capture would be a false-pass; author real step objects that OPEN the surface\" — the author anticipated this exact failure and guarded the validation path, but smoke() never consults it.",
+      "category": "pipeline-trap",
+      "evidence": "all 4 families exited 0 with 0/0 steps; after translating checks[] into executable steps[] the same 4 families ran 17 real steps and passed 17/17, including a real-pointer like toggle round-trip",
+      "fixA": "smoke() must treat empty/absent steps[] as INVALID with a distinct non-zero exit, mirroring judge2-chrome-probes exit 3 and its measured-NOTHING-is-not-a-pass comment — the precedent is already in the codebase",
+      "fixB": "resolve the schema drift at the root: brief-scaffold emits steps[], or smoke() accepts checks[]. The 17 hand-translated steps prove the suites are executable once the schema agrees.",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "script",
+      "priority": "critical",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "The verification layer configures itself from hardcoded Harvey-demo constants instead of the phase artifacts already on disk. judge2-chromatic.mjs panel list (app-comment-sidebar-panel/.vc-panel/.hw-rail-inner/.hw-rail), judge2-chrome-probes.mjs (.vc-body/.vc-avatar/.vc-connector), and the block probe element map all ignore blocks.json liveSelectors, plan-primitives vcClasses and dom-snapshot. On a strictly-primitives surface judge2-chromatic REFUSED to capture, all four chrome probes were vacuous, and every relation row resolved unknown because probes.elements was EMPTY — the probe reported the absence of its own configuration as a UI defect.",
+      "category": "pipeline-trap",
+      "evidence": "judge could not capture until an inert live-DOM alias was installed (proven inert: 0 matching rules across all 1076 rules); re-running the same four probes by hand against the real selectors returned all four CLEAN. Relation rows: probes.elements keys = (EMPTY), relations = [].",
+      "fix": "probe-selectors.mjs is the template — it resolves card on a leaves-only tree via a deepest-common-ancestor fallback and writes probe-selectors.json. Sequence 5c must CALL it, and the probes must read the phase artifacts.",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "script",
+      "priority": "high",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "A block accounted GAP/BLOCKED for ONE reason stops verdict-gate-blocks.mjs surfacing EVERY OTHER defect in that block, including unrelated, ordinary, fixable ones. Dispositions are per-BLOCK; defects are per-PROPERTY. On this run three real CSS defects (comment-dialog align-items, comment-dialog content overflow, panel-tabs border) rode invisibly under two behavioural GAPs in a phase that exited 0 PASS. A GAP means \"this state cannot be reached or expressed\" — it must never mean \"nothing else in this block matters\". The gate should carry unresolved property deltas forward even on a terminal block, and the handoff should list them separately from the GAP reason.",
+      "category": "gate-defect",
+      "severity": "critical",
+      "evidence": "phase WYAWuEm8DrIk-370-29828: gate exit 0 / 6 GAP + 1 BLOCKED / 0 PASS, while state-comment-thread-components-comment-dialog carried unfixed align-items+overflow rows and state-sidebar-components-panel-tabs carried an unresolved border row. Confirmed by follow-up pass: two were real and fixable (closed, delta 14->12), one was a probe artefact — none of the three were visible to the gate. Same family as the smoke false-pass (R30): a green result standing in for work never done.",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "script",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "write-handoff.mjs prints \"every block was freshly measured and is clean\" from a fixed template rather than deriving it from the dispositions. On a phase with 0 PASS blocks (6 GAP + 1 BLOCKED) it therefore asserts the design is reproduced when it is not. An overstating handoff is how a reader concludes \"done\" from a run that was not. The sentence must be derived from the disposition tally.",
+      "category": "tooling",
+      "severity": "medium",
+      "evidence": "phase WYAWuEm8DrIk-370-29828: banner emitted verbatim on a 0-PASS phase; the orchestrator had to hand-append a correction directly under the marker so a reader hits it first.",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "script",
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "figma-extract flattens a Figma STROKE into a 4-side CSS `border` regardless of the stroke’s actual per-edge geometry. Any element whose design stroke is bottom-only (dividers, header rules) is then asserted as `border: 1px solid <hex>` and fails forever, because the correct implementation is an inset box-shadow on one edge. Extraction should emit per-edge geometry (or box-shadow) and glyph nodes should emit stroke/fill by node type.",
+      "category": "extractor-defect",
+      "severity": "high",
+      "evidence": "THREE instances in one run: (1) 24 glyph assertions repointed border->stroke/fill; (2) composer mention glyph flattened to one path so no DOM element can carry the design colour; (3) panel-tabs header — probe asserts border:1px solid #edf0f8 and reads border-top-width:0px, while the header correctly paints box-shadow rgb(237,240,248) 0px -1px 0px 0px inset = #EDF0F8 exact on the bottom edge, from plan rule .vc-sidebar-header-row (specNode 370:29861). Satisfying the assert would require painting a 4-side ring the design lacks: an R0 violation.",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "destination": "script",
+      "scope": "general"
+    }
+  ]
+}

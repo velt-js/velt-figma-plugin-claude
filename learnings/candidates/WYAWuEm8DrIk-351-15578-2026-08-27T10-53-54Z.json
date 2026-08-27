@@ -1,0 +1,50 @@
+{
+  "runId": "WYAWuEm8DrIk-351-15578-2026-08-27T10-53-54Z",
+  "phaseId": "WYAWuEm8DrIk-351-15578",
+  "app": "ai-harvey-implementation",
+  "mode": "strictly primitives",
+  "node": "351-15578",
+  "pluginSha": "974138b",
+  "publishedAt": "2026-08-27T10:53:54.971Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "A primitive whose manifest `sdkParents` names a DIFFERENT surface will mount intermittently when composed outside it — flapping between rendering your R1 children, rendering its own default content, and being absent from the DOM entirely. `scaffold-primitives --lint` P19 `outside-builtin-container` predicts this at plan time, but it can be silenced with `containerProvidedBy`, and a planner that silences it by assertion (rather than by actually placing the container) ships the defect.",
+      "category": "sdk-gotcha",
+      "scope": "general",
+      "evidence": "BEFORE: velt-multi-thread-comment-dialog-minimal-filter-dropdown (sdkParents=[velt-multi-thread-comment-dialog]) composed inside velt-comment-sidebar-header-v2. Three consecutive dom-snapshot runs disagreed: run 1 captured it, runs 2-3 timed out at 20-25s on its own trigger class; a live probe found the whole dropdown MISSING from the DOM while the header itself measured 353x73; another sample showed Velt's default menu labels ('Show all', 'Sort by date') where our children should have been. AFTER: swapped to velt-comment-sidebar-filter-dropdown-v2, whose sdkParents IS [velt-comment-sidebar-header-v2] — the control mounts stably and the block's snapshot succeeds.",
+      "seenOn": [
+        "harvey (strictly primitives, design 351-15578, SDK dev bundle 6.0.8-beta.3, 2026-08-27)"
+      ],
+      "verified": true,
+      "destination": "lint",
+      "proposedChange": "P19 should refuse a `containerProvidedBy` waiver whose named container does not appear in the host files verify-host-wiring already scans, instead of accepting any string."
+    },
+    {
+      "kind": "general",
+      "statement": "On the unstyled base a `viewBox`-only inline <svg> has NO intrinsic size, so an icon collapses to 0x0 in a block context and stretches to fill in a flex one. Both failures are invisible in the markup and both break MEASUREMENT, not just looks: a 0x0 control makes its whole block unmeasurable. Intrinsic width/height attributes on the <svg> are STRUCTURE, not cosmetics, and belong in the structure build rather than the style plan.",
+      "category": "sdk-gotcha",
+      "scope": "general",
+      "evidence": "BEFORE: .vc-actions-trigger measured 0x0 and its block recorded stateUnreachable (25s waitFor timeout); .vc-header-collapse-icon measured 353x353 inside a 353-wide rail. AFTER: adding width/height attributes (16/24/20/16 per the design) made the actions trigger 20x20 and the collapse icon 16x16, and state-sidebar-header-childrens-minimal-actions captured on the next dom-snapshot run.",
+      "seenOn": [
+        "harvey (strictly primitives, design 351-15578, 2026-08-27)"
+      ],
+      "verified": true,
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "statement": "The velt-customize run lock does not stop a second orchestrator session that started BEFORE the lock was claimed: it kept writing to the same phase dir and working tree for ~50 minutes, including one wholesale overwrite of plan-primitives.json with a divergent compose tree. The overwrite is detectable by checksumming the plan before each stage that consumes it, and recoverable when the plan is produced by a deterministic script rather than by hand.",
+      "category": "model-reliability",
+      "scope": "general",
+      "evidence": "resume-check claimed the lock for pid 5358 at 09:45; pid 2442 (started 09:23) remained Sl with ~1s CPU/20s and rewrote plan-primitives.json at 10:12:10 — the surface roots carried a different primitive family and keys (hostPropsRejected, parentConditionsNote) this session never writes. Detected by md5, archived, regenerated, then monitored stable for 2 min. git log later showed the same session had also been committing this run's work.",
+      "seenOn": [
+        "harvey (design 351-15578, 2026-08-27)"
+      ],
+      "verified": true,
+      "destination": "script",
+      "proposedChange": "resume-check should record the lock holder's PID and have long-running scripts re-assert it, or the orchestrator should checksum plan artifacts at each stage boundary."
+    }
+  ]
+}

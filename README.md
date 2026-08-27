@@ -102,9 +102,12 @@ Two known residues, neither of which blocks measurement:
 - WebSockets bypass request interception entirely, so `firebaseio.com` presence/realtime stays
   down and logs connection errors.
 
-Expect the Velt sidebar to take noticeably longer to reach its loaded state under the relay
-(~35-40s on the Harvey demo vs. a couple of seconds natively) — raise `--timeout` on the
-measurement scripts accordingly.
+A note on load time, since an earlier version of this section got it wrong: the relay itself does
+NOT make the sidebar slow. The ~35-40s waits measured on the Harvey demo were a symptom of pointing
+that app at the wrong SDK environment, where the realtime transport never connected. With the app
+on the SDK it is actually configured for, the sidebar renders **immediately** once a user is
+identified — the gate is AUTH, not time. If a surface is 0x0, check that a user is signed in before
+reaching for a longer timeout.
 
 ## Prerequisites (the run preflights all of these and HALTs with a fix if any is missing)
 

@@ -15,7 +15,7 @@
   "generatedBy": "scripts/sync-primitives.mjs",
   "availability": {
     "published": false,
-    "note": "PR #4506 targets staging and is unmerged. Treat R1/R2/R3 as FORTHCOMING: a build must verify the target app's installed @veltdev version before emitting children/context/data code. See scripts/check-primitive-reachability.mjs --velt-version.",
+    "note": "PR #4506 targets staging and is unmerged, so R1/R2/R3 are absent from every PUBLISHED npm build. published:false means 'not on npm' — it does NOT mean 'unavailable to this app', and a run MUST NOT read it that way. Velt apps commonly load the SDK from the DEV host via config={{ develop: true, version: '<x>' }}, and that bundle DOES carry the capability: verified live on sdk@6.0.8-beta.3, where getCommentDialogConfig / getNotificationsPanelConfig / getNotificationsToolConfig are present and an R1 child of a primitive RENDERS — while the same probe on cdn.velt.dev is silently DISCARDED. So verify against the RUNTIME BUNDLE the app actually loads (read config.develop/config.version in the host, then probe window.Velt on the live page), never against the installed @veltdev/react package — the npm wrapper version and the runtime bundle routinely differ. A run that concluded 'primitives unavailable' from the npm version alone was wrong, and lost most of its coverage to it. See scripts/check-primitive-reachability.mjs --velt-version.",
     "minVeltVersion": null
   },
   "counts": {

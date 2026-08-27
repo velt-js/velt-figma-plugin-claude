@@ -521,11 +521,12 @@
       "status": "SUPERSEDED",
       "symptom": "A selector or probe built from the manifest tag name matches nothing, though the primitive is clearly on screen.",
       "fix": "SUPERSEDED — do not apply. The original claim (\"366 of 441 primitive tags render through a -wireframe-suffixed element\") was not an SDK behaviour at all: it was the output of a sync-primitives.mjs collision bug. Two React wrappers share each reactName — the PRIMITIVE one emitting the plain tag and a separate wireframe one emitting <tag>-wireframe — and they collapsed to the same manifest key, where the old  tiebreak always picked the wireframe twin (only that twin __rest-forwards). The same bug also recorded forwardsClassName:true for 363 wrappers that actually DROP className. Fixed 2026-08-27; the manifest was regenerated and now records the primitive wrapper, so ZERO primitives carry a -wireframe emitsTag. Still read emitsTag rather than assuming — but for primitives it now equals the manifest tag. Verified in @veltdev/react 6.0.0-beta.15: esm/index.js:2918 emits velt-comment-dialog-thread-card-message, :5109 emits the -wireframe twin.",
-      "confidence": "deprecated",
+      "confidence": "tentative",
       "supersededBy": "manifest/velt-primitives.json (regenerated 2026-08-27) + guide/reference/primitives-capabilities.md",
       "seenOn": [
         "harvey (primitives run 5, @veltdev/react 6.0.0-beta.15, 2026-08-24) — claim later shown to be a tooling artifact, not SDK behaviour"
-      ]
+      ],
+      "retired": true
     },
     {
       "id": "primitives-evaluate-their-own-visibility",

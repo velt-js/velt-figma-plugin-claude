@@ -1,0 +1,168 @@
+{
+  "runId": "WYAWuEm8DrIk-651-31772-2026-08-27T12-08-40Z",
+  "phaseId": "WYAWuEm8DrIk-651-31772",
+  "app": "ai-harvey-implementation",
+  "mode": null,
+  "node": null,
+  "pluginSha": "8b8ec9f",
+  "publishedAt": "2026-08-27T12:08:40.038Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "sdk-gotcha",
+      "statement": "Three CommentDialog primitives silently DISCARD R1 children although the manifest marks them acceptsChildren:true — velt-comment-dialog-thread-card, velt-comment-dialog-options-dropdown and velt-comment-dialog-composer-action-button. They behave like the documented non-containers (dialog root / thread host). Compose their PARTS directly in your own markup and bind annotationId+commentId+commentIndex on each leaf.",
+      "evidence": "BEFORE: skeleton-check --presence-only exit 2 with 18 defects (1 zero-size-primitive + 17 missing-primitive, all descendants of thread-card); live element showed <velt-comment-dialog-thread-card ...><!----><!----><!----><!----></...> with none of the placed children. AFTER dropping the host and binding ids on the leaves: 2 defects, both pre-recorded as accepted; 62 cards rendering real names, timestamps, message bodies and avatars. The action-button case is self-reported by the SDK: '[Velt] <velt-comment-dialog-composer-action-button> is not rendering the markup you placed inside it' x6 in console-health.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "sdk-gotcha",
+      "statement": "On the unstyled base the composer's placeholder has NO glyphs: the placeholder is a real attribute on velt-comment-dialog-composer-input, but Velt paints it through a stylesheet setUnstyledMode strips. Render it yourself from the attribute, gated on the primitive having rendered nothing of its own.",
+      "evidence": "measure-block fixture check reported missing:[\"Write something...\"] on state-composer-states-collapsed while a DOM probe confirmed placeholder=\"Write something...\" present on the element. Fixed with `velt-comment-dialog-composer-input:not(:has(*))::before { content: attr(placeholder) }` in the design's placeholder ramp.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "sdk-gotcha",
+      "statement": "A percentage height on a composed surface resolves against the Velt HOST TAG between it and the rail, and a custom element is height:auto by default — so height:100% silently falls back to CONTENT height. Give the host tag the height too.",
+      "evidence": "MEASURED: .vc-sidebar computed 900px tall starting at y=59 inside an 841px rail, pushing the page-mode composer 59px below the fold and painting the page's dark background in the gap. Adding `.hw-rail-inner > velt-comments-sidebar-v2 { display:flex; flex-direction:column; height:100%; min-height:0 }` re-measured y=59 h=841 with the composer visible at y=705.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "knowledge"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "model-reliability",
+      "statement": "judge2-chromatic could measure a signed-out and network-starved app: it never signed in, and it bootstraps its own browser so it skipped installSandboxEgress. Both produced full finding sets against an EMPTY sidebar.",
+      "evidence": "Runs 1-2: judge2/live-panel.png showed 'Comments 0' + 'Add your first comment', 30 then 24 findings, all bogus. Discriminator on the same page at the same moment: openPage path 62 thread cards, judge path 0. After adding a real page.selectOption sign-in, a populated-surface wait, and installSandboxEgress(context): 63 real threads and 11 findings.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "script"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "model-reliability",
+      "statement": "measure-block.selectUserRobust cannot sign in through a CONTROLLED React <select value=\"\">: the native-setter + synthetic change fires onChange, but React re-renders the element back to \"\" so `sel.value === u` never holds. Try Playwright's own selectOption first and keep the synthetic path as the fallback.",
+      "evidence": "MEASURED: after selectUserRobust the app was still signed out (#hw-user-select value \"\"), useCommentAnnotations returned 0 and every probe measured an empty surface; page.selectOption('#hw-user-select','user1') signed in on the first try and 62 annotations arrived.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "script"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "model-reliability",
+      "statement": "judge2's normalizeStateBindings overwrites a phase-authored hover binding whenever its selector does not mention 'sidebar', because the weak-selector test is written against V1 wireframe class names. In a primitives build that silently un-judges every hover state. Bindings now opt out with authored:true.",
+      "evidence": "MEASURED: our correct `.vc-thread-card` hover drive was replaced by V1 selectors and the run logged 'state hover NOT captured: no visible match'; with authored:true the same binding drove and confirmed hover, and later all 3 of 3 states.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "script"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "component-difficulty",
+      "statement": "A Figma State frame is often a presentation BOARD, not a surface: a caption (Aeonik 18/600, ~25px) plus a 24px gap above the artwork, or a whole column of labelled variants. plan-style's design-coverage gate already waives those nodes as board furniture, but brief-scaffold still binds them as measurable product elements — so the two gates disagree and the block reports the caption offset as a layout error.",
+      "evidence": "MEASURED: state-composer-states-collapsed/-3/-4 each reported `new-comment-input box.y Δ -41px` and a missing mustSupply slot named after the caption ('Default'/'Hover'/'Typing'). 25px caption + 24px gap = 41px exactly. state-composer-states-default (a 638x2214 ten-variant board) reported content height off by -2214px and 403 elements missing against one live card.",
+      "seenOn": [
+        "harvey-651-31772"
+      ],
+      "destination": "script"
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "sdk-gotcha",
+      "destination": "script",
+      "seenOn": [
+        "harvey-WYAWuEm8DrIk-651-31772"
+      ],
+      "statement": "BOOT IS NOT CONTENT. measure-block waited for the Velt SDK to be DEFINED and then drove immediately; on a document with real data the annotations arrive seconds later, so every block measured the open-but-EMPTY surface. The shell is present and every structural assertion still \"works\", which is why it does not look like a failure. Wait for a CONTENT selector (the phase card selector) before driving.",
+      "evidence": "BEFORE (same block, same command): results/state-sidebar-header-top-bar/shot.png read \"Comments 0\"; delta reported number box.w 7px (one glyph) against an 18px two-digit design node; the flow block capture was a blank column; state-composer-states-default timed out after 30s waiting for a visible .vc-thread-card. AFTER adding a bounded content-ready wait: same block, same command, capture reads \"Comments 63\" and number box.w 14px. Measured: SDK defined ~1s after reload+sign-in, 63 annotations paint ~7s."
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "sdk-gotcha",
+      "destination": "script",
+      "seenOn": [
+        "harvey-WYAWuEm8DrIk-651-31772"
+      ],
+      "statement": "delta-compare ignored the probe brief own notMeasurable field, so every design node the style planner had already waived with a written reason (Figma board captions, icon interior path/fill vectors, SECOND DEPICTION duplicates) was reported as a missing mustSupply slot AND counted in the whole-surface element-count diff. Honor the field: record waived nodes with their reason, exclude them from expCount/expBottom, and keep failing any absent element that carries NO reason.",
+      "evidence": "BEFORE: state-sidebar-header-top-bar reported 16 diffs, 12 of them \"mustSupply slot absent\" — and all 12 of those spec elements carry notMeasurable AND selector:null in the brief, against a header that renders correctly. AFTER: 3 diffs, all text advance width; 12 recorded in delta.json waived[] with their reasons. Golden calibration suite still green; unit-checked that an absent element with no reason still fails."
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "model-reliability",
+      "destination": "guide",
+      "seenOn": [
+        "harvey-WYAWuEm8DrIk-651-31772"
+      ],
+      "statement": "ONE TAB PER RUN is a correctness rule, not tidiness. judge2-chromatic reuses context.pages().find(localhost) and does NOT re-navigate a page already on the target URL, so any leftover diagnostic tab can become the judged surface. It then produces a complete, plausible, entirely meaningless set of findings.",
+      "evidence": "MEASURED: nine tabs had accumulated from diagnostic probes. The judge grabbed a stale signed-out one, logged \"no thread cards appeared within 15s\", and returned 14 findings with diffPct 0.838-5.863% — which read as a large improvement. live-panel.png showed \"Comments 0 / Add your first comment\". After collapsing to ONE prepared tab: same command, populated panel with 63 threads, diffPct 2.1-6.5%, and the selected state driving for the first time. Also measured: killing measure-block mid-flight leaves a page that wedges Playwright connectOverCDP entirely (60s timeout); closing that target via the CDP HTTP endpoint restores it."
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "component-difficulty",
+      "destination": "knowledge",
+      "seenOn": [
+        "harvey-WYAWuEm8DrIk-651-31772"
+      ],
+      "statement": "A composer FOCUS state that \"cannot be driven\" is almost always a drive-authoring bug, not the SDK one-way velt-composer-open state. Two specific traps: (a) waiting for the custom element <velt-comment-dialog-composer-input> and then focusing .vc-composer [contenteditable] — the inner editable does not exist yet at that moment, and the synthetic .click() fallback on the custom element never focuses it; (b) guarding on \"state is focus OR typing\" while asserting focus, which short-circuits forever once any text is present. Wait for the real [contenteditable=true], clear it, focus unconditionally.",
+      "evidence": "BEFORE: measure-block \"drive/assert failed: locator.waitFor: Timeout 10000ms exceeded\" for .vc-composer[data-vc-composer-state=focus]; the block was handed off as UNVERIFIED/not built. AFTER the repaired drive, measured live: state default->focus, .vc-composer-inner border rgb(228,227,232)->rgb(65,60,195) (design #413cc3, node 651:32538), toolbar display none->flex 247x28, 6 tools 0x0->16x16, send 0x0->20x20; block now records driven:true with a full delta/stability artifact set."
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "sdk-gotcha",
+      "destination": "knowledge",
+      "seenOn": [
+        "harvey-WYAWuEm8DrIk-651-31772"
+      ],
+      "statement": "Under setUnstyledMode the Velt composer placeholder disappears: the attribute is real on the primitive but Velt paints it through a stylesheet that unstyled mode strips. Two selectors that do NOT work: velt-comment-dialog-composer-input:not(:has(*))::before (that custom element ALWAYS has one child, so the rule never matches), and a ::before on the empty leaf editable (it paints, but generated content is not a DOM text node, so presence/text assertions and screen readers still see nothing). Render the primitive own placeholder value as a real node gated on the input being empty.",
+      "evidence": "BEFORE: measure-block fixture reported missing \"Write something...\" on the default and hover composer blocks; probing every descendant of .vc-composer for that exact text returned [] in resting, focus AND blur. AFTER: SPAN.vc-composer-placeholder present at rest, text \"Write something...\", computed color rgb(173,172,185) = the design ramp #adacb9, box 104x20; the placeholder-text delta row went from \"visible text empty\" to passing on text. Caveat measured and recorded: on the 0-comment empty state Velt renders its own copy, so a suppression gate is needed there — an attempt to gate on observing the SDK copy left the placeholder MISSING at rest and was reverted."
+    },
+    {
+      "kind": "general",
+      "scope": "general",
+      "verified": true,
+      "category": "model-reliability",
+      "destination": "script",
+      "seenOn": [
+        "harvey-WYAWuEm8DrIk-651-31772"
+      ],
+      "statement": "judge2 chrome probes carry expectations from the REFERENCE wireframe design and cite that design node ids and block ids in their messages (e.g. \"plan-style 369:29437 expects 16px\"). On any other design they fire as demoBreaking/high against a correct build. Source their expected values from the phase own plan-style.json, and fix the card-ring probe crop origin.",
+      "evidence": "MEASURED after making the probes run at all (they matched 0 elements before): three findings, all refuted. inter-dialog-gap expects 16px citing node 369:29437 and a block id absent from this Loop; this design own gap measured off its scale-2 frame is ~8.5 CSS px and live mean is 8px across all 62 gaps. card-side-borders-invisible saved as its evidence crop a picture of the app top bar, not a card edge; the ring measures 1px solid rgb(228,227,232) r8 and is visible on all four sides. thread-rail-show-n cites another design block and its own DOM evidence says noRail:true, which matches a design that draws no connector."
+    }
+  ]
+}

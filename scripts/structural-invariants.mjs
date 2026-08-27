@@ -16,6 +16,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { installSandboxEgress } from "./sandbox-egress.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -100,6 +101,11 @@ async function main() {
   catch { try { chromium = require("playwright-core").chromium; } catch { console.error("✗ playwright-core required"); process.exit(1); } }
   const browser = await chromium.connectOverCDP(ws);
   const context = browser.contexts()[0] || await browser.newContext();
+  // Sandbox egress shim (BUG-8 class): this script bootstraps its OWN browser instead of
+  // going through measure-block's openPage, so without this it never installs the shim and
+  // inside an agent sandbox Chromium reaches nothing — every probe then measures an unbooted,
+  // empty surface that still satisfies structural assertions. No-op unless VELT_SANDBOX_EGRESS=1.
+  await installSandboxEgress(context).catch(() => {});
   const page = context.pages().find((p) => p.url().includes(new URL(url).host)) || context.pages()[0] || await context.newPage();
   if (!page.url().startsWith(url.slice(0, 24))) await page.goto(url, { waitUntil: "domcontentloaded" });
   const raw = await page.evaluate(INVARIANT_PROBE);

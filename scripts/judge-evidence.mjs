@@ -33,6 +33,7 @@ import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 import { decodePNG, encodePNG, cropImage } from "./visual-diff.mjs";
 import { isTemplatedMiss, evidenceCssBox } from "./emit-judge-defects.mjs";
+import { installSandboxEgress } from "./sandbox-egress.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -186,6 +187,11 @@ async function resolveLandmarks(ws, requests) {
     if (!conn.browser) return null;
     const browser = conn.browser;
     const context = browser.contexts()[0];
+  // Sandbox egress shim (BUG-8 class): this script bootstraps its OWN browser instead of
+  // going through measure-block's openPage, so without this it never installs the shim and
+  // inside an agent sandbox Chromium reaches nothing — every probe then measures an unbooted,
+  // empty surface that still satisfies structural assertions. No-op unless VELT_SANDBOX_EGRESS=1.
+  await installSandboxEgress(context).catch(() => {});
     const page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
     if (!page) return null;
     // Do NOT navigate — use the already-open tab (navigation races hang CDP sessions).

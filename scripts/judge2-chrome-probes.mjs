@@ -17,6 +17,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 import { decodePNG } from "./visual-diff.mjs";
+import { installSandboxEgress } from "./sandbox-egress.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -128,6 +129,11 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true, s
   const chromium = await loadPlaywright();
   const browser = await chromium.connectOverCDP(ws.startsWith("http") ? ws : ws);
   const context = browser.contexts()[0] || await browser.newContext();
+  // Sandbox egress shim (BUG-8 class): this script bootstraps its OWN browser instead of
+  // going through measure-block's openPage, so without this it never installs the shim and
+  // inside an agent sandbox Chromium reaches nothing — every probe then measures an unbooted,
+  // empty surface that still satisfies structural assertions. No-op unless VELT_SANDBOX_EGRESS=1.
+  await installSandboxEgress(context).catch(() => {});
   let page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
   if (!page) page = await context.newPage();
   if (!page.url().includes(new URL(url).host)) {

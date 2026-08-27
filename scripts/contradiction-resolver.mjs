@@ -29,6 +29,7 @@ import { createRequire } from "node:module";
 import { decodePNG, encodePNG, cropImage } from "./visual-diff.mjs";
 import { evidenceCssBox, boxIoU } from "./emit-judge-defects.mjs";
 import { parseColor } from "./delta-compare.mjs";
+import { installSandboxEgress } from "./sandbox-egress.mjs";
 
 const require = createRequire(import.meta.url);
 async function loadJson(p) { try { return JSON.parse(await fs.readFile(p, "utf8")); } catch { return null; } }
@@ -260,6 +261,11 @@ async function main() {
       try {
         const browser = await chromium.connectOverCDP(ws);
         const context = browser.contexts()[0];
+  // Sandbox egress shim (BUG-8 class): this script bootstraps its OWN browser instead of
+  // going through measure-block's openPage, so without this it never installs the shim and
+  // inside an agent sandbox Chromium reaches nothing — every probe then measures an unbooted,
+  // empty surface that still satisfies structural assertions. No-op unless VELT_SANDBOX_EGRESS=1.
+  await installSandboxEgress(context).catch(() => {});
         const page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
         if (page) {
           const planStyle = await loadJson(path.join(phaseDir, "plan-style.json"));

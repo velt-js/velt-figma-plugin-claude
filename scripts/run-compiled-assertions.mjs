@@ -22,6 +22,7 @@ import path from "node:path";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { parseColor } from "./delta-compare.mjs";
+import { installSandboxEgress } from "./sandbox-egress.mjs";
 import { obsEvent } from "./obs.mjs";   // session-replay record (fail-safe, VELT_OBS=0 disables)
 
 const require = createRequire(import.meta.url);
@@ -428,6 +429,11 @@ async function main() {
   const chromium = await loadPlaywright();
   const browser = await chromium.connectOverCDP(ws);
   const context = browser.contexts()[0];
+  // Sandbox egress shim (BUG-8 class): this script bootstraps its OWN browser instead of
+  // going through measure-block's openPage, so without this it never installs the shim and
+  // inside an agent sandbox Chromium reaches nothing — every probe then measures an unbooted,
+  // empty surface that still satisfies structural assertions. No-op unless VELT_SANDBOX_EGRESS=1.
+  await installSandboxEgress(context).catch(() => {});
   // Pick the tab the APP is actually mounted in, not merely one whose URL matches.
   // A dead or half-loaded tab on the same URL measures as "every element missing" and
   // turns a healthy build into a wall of false failures.

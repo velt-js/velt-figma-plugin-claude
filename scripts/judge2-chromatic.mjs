@@ -21,6 +21,7 @@ import {
   decodePNG, encodePNG, visualDiff, cropImage, resampleImage, textMasksFromSpec, textBoxesFromSpec,
 } from "./visual-diff.mjs";
 import { runJudge2ChromeProbes } from "./judge2-chrome-probes.mjs";
+import { installSandboxEgress } from "./sandbox-egress.mjs";
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -191,6 +192,12 @@ function normalizeStateBindings(doc) {
   let changed = false;
   for (const b of doc.bindings) {
     if (b.state !== "hover") continue;
+    // A binding the phase's planner AUTHORED against its own measured DOM is not weak just because
+    // it does not mention "sidebar" (BUG-9, harvey primitives run). The heuristic below tests for
+    // V1 wireframe class names, so it overwrote a correct `.vc-thread-card` hover drive with
+    // selectors that match nothing in a primitives build — and hover, which five of this design's
+    // ten card states depend on, went unjudged. An explicit `authored: true` opts out.
+    if (b.authored) continue;
     const guardSel = b.guard?.selector || "";
     const driveSel = (b.drive || []).find((s) => s.action === "hover")?.selector || "";
     const weakGuard = !/sidebar-mode|sidebar:hover/i.test(guardSel);
@@ -366,6 +373,13 @@ async function captureResting(phaseDir, { url, ws }) {
   if (!chromium) throw new Error("playwright-core not found");
   const browser = await chromium.connectOverCDP(ws.startsWith("http") ? ws : ws);
   const context = browser.contexts()[0] || await browser.newContext();
+  // SANDBOX EGRESS (BUG-8, found live on the harvey primitives run). This script bootstraps its own
+  // browser instead of going through measure-block's openPage, so it never installed the egress
+  // shim — inside an agent sandbox Chromium reaches nothing, and the goto() below reloads the app
+  // with an SDK that cannot fetch. Measured: the same page served 62 thread cards through openPage
+  // and 0 through this path, and the judge scored 24 findings against an empty sidebar. No-op
+  // unless VELT_SANDBOX_EGRESS=1.
+  await installSandboxEgress(context).catch(() => {});
   let page = context.pages().find((p) => /localhost|127\.0\.0\.1/.test(p.url())) || context.pages()[0];
   if (!page) page = await context.newPage();
   // Prefer the pinned run URL (documentId isolation) — host match alone can leave the wrong doc.

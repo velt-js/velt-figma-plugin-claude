@@ -1111,6 +1111,23 @@ async function main() {
         const asserts = (st) => (Array.isArray(st?.assert) ? st.assert.length > 0 : String(st?.assert ?? "").trim().length > 0)
           || String(st?.assertAbsent ?? "").trim().length > 0
           || String(st?.evalAssert ?? "").trim().length > 0;
+        // Validate smoke step ACTIONS against the same vocabulary the runner executes.
+        // validateDriveSteps() covers a block's `drive` but was never applied to smoke steps, so an
+        // action the runner cannot dispatch (a plausible-looking "key" instead of "press") passed
+        // the lint and failed only at runtime — the very "sub-second pre-loop hard-fail" that
+        // validateDriveSteps exists to provide, missing on this path. Caught while hand-authoring
+        // a suite: the invalid action linted clean.
+        for (const [si, st] of steps.entries()) {
+          for (const [ai, act] of (Array.isArray(st?.actions) ? st.actions : []).entries()) {
+            const a = act && act.action;
+            if (!a || !Object.prototype.hasOwnProperty.call(DRIVE_VOCAB, a)) {
+              console.log(`✗ family ${f.id}: smoke steps[${si}].actions[${ai}].action ${JSON.stringify(a)} is not a valid action (${Object.keys(DRIVE_VOCAB).join("|")})`); dirty++; continue;
+            }
+            for (const req of DRIVE_VOCAB[a]) {
+              if (!req.split("|").some((k) => act[k] != null && String(act[k]).length)) { console.log(`✗ family ${f.id}: smoke steps[${si}].actions[${ai}] action '${a}' requires field '${req}'`); dirty++; }
+            }
+          }
+        }
         const noAssert = steps.filter((st) => !asserts(st));
         if (noAssert.length) { console.log(`✗ family ${f.id}: ${noAssert.length}/${steps.length} smoke step(s) assert nothing (need assert / assertAbsent / evalAssert) — a step with no assertion cannot fail: ${noAssert.slice(0, 3).map((st) => st?.name || "(unnamed)").join(", ")}`); dirty++; }
       }

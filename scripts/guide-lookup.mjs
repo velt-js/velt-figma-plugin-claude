@@ -141,7 +141,12 @@ function roleFiles({ role, approaches, feature, surface }) {
 // the Builder/Judge load ONLY those rules' text. guide/rules.md stays the single canonical source
 // (no per-feature rule forks to drift); this table only routes into it.
 const RULE_INDEX = {
-  base: ["R0", "R10", "R11", "R15", "R16", "R17", "R18", "R20", "R26"],
+  // R31 (a green result must never stand in for work not done) and R32 (a closed delta row is only
+  // a fix when the assertion is bound to the right element) are BASE: they govern how every role
+  // reads its own tooling, not one approach or stage. Both were authored after a run in which five
+  // separate operations reported success having verified nothing, and a "fix" closed a row by
+  // painting a literal onto the wrong element. A rule no role loads is not a rule — keep them here.
+  base: ["R0", "R10", "R11", "R15", "R16", "R17", "R18", "R20", "R26", "R31", "R32"],
   approach: {
     css: ["R6", "R8", "R9", "R9b", "R22", "R23"],
     wireframes: ["R1", "R2", "R4", "R5", "R7", "R14", "R19", "R21", "R22", "R23", "R25", "R27", "R28"],
@@ -151,7 +156,7 @@ const RULE_INDEX = {
   role: {
     plan: ["R3", "R12", "R21", "R24", "R30"],          // R30: the Planner authors each family's smoke spec
     build: ["R21", "R24"],
-    judge: ["R25", "R26", "R27", "R29", "R30"],        // R29: accepted glyph residue · R30: family smoke gate
+    judge: ["R25", "R26", "R27", "R29", "R30", "R32"], // R29: glyph residue · R30: smoke gate · R32: don't close a mis-bound row
   },
 };
 

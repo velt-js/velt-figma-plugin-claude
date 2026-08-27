@@ -1,0 +1,102 @@
+{
+  "runId": "WYAWuEm8DrIk-658-34320-A-2026-08-27T14-28-38Z",
+  "phaseId": "WYAWuEm8DrIk-658-34320-A",
+  "app": "ai-harvey-implementation",
+  "mode": null,
+  "node": null,
+  "pluginSha": "af5c1b2",
+  "publishedAt": "2026-08-27T14:28:38.122Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "defaultCondition={false} BYPASSES the SDK's internal visibility gate: the primitive always renders AND keeps its hand-placed children. Omitting the prop keeps the gate, and where that gate is false the primitive renders 0x0 display:none and SILENTLY DISCARDS the children placed inside it.",
+      "context": "guide/reference/primitives.md, dialog.md and sidebar.md state this polarity; guide/reference/behaviors/notifications.md states the opposite ('when false, the component does not render'). The contradiction is load-bearing — sub-phase A passed the prop on 11 primitives, so the wrong reading breaks all 11 invisibly. notifications.md should be corrected or scoped to its own family.",
+      "evidence": "Measured live, both members mounted in ONE real velt-comment-dialog-thread-card (annotation-id Vi2qg4ynlxo5dRm0xX4B), on velt-comment-dialog-assignee-banner whose SDK gate was genuinely false (unassigned, unresolved comment): defaultCondition={false} -> 40x20, display:inline, child present; prop omitted -> 0x0, display:none, child gone. Three non-discriminating pairs with a true gate (thread-card-message/-reply/-reactions) confirm false never suppresses. Full record: obs/default-condition-polarity.json.",
+      "destination": "guide",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "For SOME primitives the SDK's default content IS the control, so supplying children DESTROYS it. velt-reaction-tool renders <velt-reaction-tool role=\"button\">; give it a child and the subtree becomes only your markup and the click does nothing. Style these via CSS on the SDK element instead of composing into them.",
+      "context": "This is the inverse of the usual R1 rule (a childless primitive renders nothing). Both traps are silent and neither is visible to a pixel diff — the control looks right either way. The same class hit the reaction PIN: an empty span inside it erased the emoji+count.",
+      "evidence": "harvey sub-phase A, measured side by side on one card: with a child -> subtree is only our span, click does nothing; with no children -> the same click opens the picker. defaultCondition made no difference either way.",
+      "destination": "guide",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "The SDK ALREADY WARNS about this class of defect in the console: '[Velt] Children passed to <tag> replace its default content. This primitive normally renders SDK children of its own.' Treat that warning as a dead-control signal on any tag whose default content is interactive, not as noise.",
+      "context": "console-health.mjs collects warnings and its own source comment calls them defects, but it exits 0 on zero ERRORS, so the warning prints and gates nothing. The previous phase shipped four dead controls while this exact warning was being emitted for velt-comments-sidebar-filter-dropdown-v2 — one of the four.",
+      "evidence": "harvey: console-health on the current build reports the warning for velt-comments-sidebar-filter-dropdown-v2 and velt-comments-sidebar-page-mode-composer-v2 at exit 0.",
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "A primitive that declined to render sets NO data-velt-hidden and no inline style — it computes to display:none with a comment-only subtree. Test emptiness with :empty, not with the attribute.",
+      "context": "Collapse rules keyed to [data-velt-hidden='true'] miss this case entirely, leaving a zero-height flex item that still draws the parent's gap.",
+      "evidence": "harvey sub-phase A, measured during the defaultCondition pairs.",
+      "destination": "guide",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": ":has() nested inside :has() is invalid CSS and the whole rule is silently dropped — CSS.supports(\"selector(.a:has(.b:has(*)))\") === false.",
+      "context": "Two collapse rules written that way shipped in a previous phase and never applied; nothing reported it. Prefer :empty for the inner test.",
+      "evidence": "harvey: measured via CSS.supports in the live browser; both rules replaced with :empty equivalents.",
+      "destination": "lint",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "SDK-rendered rows inside an options dropdown emit an '-internal' suffixed tag: the DOM has velt-comment-dialog-options-dropdown-content-edit-internal, not ...-content-edit (same for delete, delete-thread, assign, make-private, mark-as-read, notification). A probe keyed to the plain tag finds nothing.",
+      "context": "This is a different drift from the manifest emitsTag bug fixed earlier — these rows are rendered by the SDK's own template rather than by a React wrapper, so sync-primitives never sees them.",
+      "evidence": "harvey sub-phase A: options dropdown driven open, rows enumerated from the live cdk overlay.",
+      "destination": "guide",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "Overlay menus mount into .cdk-overlay-container at the end of <body>, OUTSIDE the composed section. A section-scoped query will never find them; the only on-card signal is aria-expanded on div.mat-mdc-menu-trigger.",
+      "context": "Any drive or probe that asserts an opened menu must search the document, not the surface. Worth encoding in the probe scaffolder rather than rediscovering per run.",
+      "evidence": "harvey sub-phase A: options panel measured at 146x144 inside .cdk-overlay-container after a real pointer click.",
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "velt-comment-dialog-toggle-reply does NOT gate on 'has replies' — it renders on every row and paints '0 Reply'. A plan that keys the Reply-vs-replies-preview exclusion to that primitive's own gate hides Reply on every row.",
+      "context": "Its parent-owned condition cannot be relied on as a has-replies signal; bound it with your own data attribute instead.",
+      "evidence": "harvey sub-phase A, observed across the seeded thread list.",
+      "destination": "guide",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "measure-block.openPage's --select-user is a no-op on a reused authenticated tab whose React root is stale; sign-in only sticks after an explicit page.reload().",
+      "context": "Produces confident '0 comments' readings against a page that actually has data — cost ~20 minutes of false measurement in this sub-phase.",
+      "evidence": "harvey sub-phase A.",
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "lint-primitives P5 (repeater) is a NAME heuristic — REPEATER_RE matches any tag ending in 'Options', so VeltCommentDialogThreadCardOptions errors even though the manifest records no repeat for it and the design draws a single 24x24 node.",
+      "context": "There is no suppression pragma, so the only way past is to write the cluster as an explicit loop. The manifest carries no `repeats` field for the rule to consult — it should, rather than the rule guessing from the name.",
+      "evidence": "harvey sub-phase A: exactly one instance per row measured live, its only child our own div.",
+      "destination": "lint",
+      "scope": "general",
+      "verified": true
+    }
+  ]
+}

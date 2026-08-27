@@ -145,6 +145,22 @@ export function verdictGateBlocks(blocks, report, { maxRegionFill = 0.05 } = {})
     if (disp && TERMINAL.has(disp)) {
       if (typeof r.note !== "string" || !r.note.trim()) { missing.push(`block '${b.id}' marked ${disp} without a written evidence note (a non-empty string is required)`); continue; }
       accounted[disp.toLowerCase()].push(`block '${b.id}' (${b.state}): ${disp} — ${r.note}`);
+      // CARRY UNRESOLVED PROPERTY DELTAS FORWARD (GAP-masking fix).
+      // A disposition is per-BLOCK; defects are per-PROPERTY. Before this, the `continue` below
+      // skipped every delta check for a terminal block, so a GAP taken for ONE reason silently
+      // absorbed every unrelated defect in the same block. Measured on the privado run: three
+      // ordinary CSS defects (comment-dialog align-items, comment-dialog content overflow,
+      // panel-tabs border) rode invisibly under two BEHAVIOURAL gaps in a phase that exited 0 PASS.
+      // GAP means "this state cannot be reached or expressed" — never "nothing else here matters".
+      // These stay ADVISORY (a terminal block is still a legitimate clean stop and must not be
+      // turned into a FAIL retroactively), but they are now SURFACED so the handoff can list them
+      // separately from the GAP reason instead of losing them.
+      if (r.deltaCompare && r.deltaCompare.ok === false) {
+        const ds = Array.isArray(r.deltaCompare.diffs) ? r.deltaCompare.diffs : [];
+        if (!ds.length) advisories.push(`block '${b.id}' [${disp}]: carries an unresolved delta-compare FAIL with no diff detail — not covered by the ${disp} reason`);
+        for (const d of ds.slice(0, 8)) advisories.push(`block '${b.id}' [${disp}] UNRESOLVED DELTA (not covered by the ${disp} reason): ${`${d.element || ""} ${d.property || ""} ${d.note || ""}`.trim()}`);
+        if (ds.length > 8) advisories.push(`block '${b.id}' [${disp}]: +${ds.length - 8} further unresolved delta row(s)`);
+      }
       continue;
     }
     // never started, but the phase soft-capped and explicitly listed it as remaining → accounted (STOPPED)

@@ -73,7 +73,30 @@ export async function buildHandoff(phaseDir, { maxRegionFill = 0.05 } = {}) {
 
   const L = [];
   if (verified) {
-    L.push("# Phase handoff — PASS", "", "> Gate: **PASS** — every block was freshly measured and is clean. Golden-path gates (host-wiring / style authorship / mechanism-checklist) also ok.", "");
+    // DERIVE the claim from the disposition tally — never assert it from the verdict alone.
+    // BLOCKED/GAP are verified-ACCEPTABLE, so a phase can exit PASS with ZERO blocks actually
+    // measured clean. The old fixed sentence then told the reader "every block was freshly measured
+    // and is clean" on a run where nothing matched. Measured on the privado run: PASS with
+    // 6 GAP + 1 BLOCKED and 0 PASS blocks. An overstating handoff is how a reader concludes "done"
+    // from a run that was not.
+    const nBlocked = (r.accounted?.blocked || []).length;
+    const nGap = (r.accounted?.gap || []).length;
+    const nStuck = (r.accounted?.stuck || []).length;
+    const nTerminal = nBlocked + nGap + nStuck;
+    const nTotal = Number(r.total ?? r.blockCount ?? 0) || (nTerminal + Number(r.cleanCount ?? 0));
+    const nClean = Math.max(0, nTotal - nTerminal);
+    const tally = [nClean ? `${nClean} measured clean` : null, nGap ? `${nGap} GAP` : null, nBlocked ? `${nBlocked} BLOCKED` : null, nStuck ? `${nStuck} STUCK` : null].filter(Boolean).join(" · ");
+    L.push("# Phase handoff — PASS", "");
+    if (nTerminal === 0) {
+      L.push("> Gate: **PASS** — every block was freshly measured and is clean. Golden-path gates (host-wiring / style authorship / mechanism-checklist) also ok.", "");
+    } else if (nClean === 0) {
+      L.push(`> Gate: **PASS** — every block is ACCOUNTED FOR with verified evidence (${tally}). **ZERO blocks measured clean: this is NOT a claim that the design is reproduced.** Each terminal block carries its own evidence note; read those before treating anything as done. Golden-path gates ok.`, "");
+    } else {
+      L.push(`> Gate: **PASS** — ${tally}. BLOCKED/GAP blocks are accounted with evidence, **not** reproduced; only the ${nClean} clean block(s) matched the design. Golden-path gates ok.`, "");
+    }
+    if (Array.isArray(r.advisories) && r.advisories.some((a) => /UNRESOLVED DELTA/.test(String(a)))) {
+      L.push("> ⚠ Some terminal blocks carry **unresolved property deltas not covered by their GAP/BLOCKED reason** — see the advisories below. A disposition is per-block; defects are per-property.", "");
+    }
   } else if (accountedStop) {
     L.push("# Phase handoff — STOPPED (accounted)", "",
       "> Gate: **STOPPED** — every block is accounted (PASS / verified BLOCKED / GAP), but the run hit its bounds. Hand to the human. This is NOT a claim that the whole design matches.", "");

@@ -44,20 +44,54 @@ const ROLE_PRIMITIVE = {
 // Walk the compose tree remembering the nearest own-markup ancestor, so a primitive can report the
 // element that actually carries the design's box rather than its own (class-less) host.
 const found = {};
-const walk = (node, ownAncestor) => {
+// Leaves of the thread-card family. A `strictly primitives` build may compose ONLY these and own
+// the card box itself, in which case the container tag below never mounts — see CARD FALLBACK.
+const CARD_LEAF = [
+  "velt-comment-dialog-thread-card-avatar", "velt-comment-dialog-thread-card-name",
+  "velt-comment-dialog-thread-card-time", "velt-comment-dialog-thread-card-message",
+  "velt-comment-dialog-thread-card-reply", "velt-comment-dialog-thread-card-reaction-tool",
+];
+const leafChains = [];
+const walk = (node, ownAncestor, chain) => {
   if (!node || typeof node !== "object") return;
   const cls = (node.vcClass || "").split(/\s+/)[0];
-  const nextOwn = node.element && cls ? cls : ownAncestor;
+  const isOwn = Boolean(node.element && cls);
+  const nextOwn = isOwn ? cls : ownAncestor;
+  const nextChain = isOwn ? [...chain, cls] : chain;
   if (node.primitive) {
     for (const [role, tags] of Object.entries(ROLE_PRIMITIVE)) {
       if (!tags.includes(node.primitive) || found[role]) continue;
       found[role] = { selector: nextOwn ? `.${nextOwn}` : node.primitive, via: node.primitive,
                       how: nextOwn ? "nearest own-markup ancestor (carries the design's box)" : "the primitive's own tag (no own-markup wrapper)" };
     }
+    if (CARD_LEAF.includes(node.primitive)) leafChains.push(nextChain);
   }
-  for (const c of node.children || []) walk(c, nextOwn);
+  for (const c of node.children || []) walk(c, nextOwn, nextChain);
 };
-for (const s of plan.surfaces || []) walk(s.root, null);
+for (const s of plan.surfaces || []) walk(s.root, null, []);
+
+// CARD FALLBACK — derived, still never guessed.
+// `card` is keyed to the CONTAINER tag velt-comment-dialog-thread-card. Under `strictly primitives`
+// the container is frequently not composed at all: the plan mounts the leaves and the customer's own
+// element carries the card box. The container tag then never appears, `card` goes unresolved, and
+// judge2-chrome-probes exits 3 INVALID — the whole structural half of the Judge stays dead, which is
+// the exact failure this script exists to prevent (measured: privado run 2026-08-27).
+// The card is recoverable without guessing: it is the DEEPEST own-markup ancestor common to every
+// thread-card leaf. One leaf alone is not enough (that resolves to .vc-card-head, a sub-row), so this
+// requires >= 2 distinct leaves whose chains agree.
+if (!found.card && leafChains.length >= 2) {
+  let common = leafChains[0];
+  for (const c of leafChains.slice(1)) {
+    let i = 0; while (i < common.length && i < c.length && common[i] === c[i]) i++;
+    common = common.slice(0, i);
+  }
+  const deepest = common[common.length - 1];
+  if (deepest) {
+    found.card = { selector: `.${deepest}`, via: `${leafChains.length} thread-card leaves`,
+                   how: "deepest own-markup ancestor common to every thread-card leaf (container primitive not composed)" };
+    if (!found.dialog) found.dialog = { ...found.card, how: found.card.how + " — dialog shares the card box" };
+  }
+}
 
 // The connector is drawn by the customer, never by a primitive — it has no defining tag, so it is
 // recognised by role in the plan's own class names rather than invented.

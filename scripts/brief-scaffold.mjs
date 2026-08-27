@@ -298,6 +298,19 @@ export function scaffoldProbes(block, sliceNodes, comp, { mode = "full" } = {}) 
         // a layout-frame flattens live → its box is not attributable; keep box only for paint/text
         box: kind === "layout-frame" ? null : (n.box || null),
         sourceNodeId: n.id,
+        // RECOVERED NODES ARE NOT DESIGN VALUES.
+        // figma-extract flags a node it could not read with brokenOverride/recoveredFrom and
+        // back-fills its cssDecls, box and text FROM THE COMPONENT MASTER. Emitted plain, such an
+        // expectation is indistinguishable from a value actually read off this frame, and any
+        // assertion resting on it is unfalsifiable against the live app — the frame may legitimately
+        // draw something else entirely. Measured on the privado run: I370:29864;22:2637 was the only
+        // recovered node of 207; its overflow/height/text all described the MASTER while the frame
+        // drew an empty body, producing three delta rows whose only "fix" was to paint a literal.
+        ...(n.brokenOverride || n.recoveredFrom
+          ? { recovered: true, confidence: "low",
+              recoveredFrom: n.recoveredFrom || "component-master",
+              _recoveredWarning: "cssDecls/box/text on this node were BACK-FILLED from the component master because the frame's own values could not be read. Do NOT treat them as design values, and do NOT paint CSS to satisfy an assertion resting on them (R0). Verify against the exported frame render, or drop the assertion." }
+          : {}),
         ...(isRoot ? { surfaceRoot: true } : {}),
       };
     });
@@ -1074,14 +1087,77 @@ async function main() {
     for (const f of blocks.families || []) {
       const p = path.join(briefsDir, `${f.id}.smoke.json`);
       if (!(await exists(p))) { console.log(`✗ family ${f.id}: smoke.json MISSING`); dirty++; continue; }
-      const todos = findTodos(await loadJson(p));
+      const smokeSpec = await loadJson(p);
+      const todos = findTodos(smokeSpec);
       if (todos.length) { console.log(`✗ family ${f.id}: ${todos.length} unfilled _todo field(s)`); dirty++; }
+      // SHAPE CHECK — the _todo sweep above is NOT sufficient on its own.
+      // measure-block.mjs smoke() iterates `spec.steps`; a spec that carries the assertions under
+      // any other key runs ZERO steps and (before the guard added to measure-block) exited 0 with a
+      // tick. Crucially a restructured spec has no `_todo_*` keys left, so findTodos() returns
+      // clean and this lint used to PASS a suite that could not fail. Measured on the privado run:
+      // all four families shipped as `checks[]` and every one was a guaranteed false pass.
+      // Validate the shape the runner actually consumes.
+      const steps = smokeSpec && smokeSpec.steps;
+      if (!Array.isArray(steps) || steps.length === 0) {
+        const drifted = smokeSpec && Array.isArray(smokeSpec.checks) && smokeSpec.checks.length;
+        console.log(`✗ family ${f.id}: smoke spec has no executable steps[] — measure-block smoke() iterates spec.steps and would run 0 steps` +
+          (drifted ? ` (found ${drifted} checks[] instead — schema drift; translate them into steps[] with real actions)` : ``));
+        dirty++;
+      } else {
+        // A step needs an ASSERTION, not necessarily actions: asserting current state without
+        // driving is legitimate (e.g. "the header glyph paints"). What cannot be allowed is a step
+        // that asserts nothing in any form — it runs, passes, and proves nothing. Keys honoured by
+        // measure-block smoke(): `assert` (waitVisible) and `assertAbsent` (must-not-be-visible).
+        const asserts = (st) => (Array.isArray(st?.assert) ? st.assert.length > 0 : String(st?.assert ?? "").trim().length > 0)
+          || String(st?.assertAbsent ?? "").trim().length > 0
+          || String(st?.evalAssert ?? "").trim().length > 0;
+        const noAssert = steps.filter((st) => !asserts(st));
+        if (noAssert.length) { console.log(`✗ family ${f.id}: ${noAssert.length}/${steps.length} smoke step(s) assert nothing (need assert / assertAbsent / evalAssert) — a step with no assertion cannot fail: ${noAssert.slice(0, 3).map((st) => st?.name || "(unnamed)").join(", ")}`); dirty++; }
+      }
     }
     // CROSS-FRAME EXPECTATION CONFLICTS (OBS-R2-1) — same selector, different expected values
     // across blocks. Often legitimate (states differ!), but the Builder must know which value is
     // the shared wireframe base; discovered late this costs a measure iteration. WARNINGS only —
     // they never change the exit code; the Planner resolves intentionally (state-scope the
     // selector or confirm the divergence).
+    // AMBIGUOUS BINDING — two DIFFERENT design nodes asserted against ONE selector.
+    // When two nodes have coincident boxes (a wrapper and its only child), the scaffold can bind
+    // both to the same live selector; the wrapper's decls are then asserted against its child and
+    // the only way to close the row is to paint a literal onto the wrong element (R0). Measured on
+    // the privado run: specNode 370:29863 (the thread COLUMN) and the card collapsed onto one
+    // selector, and a follow-up pass "fixed" it with an inert align-items rule that contradicted the
+    // design. Cross-check the binding against plan-style.json, which maps each specNode to the
+    // element that actually carries its box — where they disagree, the assertion must be RE-BOUND,
+    // never satisfied.
+    const planStyle = await loadJson(path.join(phaseDir, "plan-style.json")).catch(() => null);
+    const planBySpec = new Map();
+    for (const rule of planStyle?.rules || []) if (rule.specNodeId && rule.selector && !planBySpec.has(rule.specNodeId)) planBySpec.set(rule.specNodeId, rule.selector);
+    const selToNodes = new Map();
+    for (const b of blocks.blocks || []) {
+      const brief = await loadJson(path.join(briefsDir, `${b.id}.probes.json`)).catch(() => null);
+      for (const el of brief?.browser?.elements || []) {
+        if (!el.selector || !el.sourceNodeId) continue;
+        const rec = selToNodes.get(el.selector) || new Map();
+        rec.set(el.sourceNodeId, el.name || "");
+        selToNodes.set(el.selector, rec);
+      }
+    }
+    // Repeat INSTANCES of one component legitimately share a selector (two cards from the same
+    // template, same layer name) — that is the identity dedup working, not a collision. The
+    // dangerous case is DISTINCT layers landing on one selector, which is what lets a wrapper's
+    // decls be asserted against its child. Discriminate on the layer name. Likewise ignore pure
+    // scoping variants ('.a .b' vs '.b'): same element, different ancestor path.
+    const scopeVariant = (a, b) => a.endsWith(b) || b.endsWith(a);
+    for (const [sel, nodes] of selToNodes) {
+      if (nodes.size < 2) continue;
+      const names = new Set([...nodes.values()].map((n) => String(n).trim().toLowerCase()).filter(Boolean));
+      if (names.size < 2) continue;                       // repeat instances of one layer — fine
+      const ids = [...nodes.keys()];
+      const disagree = ids.filter((id) => planBySpec.has(id) && !scopeVariant(planBySpec.get(id), sel));
+      console.log(`⚠ ambiguous binding: selector '${sel}' carries expectations from ${nodes.size} DIFFERENTLY-NAMED design nodes (${[...names].slice(0, 4).join(" / ")}) — a wrapper's decls may be asserted against its child, and the only way to close such a row is to paint a literal onto the wrong element (R0)`);
+      for (const id of disagree.slice(0, 4)) console.log(`   · plan-style.json binds ${id} to '${planBySpec.get(id)}', NOT '${sel}' — RE-BIND the assertion, do not satisfy it`);
+    }
+
     const bySel = new Map();
     for (const b of blocks.blocks || []) {
       const brief = await loadJson(path.join(briefsDir, `${b.id}.probes.json`)).catch(() => null);

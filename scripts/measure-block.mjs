@@ -605,6 +605,20 @@ async function smoke(phaseDir, familyId, opts) {
   const specPath = opts.specFile || path.join(phaseDir, "briefs", `${familyId}.smoke.json`);
   const spec = JSON.parse(await fs.readFile(specPath, "utf8").catch(() => "null"));
   if (!spec) { console.error(`✗ smoke spec missing: ${specPath} — the Planner authors one per family (R30)`); process.exit(3); }
+  // A spec with no executable steps must be INVALID, never a pass.
+  // `ok` below is `results.every(...)`, and [].every() === true — so a suite that ran ZERO steps
+  // printed "✓ 0/0 steps ok" and exited 0, reporting success for having verified nothing. The
+  // scaffold emits `checks[]` while this function reads `spec.steps`, so EVERY scaffolded suite hit
+  // that path (measured: privado run 2026-08-27; the gate only noticed because the results were
+  // absent, not because they were vacuous). The guard's own wording already exists at ~:174
+  // ("a blank capture would be a false-pass") and judge2-chrome-probes uses exit 3 for the same
+  // "measured NOTHING is not a pass" case — this wires the smoke path to that existing precedent.
+  if (!Array.isArray(spec.steps) || spec.steps.length === 0) {
+    const drifted = Array.isArray(spec.checks) && spec.checks.length > 0;
+    console.error(`✗ smoke '${familyId}' INVALID — spec has no executable steps[]; 0 steps ran, which is NOT a pass.` +
+      (drifted ? ` The spec carries ${spec.checks.length} checks[] instead: schema drift between brief-scaffold (writes checks[]) and smoke() (reads steps[]). Translate them into steps[] with real actions.` : ` Author real step objects that OPEN and drive the surface.`));
+    process.exit(3);
+  }
   // spec.allowedConsoleErrorPatterns: regex strings for KNOWN environment noise that no build can
   // fix (e.g. the Velt SDK's own Firestore Listen channel intermittently answers 400 on this demo
   // key — pre-exists the customization, live-verified against the DEFAULT UI). Anything else fails.

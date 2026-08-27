@@ -234,7 +234,20 @@ async function main() {
   // The wireframe-mount component is a legitimate home for setUnstyledMode (colocated with the
   // customization it enables), so the scan must UNION the walk with the prefer list — short-circuiting
   // on the prefer list alone reported a present unstyled-base call as missing.
-  const all = await walkTsx(path.join(cwd, "components")).catch(() => []);
+  // Scan every root a host can legitimately put Velt wiring under — not just `components/`.
+  // The prefer list and this walk were both Next-shaped, so on a Vite/CRA host (App.tsx at
+  // `src/`, wiring factored into `src/velt/*.tsx`) the scan found NOTHING and reported
+  // unstyled-base / velt-customization-mount / shadow-dom-false as MISSING while all three were
+  // live and effective. That false negative is dangerous rather than merely noisy: running
+  // `--apply` on it DUPLICATES the wiring, and duplicating setUnstyledMode can break the ordering
+  // gate it exists to guarantee (measured: privado 2026-08-27, Vite host).
+  const roots = ["components", "src", "app", "src/components"];
+  const seen = new Set(files);
+  const all = [];
+  for (const rootDir of roots) {
+    const found = await walkTsx(path.join(cwd, rootDir)).catch(() => []);
+    for (const p of found) if (!seen.has(p)) { seen.add(p); all.push(p); }
+  }
   for (const p of all) {
     if (files.includes(p)) continue;
     const t = await fs.readFile(p, "utf8").catch(() => "");

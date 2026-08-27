@@ -100,8 +100,15 @@ export async function judge2ToWorkOrder(phaseDir, { write = false } = {}) {
       p0: workOrderP0.length,
       p1: workOrderP1.length,
       demoBreaking: workOrderP0.filter((r) => r.demoBreaking).length,
-      plan: 0,
-      builder: workOrderP0.length,
+      // Attribution is decided PER ROW by the judge agent (r.attribution:
+      // plan-error | builder-error | tooling). These totals used to hardcode
+      // plan:0 / builder:<all>, which inverted the headline on every run whose
+      // findings were plan-attributed — the split is the primary signal the
+      // loop is measured by, so a constant here silently corrupts it.
+      plan: workOrderP0.filter((r) => r.attribution === "plan-error").length,
+      builder: workOrderP0.filter((r) => r.attribution === "builder-error").length,
+      tooling: workOrderP0.filter((r) => r.attribution === "tooling").length,
+      unattributed: workOrderP0.filter((r) => !r.attribution).length,
     },
     workOrderP0,
     workOrder,

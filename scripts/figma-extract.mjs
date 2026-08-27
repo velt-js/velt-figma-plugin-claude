@@ -200,10 +200,39 @@ function mapNode(node, parent) {
   // is a 0-blur spread box-shadow ring. CENTER (icon vectors, exported as SVG) ≈ border.
   const stroke = firstSolid(node.strokes);
   const strokeRing = [];
-  if (stroke && node.strokeWeight) {
-    const w = +(+node.strokeWeight).toFixed(2);
-    if (node.strokeAlign === "OUTSIDE") strokeRing.push(`0px 0px 0px ${w}px ${stroke}`);
-    else css.border = `${w}px solid ${stroke}`;
+  if (stroke && (node.strokeWeight || node.individualStrokeWeights)) {
+    // PER-EDGE FIRST. Figma exposes individualStrokeWeights {top,right,bottom,left} whenever the
+    // edges differ, and a divider/header rule is nearly always ONE edge. Collapsing that to the
+    // 4-side `border` shorthand produces an assertion no correct implementation can satisfy: the
+    // faithful CSS for a single-edge stroke is an inset box-shadow, so the element is asserted as
+    // `border: 1px solid X` forever, fails forever, and "fixing" it paints a ring the design does
+    // not have (R0) — and adds 2px to the element's height. Measured: privado header 370:29861,
+    // bottom-only #edf0f8, confirmed by a canvas pixel scan of the exported frame.
+    const iw = node.individualStrokeWeights;
+    const edges = iw ? { top: +iw.top || 0, right: +iw.right || 0, bottom: +iw.bottom || 0, left: +iw.left || 0 } : null;
+    const nonZero = edges ? Object.entries(edges).filter(([, v]) => v > 0) : [];
+    const uniform = edges ? nonZero.length === 4 && new Set(Object.values(edges)).size === 1 : false;
+    if (edges && nonZero.length && !uniform) {
+      if (node.strokeAlign === "OUTSIDE") {
+        for (const [side, w] of nonZero) {
+          const off = side === "top" ? `0px ${w}px` : side === "bottom" ? `0px -${w}px` : side === "left" ? `${w}px 0px` : `-${w}px 0px`;
+          strokeRing.push(`${off} 0px 0px ${stroke}`);
+        }
+      } else {
+        // inset, so it consumes no layout and cannot shift the box the design specifies
+        for (const [side, w] of nonZero) {
+          const off = side === "top" ? `0px ${w}px` : side === "bottom" ? `0px -${w}px` : side === "left" ? `${w}px 0px` : `-${w}px 0px`;
+          strokeRing.push(`inset ${off} 0px ${stroke}`);
+        }
+      }
+      css._strokeEdges = nonZero.map(([k, v]) => `${k}:${v}`).join(",");   // provenance for the planner
+    } else {
+      const w = +(+(node.strokeWeight ?? (edges ? nonZero[0]?.[1] : 0)) || 0).toFixed(2);
+      if (w > 0) {
+        if (node.strokeAlign === "OUTSIDE") strokeRing.push(`0px 0px 0px ${w}px ${stroke}`);
+        else css.border = `${w}px solid ${stroke}`;
+      }
+    }
   }
 
   // effects -> box-shadow (the card ring / composer shadow class of misses);

@@ -79,6 +79,25 @@ for (const s of plan.surfaces || []) walk(s.root, null, []);
 // The card is recoverable without guessing: it is the DEEPEST own-markup ancestor common to every
 // thread-card leaf. One leaf alone is not enough (that resolves to .vc-card-head, a sub-row), so this
 // requires >= 2 distinct leaves whose chains agree.
+// The direct match must AGREE with where the leaves actually live. `card` was previously taken from
+// the container tag whenever a plan composed it ANYWHERE — including as a narrow non-card wrapper —
+// and the derived fallback below never ran. Measured on privado phase 2: that resolved `card` to
+// `.vc-card-actions-cluster`, a 42x32 hover cluster, EXIT 0 and silent, so every card probe would
+// have iterated a sub-row and reported the card fine. The leaves are the ground truth: whatever
+// contains the avatar/name/time/message IS the card. Where the two disagree, prefer the derived
+// answer and say so loudly rather than trusting a plan node that may be stale or disproven.
+if (found.card && leafChains.length >= 2) {
+  let common = leafChains[0];
+  for (const c of leafChains.slice(1)) { let i = 0; while (i < common.length && i < c.length && common[i] === c[i]) i++; common = common.slice(0, i); }
+  const derived = common[common.length - 1] ? `.${common[common.length - 1]}` : null;
+  if (derived && derived !== found.card.selector) {
+    console.log(`⚠ card: the plan's container tag resolves to '${found.card.selector}', but the ${leafChains.length} thread-card leaves all live under '${derived}'.`);
+    console.log(`   Preferring '${derived}' — the leaves are ground truth. If '${found.card.selector}' is a real card wrapper, the plan and the tree disagree and one of them is stale.`);
+    found.card = { selector: derived, via: `${leafChains.length} thread-card leaves (overrode container '${found.card.via}')`,
+                   how: "deepest own-markup ancestor common to every thread-card leaf — the container tag disagreed and was not trusted" };
+    if (found.dialog && found.dialog.selector !== derived) found.dialog = { ...found.card, how: found.card.how + " — dialog shares the card box" };
+  }
+}
 if (!found.card && leafChains.length >= 2) {
   let common = leafChains[0];
   for (const c of leafChains.slice(1)) {

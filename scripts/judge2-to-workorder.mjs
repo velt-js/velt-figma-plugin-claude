@@ -105,10 +105,24 @@ export async function judge2ToWorkOrder(phaseDir, { write = false } = {}) {
       // plan:0 / builder:<all>, which inverted the headline on every run whose
       // findings were plan-attributed — the split is the primary signal the
       // loop is measured by, so a constant here silently corrupts it.
-      plan: workOrderP0.filter((r) => r.attribution === "plan-error").length,
-      builder: workOrderP0.filter((r) => r.attribution === "builder-error").length,
-      tooling: workOrderP0.filter((r) => r.attribution === "tooling").length,
-      unattributed: workOrderP0.filter((r) => !r.attribution).length,
+      // NORMALISE the label before counting. The judge agent writes attribution free-hand and uses
+      // both spellings — "builder" and "builder-error", "plan" and "plan-error" — sometimes in the
+      // SAME work order. Exact-matching only the "-error" form silently undercounts: measured on
+      // privado phase 2, rows were {builder:4, plan:2, tooling:2, data:1, accepted:1, builder-error:1}
+      // and the totals read plan:0 / builder:1 for 11 findings. A headline that disagrees with the
+      // rows beneath it is worse than no headline.
+      ...(() => {
+        const norm = (r) => String(r.attribution || "").trim().toLowerCase().replace(/-error$/, "");
+        const n = (k) => workOrderP0.filter((r) => norm(r) === k).length;
+        const known = new Set(["plan", "builder", "tooling", "data", "accepted", ""]);
+        const other = workOrderP0.filter((r) => !known.has(norm(r)));
+        return {
+          plan: n("plan"), builder: n("builder"), tooling: n("tooling"),
+          data: n("data"), accepted: n("accepted"),
+          unattributed: n(""),
+          ...(other.length ? { otherAttribution: [...new Set(other.map(norm))] } : {}),
+        };
+      })(),
     },
     workOrderP0,
     workOrder,

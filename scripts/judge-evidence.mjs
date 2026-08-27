@@ -33,6 +33,7 @@ import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 import { decodePNG, encodePNG, cropImage } from "./visual-diff.mjs";
 import { isTemplatedMiss, evidenceCssBox } from "./emit-judge-defects.mjs";
+import { globalPlaywrightCore } from "./lib/browser-egress.mjs";   // find a GLOBAL playwright install too
 
 const require = createRequire(import.meta.url);
 
@@ -171,6 +172,7 @@ async function resolveLandmarks(ws, requests) {
     let chromium;
     const candidates = [
       process.env.PLAYWRIGHT_CORE,
+      globalPlaywrightCore(),
       "playwright-core",
       path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js"),
     ].filter(Boolean);
@@ -328,6 +330,7 @@ async function liveDomBoxes(url, ws) {
     try {
       const candidates = [
         process.env.PLAYWRIGHT_CORE,
+        globalPlaywrightCore(),
         "playwright-core",
         path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js"),
       ].filter(Boolean);

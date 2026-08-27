@@ -26,6 +26,7 @@ const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
 import { createRequire } from "node:module";
 import { evaluateStructuralContract, OBSERVE } from "./structural-contract-validate.mjs";
 import { EXEC } from "./run-compiled-assertions.mjs";
+import { globalPlaywrightCore } from "./lib/browser-egress.mjs";   // find a GLOBAL playwright install too
 
 const require = createRequire(import.meta.url);
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -35,6 +36,7 @@ async function loadJson(p) { try { return JSON.parse(await fs.readFile(p, "utf8"
 async function loadPlaywright() {
   const candidates = [
     process.env.PLAYWRIGHT_CORE,
+    globalPlaywrightCore(),
     "playwright-core",
     path.join(process.env.HOME || "", ".claude/skills/gstack/node_modules/playwright-core/index.js"),
   ].filter(Boolean);

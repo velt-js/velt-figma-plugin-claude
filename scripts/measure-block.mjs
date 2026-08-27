@@ -407,6 +407,23 @@ async function measure(phaseDir, blockId, opts) {
       () => !!(window.Velt || document.querySelector('velt-comments, velt-comment-tool, [class*="velt-"]')),
       { timeout: Math.min(opts.timeout, 20000) },
     ).catch(() => { /* boot signal absent — the post-drive visibility proof is the real gate */ });
+    // CONTENT readiness — boot is not content. MEASURED (harvey WYAWuEm8DrIk-651-31772): after the
+    // reload + sign-in the SDK is DEFINED within ~1s but the document's annotations take ~7s to
+    // arrive and paint. Every block therefore measured the open-but-EMPTY panel: the header read
+    // "Comments 0" (so `number` box.w came back 7px against a 2-digit design), the flow block's
+    // capture was a blank column, and a block whose drive waits on a card timed out. That is the
+    // empty-surface false-FAIL class this pipeline exists to prevent — the shell is present, every
+    // structural assertion still "works", and the numbers are all wrong. So: if the phase names a
+    // card selector (probe-selectors.json, written from the plan/snapshot), give the real content a
+    // bounded window to land BEFORE driving. A surface that genuinely has no content still proceeds
+    // and is judged honestly; nothing here can turn an empty surface into a pass.
+    try {
+      const cardSel = JSON.parse(await fs.readFile(path.join(phaseDir, "probe-selectors.json"), "utf8")).card;
+      if (cardSel) {
+        await page.waitForSelector(cardSel, { state: "visible", timeout: Math.min(opts.timeout, 30000) })
+          .catch(() => console.error(`⚠ measure-block: no '${cardSel}' appeared before driving '${blockId}' — measuring whatever the surface shows`));
+      }
+    } catch { /* no probe-selectors.json — previous behaviour */ }
     await resetState(page);
     // DRIVE to the block's state, then PROVE the surface actually opened. driven=true REQUIRES a
     // VISIBLE proof selector (drive.assert, else the block's own liveSelector) — never an empty or

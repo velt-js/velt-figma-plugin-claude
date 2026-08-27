@@ -155,7 +155,17 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true, s
     const open = tog.classList.contains("hw-sidebar-toggle--active") || /hide/i.test(tog.getAttribute("aria-label") || "");
     if (!open) { tog.click(); await new Promise((r) => setTimeout(r, 800)); }
   });
-  await page.waitForTimeout(1200);
+  // WAIT FOR CONTENT, don't sleep a guess. MEASURED (harvey WYAWuEm8DrIk-651-31772): the panel
+  // shell mounts immediately but the annotations take ~7s to resolve and paint on a 63-thread
+  // document. With the old flat 1200ms every card probe ran against a panel holding ZERO sized
+  // cards, so the probe reported its own results INVALID ("matched 0 sized cards") on a build whose
+  // cards were fine — the entire structural half of the Judge was dead for a timing reason, and the
+  // run recorded "chrome probes did not run at all" as an unfixable blocker. Now: wait for the real
+  // card selector (the same one the probes are about to query) and only fall back to a short sleep
+  // if it never arrives — a surface that genuinely has no cards still reaches the probes and is
+  // still reported INVALID, which is the honest outcome for that case.
+  await page.waitForSelector(SEL.card, { state: "visible", timeout: 30000 }).catch(() => {});
+  await page.waitForTimeout(800);
 
   const outDir = path.join(phaseDir, "judge2");
   const cropDir = path.join(outDir, "chrome-probe-crops");

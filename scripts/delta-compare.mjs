@@ -194,9 +194,20 @@ export function compareGap(a, b, axis, expected, tol = {}) {
 // opts: { relations:[{a,b,type}], gaps:[{a,b,axis,expected}], tol }. FAIL on any absent/mismatch.
 // NO aggregate — style + layout deltas are all surfaced; one diff = FAIL.
 export function verdictOf(elements, opts = {}) {
-  const diffs = [], byName = {};
+  const diffs = [], waived = [], byName = {};
   for (const el of elements) byName[el.name] = el;
   for (const el of elements) {
+    // HONOR THE BRIEF'S OWN notMeasurable. The style planner already decides, per design node and
+    // with a written reason, which nodes the product legitimately never renders — a Figma board
+    // caption ("Default"/"Hover"/"Focus" labelling a state frame), an icon's interior <path>/<fill>
+    // vectors that no rule styles, a SECOND DEPICTION of a node drawn again in another state frame.
+    // The comparator was ignoring the field, so all of them came back as "mustSupply slot absent"
+    // and were counted as missing elements. MEASURED (harvey WYAWuEm8DrIk-651-31772): 12 of the
+    // header block's 19 spec elements are notMeasurable and ALL 12 have selector:null — every one
+    // was reported as a defect against a build that renders the header correctly. A waived node is
+    // recorded here with its reason (auditable in the brief), never silently dropped, and it can
+    // never turn a real absence into a pass: an element with no notMeasurable reason still fails.
+    if (el.present === false && el.notMeasurable) { waived.push({ element: el.name, why: el.notMeasurable }); continue; }
     if (el.present === false) { diffs.push({ element: el.name, property: "(present)", spec: "rendered + supplied content", rendered: "MISSING", note: "mustSupply slot absent / element not found" }); continue; }
     for (const row of el.table || []) if (!row.pass) diffs.push({ element: el.name, ...row });
     if (el.expectedText) {
@@ -228,7 +239,8 @@ export function verdictOf(elements, opts = {}) {
   return {
     verdict: diffs.length === 0 ? "PASS" : "FAIL",
     diffs,
-    checked: elements.map((e) => e.name),
+    waived,
+    checked: elements.filter((e) => !(e.present === false && e.notMeasurable)).map((e) => e.name),
     gaps: (opts.gaps || []).map((g) => ({ a: g.a, b: g.b, axis: g.axis || "y", expected: g.expected })),
   };
 }
@@ -391,7 +403,7 @@ export const BROWSER_PROBE = `(function(SPEC){
   for(var i=0;i<list.length;i++){var s=list[i];
     var scope=(surf&&surf!==document.body)?surf:document;
     var el=visMatches(scope,s.selector)[0]||visMatches(document,s.selector)[0]||null;
-    if(!el){els.push({name:s.name,present:false,expectedBox:s.box});continue;}
+    if(!el){els.push({name:s.name,present:false,expectedBox:s.box,notMeasurable:s.notMeasurable||null});continue;}
     var boundDescendant=null;
     if(expectsPaint(s.expected)&&!paintsAny(getComputedStyle(el))){
       var painted=descendToPainter(el);
@@ -427,8 +439,14 @@ export const BROWSER_PROBE = `(function(SPEC){
   var v=verdictOf(els,{relations:SPEC.relations,gaps:SPEC.gaps,tol:SPEC.tol});
   // gross-mismatch pre-check (deterministic, whole-surface): total content extent + present count
   // vs expected. Catches "every sampled prop passes but the surface is 2x too tall / cards missing".
-  var expBottom=0,renBottom=0,present=0,expCount=list.length;
+  // notMeasurable nodes are excluded from BOTH sides of the count (see verdictOf): counting a node
+  // the product is not supposed to render as "expected but missing" reported a correct build as
+  // 12-elements-short. They are excluded from expBottom too, so a Figma board caption above a state
+  // frame cannot inflate the expected content height of the product beneath it.
+  var expBottom=0,renBottom=0,present=0,expCount=0;
   for(var k=0;k<els.length;k++){var e=els[k];
+    if(e.present===false&&e.notMeasurable)continue;
+    expCount++;
     if(e.expectedBox&&e.expectedBox.y!=null&&e.expectedBox.h!=null)expBottom=Math.max(expBottom,e.expectedBox.y+e.expectedBox.h);
     if(e.present!==false){present++;if(e.box)renBottom=Math.max(renBottom,e.box.y+e.box.h);}
   }

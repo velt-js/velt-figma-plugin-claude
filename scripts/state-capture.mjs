@@ -181,6 +181,16 @@ async function main() {
       if (tog) { tog.click(); await new Promise((r) => setTimeout(r, 500)); }
     }
   });
+  // WAIT FOR CONTENT before driving any state guard. MEASURED (harvey WYAWuEm8DrIk-651-31772): the
+  // panel shell mounts instantly, the 63 annotations take ~7s. Driving a hover/selected guard in
+  // that window fails with "no visible match" against a build whose cards are fine, and the state
+  // is then recorded blocked-state — a false BLOCKED for a timing reason. The card selector comes
+  // from probe-selectors.json when the phase has one (a primitives build names its own classes);
+  // when it doesn't, the old behaviour is unchanged.
+  try {
+    const cardSel = JSON.parse(await fs.readFile(path.join(phaseDir, "probe-selectors.json"), "utf8")).card;
+    if (cardSel) await page.waitForSelector(cardSel, { state: "visible", timeout: 30000 }).catch(() => {});
+  } catch { /* no probe-selectors.json — keep the previous timing */ }
 
   const auditDir = path.join(phaseDir, "composed-audit");
   await fs.mkdir(auditDir, { recursive: true });

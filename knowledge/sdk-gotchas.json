@@ -717,6 +717,105 @@
         "harvey run-5 (empty-state wrapper 321x0 between composer and list; composer->list gap measured 48 against a design value of 24)"
       ],
       "cssFixIsPattern": true
+    },
+    {
+      "id": "manifest-emitstag-wireframe-suffix-stale",
+      "veltVersion": "6.0.7 / 6.0.8-beta.3",
+      "component": "manifest / velt-primitives.json",
+      "kind": "fact",
+      "symptom": "manifest/velt-primitives.json emitsTag suffixes CommentDialogPrimitive tags with -wireframe; against SDK 6.0.8-beta.3 the -wireframe spelling is NOT a registered custom element while the unsuffixed one IS. scaffold-primitives --lint therefore emits false-positive tag-rename warnings, and a builder that obeys them would address elements that do not exist.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "id": "three-tag-spellings-internal-wireframe",
+      "veltVersion": "6.0.7 / 6.0.8-beta.3",
+      "component": "any Velt custom element",
+      "kind": "fact",
+      "symptom": "A Velt page carries THREE spellings of the same component: velt-X (the custom element the React wrapper renders, what a primitives build composes), velt-X-internal (the SDK default-UI template internals actually in the DOM), and velt-X-wireframe (not registered at all in 6.0.8-beta.3). A selector that does not distinguish velt-X from velt-X-internal silently matches the SDK default UI instead of the composed tree.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "id": "usecommentdialogconfig-not-exported",
+      "veltVersion": "6.0.7 / 6.0.8-beta.3",
+      "component": "scaffold-primitives / @veltdev/react",
+      "kind": "fact",
+      "symptom": "scaffold-primitives seeds r3.reactHook=useCommentDialogConfig for the dialog surface, but that hook is NOT exported by @veltdev/react 6.0.7 (useCommentSidebarData, useCommentUtils, useCommentAnnotations, useCommentAnnotationById, useCurrentUser, useToggleReaction all ARE). A primitives plan must fall back to the element-method + subscribe/unsubscribe path.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "id": "drive-cannot-wait-for-data-velt-hidden",
+      "veltVersion": "6.0.7 / 6.0.8-beta.3",
+      "component": "drive steps / skeleton",
+      "kind": "fact",
+      "symptom": "A drive step that waits for velt-comment-sidebar-skeleton-v2[data-velt-hidden=\"true\"] to become VISIBLE can only ever time out \u2014 data-velt-hidden=\"true\" is an inline display:none the SDK sets. Planners reach for the skeleton as a loading-cleared signal and invert its polarity. The correct gate is a waitFor on the content that APPEARS when loading clears; scaffold-primitives --lint catches this as waits-for-hidden-element.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "id": "action-button-projects-children-only-for-submit",
+      "veltVersion": "6.0.7 / 6.0.8-beta.3",
+      "component": "velt-comment-dialog-composer-action-button",
+      "kind": "fact",
+      "symptom": "velt-comment-dialog-composer-action-button projects R1 children ONLY for type=\"submit\". For type=\"attachments\" and type=\"userMentions\" the primitive delegates to app-attachment-button / velt-autocomplete-tool-internal, which render their own 18x18 currentColor glyph and expose no relocation anchor \u2014 supplied children are SILENTLY DISCARDED with no error and no data-velt-hidden. A plan that addresses those buttons via :has(<own child class>) produces a selector that can never match. Address them by their type attribute instead, which IS on the element.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "id": "getcomposerdata-returns-undefined-live",
+      "veltVersion": "6.0.7 / 6.0.8-beta.3",
+      "component": "commentElement.getComposerData",
+      "kind": "fact",
+      "symptom": "commentElement.getComposerData() is declared ComposerTextChangeEvent|null in the 6.0.7 d.ts but returns undefined live for all three call shapes ({targetComposerElementId}, no-arg, {}) even with text in the composer. The method exists and does not throw. A plan relying on a one-shot mount read of composer state is inert; drive state from the composerTextChange subscription instead (that works, as do clearComposer and commentElement.on).",
+      "confidence": "confirmed",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "id": "list-v2-own-gate-eats-children-when-empty",
+      "veltVersion": "6.0.7 / 6.0.8-beta.3",
+      "component": "velt-comment-sidebar-list-v2",
+      "kind": "fact",
+      "symptom": "velt-comment-sidebar-list-v2 evaluated with its built-in gate (defaultCondition NOT passed) and zero annotations at mount renders <!----><!----> and DISCARDS its R1 children permanently \u2014 0x0, no data-velt-hidden, and the children never return when the gate later goes true because R1 moved the node out of React reach. Only a full page reload restores them. A primitives plan must pass defaultCondition={false} on a gated CONTAINER whose children it owns; accepting the gate is only safe on leaves.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "id": "getcommentsidebarconfig-not-in-6-0-7",
+      "veltVersion": "6.0.7 / 6.0.8-beta.3",
+      "component": "scaffold-primitives / SidebarV2 r3",
+      "kind": "fact",
+      "symptom": "scaffold-primitives seeds r3.getter=getCommentSidebarConfig for the sidebar surface, but neither that method nor listRows exists in @veltdev/react 6.0.7 or @veltdev/types. The published substitute is the facade Observables getAllCommentAnnotations() and getSelectedComments() via subscribe/unsubscribe. COST: that stream is UNFILTERED \u2014 a sidebar filter will not narrow a hand-composed list, and no published surface exposes the filtered/sorted row set.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "privado"
+      ]
+    },
+    {
+      "id": "primitive-outside-sdkparent-breaks-popovers",
+      "veltVersion": "6.0.7 / 6.0.8-beta.3",
+      "component": "strictly primitives / any popover control",
+      "kind": "fact",
+      "symptom": "STRICTLY PRIMITIVES: hand-composing a primitive OUTSIDE its sdkParent silently breaks any control whose popover/panel is rendered by that parent. On this run the Reply control, the reaction-tool emoji picker and the sidebar filter button all mounted, painted correctly and flipped their own aria state, yet opened NOTHING \u2014 because velt-comment-sidebar-panel-v2 (the sdkParent that hosts those containers) is absent when the rail is your own markup. check-primitive-reachability CANNOT predict this: it scores SLOT PARITY, not popover ownership. A primitives plan must therefore treat every popover-owning control as unreachable unless its sdkParent is composed into the tree.",
+      "confidence": "confirmed",
+      "seenOn": [
+        "privado"
+      ]
     }
   ]
 }

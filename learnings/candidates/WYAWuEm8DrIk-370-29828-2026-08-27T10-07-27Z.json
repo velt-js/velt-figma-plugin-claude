@@ -1,0 +1,84 @@
+{
+  "runId": "WYAWuEm8DrIk-370-29828-2026-08-27T10-07-27Z",
+  "phaseId": "WYAWuEm8DrIk-370-29828",
+  "app": "ai-harvey-implementation",
+  "mode": null,
+  "node": null,
+  "pluginSha": "b1ebc7b",
+  "publishedAt": "2026-08-27T10:07:27.689Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "velt-comment-sidebar-list-item-v2 wraps customer children in div.velt-sidebar-list-item — the SAME class the SDK's own default row uses. Any unscoped suppression of the default list therefore also hides the composed rows.",
+      "context": "strictly primitives, composed sidebar list. Suppressing the default list with an unscoped rule took all 62 composed rows to 0x0 while every assertion on the primitives still passed.",
+      "evidence": "Measured live on harvey: composed rows 0x0 after an unscoped default-list suppression; scoping the suppression under our own vc- ancestor restored all 62.",
+      "destination": "guide",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "velt-comment-sidebar-list-v2 APPENDS customer children rather than replacing its own content: its cdk virtual-scroll list renders alongside the composed rows.",
+      "context": "strictly primitives, composed sidebar list. Expect a duplicate list unless the SDK's own list is explicitly collapsed.",
+      "evidence": "Observed live on harvey during the style stage; the SDK list and the composed rows were present simultaneously.",
+      "destination": "guide",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "R1 REPLACES a primitive's default content. A primitive placed with NO children therefore renders NOTHING — it does not fall back to the SDK's default rendering.",
+      "context": "The structure build placed avatar/name/time/message as empty elements, expecting the SDK to fill them. All four rendered nothing across 62 rows, and every structural gate still passed — the defect was invisible until the style stage measured them at 0x0.",
+      "evidence": "harvey: velt-comment-dialog-thread-card-avatar/-name/-time/-message measured 0x0 with no text x62; supplying children rendered them correctly.",
+      "destination": "lint",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "velt-comment-dialog-composer-action-button requires type=\"submit\". Without a type it renders nine empty ngIf anchors AND discards the supplied child, so the control is absent rather than merely unstyled.",
+      "context": "strictly primitives composer. Twelve candidate type values were probed live on harvey; only 'submit' renders. The manifest does not record this tag's type vocabulary.",
+      "evidence": "harvey: no send control at all until type=\"submit\" was set; 12 values probed.",
+      "destination": "guide",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "sync-primitives.mjs mis-attributed 366 of 441 primitives to their -wireframe twin (wrong emitsTag) and 363 to forwardsClassName:true. Two wrappers share each reactName and collide after the -wireframe suffix is stripped; only the wireframe twin __rest-forwards, so the `|| forwards` tiebreak always won. Fixed in this run.",
+      "context": "The bug's output had additionally been written into agents/velt-planner-primitives.md and guide/reference/primitives-capabilities.md as an SDK fact (\"366 tags are rendered through a -wireframe-suffixed element\"). Derived manifest facts need re-checking against the running SDK before they harden into documentation.",
+      "evidence": "@veltdev/react 6.0.0-beta.15 esm/index.js:2918 emits the plain tag, :5109 the -wireframe twin; same for composer-input (3815/4433), thread-card-name (2960/5117), thread-card-avatar (2894/5079). After the fix zero primitives record a -wireframe emitsTag.",
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "A demo whose VeltProvider pins config={{develop:true, version:...}} is on the DEV SDK bundle, and the API key must be the matching dev key. Never resolve an empty comments sidebar by deleting config — that is the symptom of a key/environment MISMATCH, and on the production bundle every composed primitives surface silently renders nothing (children discarded, no error).",
+      "context": "Cost this run its first four stages: config was removed to fix an empty sidebar, which moved the run onto the production SDK where R1 is absent. The build was then mis-diagnosed as mode_blocked, and an 'independent' verification re-tested the same wrong environment and confirmed the error.",
+      "evidence": "harvey, measured both ways with a React-bypassed marker child: production bundle survivedInside=false/anywhereInDoc=false (host renders its own 7694-byte subtree); dev bundle 6.0.8-beta.3 true/true (host keeps our 385-byte subtree).",
+      "destination": "guide",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "Preflight should run the R1 boot probe BEFORE the structure build, not after. check-primitive-reachability only answers 'does a primitive exist for this surface', never 'does children projection work at runtime', and its documented --velt-version flag is not implemented (exits 2 on a usage error).",
+      "context": "The plan correctly recorded the probe as unverified[0] with 'verify before a second surface is built'; it was actually run after all three surfaces were built. A two-minute probe would have replaced forty minutes of work on the wrong environment.",
+      "evidence": "harvey run 2026-08-27: reachability gate exit 0 while R1 was absent on the SDK actually loaded.",
+      "destination": "script",
+      "scope": "general",
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "Applying setUnstyledMode(true) at the structure stage leaves the host app visibly broken if the run halts before the style stage — there is no restore-on-abort.",
+      "context": "Between stage 2 and stage 3 the app renders Velt's stripped base with no replacement. Any halt in that window degrades a working demo.",
+      "evidence": "harvey: sidebar rendered unstyled with zero vc-* elements present after the run stopped at structure.",
+      "destination": "guide",
+      "scope": "general",
+      "verified": true
+    }
+  ]
+}

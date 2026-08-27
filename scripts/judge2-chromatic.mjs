@@ -379,6 +379,21 @@ async function captureResting(phaseDir, { url, ws }) {
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
   }
   await page.waitForTimeout(600);
+  // SIGN IN FIRST (BUG-7, found live on the harvey primitives run). The goto above can land on a
+  // signed-out app — a demo whose user is React state, not a persisted session, loses it on every
+  // navigation. The panel then renders its EMPTY placeholder and every chromatic region fires
+  // against a sidebar with no comments in it: 30 findings, all bogus, the empty-surface false-FAIL
+  // class this pipeline exists to prevent. Drive the host's own sign-in control with a REAL
+  // selectOption (a controlled React <select value=""> snaps back from a synthetic change), then
+  // wait for the surface to actually populate. No-op where the app has no such control.
+  const wantUser = process.env.VELT_JUDGE_USER || "user1";
+  try {
+    const hasSelect = await page.locator("select").first().isVisible({ timeout: 1500 }).catch(() => false);
+    if (hasSelect) {
+      await page.selectOption("select", wantUser, { timeout: 4000 }).catch(() => {});
+      await page.waitForTimeout(1500);
+    }
+  } catch { /* no sign-in control on this host */ }
   // Open the comments sidebar if collapsed — WITHOUT this, panel selectors match a
   // zero/transparent closed shell and every resting chromatic region fires ~97% bogus.
   await page.evaluate(async () => {
@@ -394,6 +409,20 @@ async function captureResting(phaseDir, { url, ws }) {
     }
   });
   await page.waitForTimeout(400);
+  // WAIT FOR CONTENT, not just for the panel. Comments arrive over the wire after the sidebar
+  // paints, so a capture taken on the open-but-empty shell is the same false-FAIL as a signed-out
+  // one. Give the threads a bounded window to land; if none ever do, carry on and let the empty
+  // state be judged honestly rather than hanging the run.
+  await page
+    .waitForFunction(
+      () => document.querySelectorAll(
+        ".vc-thread-card, velt-comment-dialog-thread-card, .velt-comment-dialog--sidebar-mode, .vc-card",
+      ).length > 0,
+      null,
+      { timeout: 15000 },
+    )
+    .catch(() => console.error("⚠ judge2: no thread cards appeared within 15s — judging whatever the panel shows"));
+  await page.waitForTimeout(600);
   // Reset any lingering hover/selection (keep sidebar open)
   await page.keyboard.press("Escape").catch(() => {});
   await page.mouse.move(4, 4).catch(() => {});

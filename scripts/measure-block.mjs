@@ -118,7 +118,17 @@ async function selectUserRobust(page, user, timeout = 20000) {
     if (!sel) return;   // genuinely signed in (no select after settle)
   }
   for (let attempt = 1; attempt <= 3; attempt++) {
-    await page.evaluate((u) => {
+    // REAL selection first (BUG-6, found live on the harvey primitives run): when the host's
+    // sign-in <select> is a CONTROLLED React select (`value=""` with an onChange that stores the
+    // id elsewhere), the native-setter + synthetic `change` path below does fire onChange, but
+    // React immediately re-renders the element back to `value=""` — so `sel.value === u` never
+    // holds, all three attempts "fail", and the run continues with NO user identified. Every
+    // downstream probe then measures a signed-out surface (measured: 0 annotations, 0 cards, an
+    // empty sidebar that still passes every structural assertion). Playwright's own selectOption
+    // drives the real control and signs in on the first try; the synthetic path stays as the
+    // fallback for hosts where the select is not a real <select> or is off-screen.
+    const realSelect = await page.selectOption("select", user, { timeout: 4000 }).then(() => true, () => false);
+    if (!realSelect) await page.evaluate((u) => {
       const sel = document.querySelector("select");
       if (!sel) return;   // already consumed by a successful sign-in (see below)
       Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, "value").set.call(sel, u);

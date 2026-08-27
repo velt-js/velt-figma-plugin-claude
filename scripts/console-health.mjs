@@ -85,7 +85,6 @@ async function main() {
   let page = null, persistentTab = false;
   try {
     ({ page, persistentTab } = await openPage(browser, url, { reuseContext: true }));
-    // openPage's console listener has been collecting since navigation — cold-render errors count.
     const collected = [];
     // Warnings count too: the SDK reports structural misuse ("children replace the
     // default content", unresolved identities) at warn level, and those are defects
@@ -95,10 +94,31 @@ async function main() {
       if (t === "error" || t === "warning") collected.push({ sev: t, text: m.text().slice(0, 300) });
     });
     page.on("pageerror", (e) => collected.push({ sev: "error", text: String(e).slice(0, 300) }));
+
+    // FORCE A COLD RENDER, with the listeners already attached.
+    // openPage REUSES the pinned run tab and does NOT navigate it, so on that path no cold render
+    // ever happened and this gate sampled steady state only — returning clean while the boot-time
+    // error storm it exists to catch had occurred before it was watching. (The old comment here
+    // asserted "cold-render errors count"; true only when openPage happened to navigate.) Measured:
+    // the same command reported a 24x storm and then clean, depending purely on tab reuse.
+    // Reloading with the listeners live makes the cold path deterministic, and `coldRender` records
+    // whether we actually observed one so a reader can never mistake "did not look" for "clean".
+    let coldRender = false;
+    try {
+      await page.reload({ waitUntil: "domcontentloaded", timeout: 45000 });
+      coldRender = true;
+      await page.waitForTimeout(1500);   // let the SDK boot and any first-render errors land
+    } catch (e) {
+      collected.push({ sev: "warning", text: `console-health could not force a cold render (${String(e).slice(0, 120)}) — errors below are steady-state only` });
+    }
     const before = collected.length;
     await page.waitForTimeout(sampleMs);
     // Storm math uses the steady-state sample window; the cold-render batch feeds `total`.
     result = assess(collected, { perSig, total, allow });
+    // Record whether a cold render was actually observed. Without this a reader cannot tell a clean
+    // result from a result that never watched a boot — the distinction this gate exists to make.
+    result.coldRender = coldRender;
+    if (!coldRender) result.note = "NO COLD RENDER OBSERVED — steady-state sample only; a boot-time error storm would not appear here";
     result.sampleWindow = { ms: sampleMs, errorsInWindow: collected.length - before, errorsSinceLoad: collected.length };
   } finally {
     if (page && !persistentTab) await page.close().catch(() => {});

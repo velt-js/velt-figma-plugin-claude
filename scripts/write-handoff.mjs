@@ -83,8 +83,23 @@ export async function buildHandoff(phaseDir, { maxRegionFill = 0.05 } = {}) {
     const nGap = (r.accounted?.gap || []).length;
     const nStuck = (r.accounted?.stuck || []).length;
     const nTerminal = nBlocked + nGap + nStuck;
-    const nTotal = Number(r.total ?? r.blockCount ?? 0) || (nTerminal + Number(r.cleanCount ?? 0));
-    const nClean = Math.max(0, nTotal - nTerminal);
+    // Count clean blocks from the REPORT, not by subtracting from a total we may not have.
+    // The previous fallback (`nTerminal + (r.cleanCount ?? 0)`) resolved nTotal to nTerminal
+    // whenever the gate result carried no total, forcing nClean to 0 — so a phase with a
+    // genuinely passing block was announced as "ZERO blocks measured clean". Measured on privado
+    // 2A: 8 blocks, 3 GAP + 4 BLOCKED + 1 clean (built, driven, deltaCompare.ok, no diffs),
+    // reported as zero. That is the same defect as the templated sentence this replaced, just
+    // erring the other way — an under-report is as wrong as an over-report.
+    // A block is CLEAN when it carries no terminal disposition and its delta-compare passed;
+    // passing blocks carry no `disposition` field at all, which is why they cannot be inferred
+    // from the disposition tally alone.
+    const isTerminalDisp = (x) => typeof x === "string" && ["BLOCKED", "GAP", "STUCK", "REMAINING"].includes(x.toUpperCase());
+    const cleanIds = list.filter((b) => {
+      const rep = reps[b.id];
+      return rep && rep.built && !isTerminalDisp(rep.disposition) && rep.deltaCompare && rep.deltaCompare.ok === true;
+    }).map((b) => b.id);
+    const nClean = cleanIds.length;
+    const nTotal = list.length || (nTerminal + nClean);
     const tally = [nClean ? `${nClean} measured clean` : null, nGap ? `${nGap} GAP` : null, nBlocked ? `${nBlocked} BLOCKED` : null, nStuck ? `${nStuck} STUCK` : null].filter(Boolean).join(" · ");
     L.push("# Phase handoff — PASS", "");
     if (nTerminal === 0) {

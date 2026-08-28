@@ -1,0 +1,77 @@
+{
+  "runId": "WYAWuEm8DrIk-658-34320-B-2026-08-28T14-33-38Z",
+  "phaseId": "WYAWuEm8DrIk-658-34320-B",
+  "app": "velt-figma-plugin-claude",
+  "mode": null,
+  "node": null,
+  "pluginSha": "f480ceb",
+  "publishedAt": "2026-08-28T14:33:38.980Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "REGISTRATION IS NOT RENDERABILITY. A tag can be present in customElements (registered:true, acceptsChildren:true in the manifest) and still DECLINE to render when hand-composed — parking under <body> at 0x0 while the SDK renders its -internal twin into its own overlay. customElements.get() answers \"is this defined\", not \"will this paint where I put it\". The only sufficient check is composing it and measuring a NON-ZERO BOX IN THE EXPECTED PARENT.",
+      "category": "component-difficulty",
+      "severity": "high",
+      "evidence": "velt-comment-dialog-options-dropdown-content/-edit/-delete: registered:true at runtime, live:0, composed instance parks under <body> at 0x0 (2A probe P1, re-probed at 2B setup). Contrast velt-comment-dialog-assign-dropdown: registered:FALSE — a different failure that a registration check DOES catch.",
+      "destination": "knowledge",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "flow-sidebar-skeleton-image-ref is DOM-reachable but not VISIBLE. Polled 94 samples across a cold load: during the loading window velt-comment-sidebar-skeleton-v2 is display:block, w:380, data-velt-hidden:null with our .vc-skeleton-rows child present — but h:0. Structure mounts; it has no dimensions. designSpec carries NO row height/gutter/radius/shimmer for it (one of 3 image-ref RECTANGLEs with empty cssDecls and no frame PNG). Playwright visible-filter therefore cannot pass. This is a DESIGN-INPUT gap, not a build miss.",
+      "category": "finding",
+      "severity": null,
+      "evidence": null,
+      "destination": null,
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "Phase 1 CSS still carries per-edge Figma strokes as 4-SIDE CSS boxes — the downstream, already-shipped consequence of the figma-extract flattening bug. styles.css:246 has box-shadow: inset 0 0 0 1px #edf0f8 (4-side ring) where 658:34334/658:35095 are _strokeEdges left:1 / inset 1px 0px 0px. styles.css:871 has border: 1px solid #dde3ee (4-side) where 658:34335/658:35101 are _strokeEdges top:1 / inset 0px 1px 0px.",
+      "category": "finding",
+      "severity": "high",
+      "evidence": null,
+      "destination": null,
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "WHEN A DESIGN NODE box AND ITS cssDecls DISAGREE, THE BOX IS THE MEASUREMENT AND THE DECLS ARE A DERIVATION — prefer the box and RECORD the contradiction. Figma reports box.h as the laid-out height; padding/line-height in cssDecls are inputs that a renderer re-derives, and the two can round or resolve differently. Applying the decls verbatim then lands N px off a box that is itself verbatim.",
+      "category": "extractor-defect",
+      "severity": "high",
+      "evidence": "comment-task-status 658:35366/658:35365: box.h=30 while cssDecls padding 7px 12px over an 18px line-height child sums to 32. Built verbatim -> 356x32. Pixels settle it: live hairline at panel row 91 (32nd), Figma hairline at row 29 (30th). I had earlier reported 33->32 as a CORRECTION; it was an overshoot — the design box is 30.",
+      "destination": "guide",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "THE EXTRACTOR FIX MADE A CLASS OF EXISTING ERRORS MEASURABLE. When you fix a tool that PRODUCES THE SPEC, the already-shipped work built against the broken spec becomes newly falsifiable — and nothing prompts you to go looking. Phase 1 built under the figma-extract per-edge-stroke flattening bug, so its CSS ENCODES the flattening; the spec could not contradict it until the extractor was fixed. The defect did not appear when the code was written and did not appear when the bug was reported — it appeared when the tool got better.",
+      "category": "meta-pattern",
+      "severity": "high",
+      "evidence": "styles.css:246 box-shadow inset 0 0 0 1px #edf0f8 (4-side) vs spec _strokeEdges left:1; styles.css:871 border 1px solid #dde3ee (4-side) vs spec top:1. Corroborated THREE ways: Figma REST (style planner), DOM+pixel (2B judge), direct sheet-vs-respec read (pv2-setup). Geometry falls out exactly — .vc-sidebar-slot-composer 380x74 vs design 72 and .vc-composer-shell 354 vs 356, precisely the 2px a 4-side 1px border adds per axis.",
+      "destination": "guide",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    }
+  ]
+}

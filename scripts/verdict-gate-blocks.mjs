@@ -186,7 +186,15 @@ export function verdictGateBlocks(blocks, report, { maxRegionFill = 0.05 } = {})
     const minAssert = Math.max(2, Number(r.deltaCompare?.coverage?.minAssert ?? r.coverage?.minAssert ?? 2) || 2);
     if (checkedN < minAssert) { missing.push(`block '${b.id}' delta-compare spec too thin (asserted ${checkedN} element(s), need ≥${minAssert}) — enumerate every visible paint/text slot's style + box; a surface cannot be certified by checking nothing`); continue; }
     const isRepeating = /flow/i.test(b.role || "") || /comment|thread|list|feed/i.test(String(b.familyId || "") + String(b.component || ""));
-    if (isRepeating && gapsN < 1) { missing.push(`block '${b.id}' is a repeating/list surface but delta-compare asserted no inter-card gap — add a compareGap between consecutive cards (the '2 vs 11' blind spot: the count varies, the gap does not)`); continue; }
+    // Record the missing gap assertion, then KEEP EVALUATING. This used to `continue`, which
+    // skipped every failure check below — so a repeating block was reported as "needs an
+    // inter-card gap" while its real delta failures were never printed at all. Measured on privado
+    // 2A: all 6 built comment blocks already carried deltaCompare.ok:false with 28-61 diffs each,
+    // and the gate had never surfaced a single one; adding the gap assertions unmasked them
+    // (INCOMPLETE -> FAIL with 24+ rows). The coverage floor and the failure report answer
+    // different questions and must not suppress one another — `missing` already forces INCOMPLETE
+    // on its own, so nothing is lost by also saying what is broken.
+    if (isRepeating && gapsN < 1) missing.push(`block '${b.id}' is a repeating/list surface but delta-compare asserted no inter-card gap — add a compareGap between consecutive cards (the '2 vs 11' blind spot: the count varies, the gap does not)`);
 
     // measured-but-wrong → FAIL. deltaCompare (exact style/box/gap) is the authority; stability: no target
     // moved. visualDiff is ADVISORY — pixel-diff vs the DUMMY-data design frame lights up on real-vs-dummy

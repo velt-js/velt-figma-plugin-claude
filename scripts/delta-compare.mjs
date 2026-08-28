@@ -181,7 +181,15 @@ export function compareRelation(a, b, type) {
     "top-right-of": (p, q) => (p.x + p.w / 2) >= (q.x + q.w / 2) && (p.y + p.h / 2) <= (q.y + q.h / 2),
   };
   const fn = REL[type];
-  return { pass: !!(fn && a && b && fn(a, b)), note: fn ? "relation broken" : "unknown relation" };
+  // An UNRECOGNISED relation name is an INVALID SPEC, not a broken layout. Returning
+  // {pass:false, note:"unknown relation"} made the two indistinguishable: the row appeared in
+  // diffs[] exactly like a genuine break, so a vocabulary mismatch read as a wall of real defects.
+  // Measured on privado 2A: briefs authored `kind` while this read `type`, and 76 rows scored
+  // "unknown relation" FAIL. `invalid` lets the caller report "this assertion could not be
+  // evaluated" instead of "this layout is wrong" — the same distinction judge2-chrome-probes makes
+  // with exit 3.
+  if (!fn) return { pass: false, invalid: true, note: `unknown relation '${type}' — valid: ${Object.keys(REL).join(", ")}` };
+  return { pass: !!(a && b && fn(a, b)), note: "relation broken" };
 }
 export function compareGap(a, b, axis, expected, tol = {}) {
   const t = tol.gap ?? 3;
@@ -211,8 +219,16 @@ export function verdictOf(elements, opts = {}) {
   for (const r of opts.relations || []) {
     const a = boxOfName(r.a), b = boxOfName(r.b);
     if (!a || !b) continue; // a referenced node's geometry is unattributable — skip, don't call it "broken"
-    const res = compareRelation(a, b, r.type);
-    if (!res.pass) diffs.push({ element: r.a + " " + r.type + " " + r.b, property: "relation", spec: r.type, rendered: "broken", note: res.note });
+    // Accept either spelling. The scaffold and planners author `kind`; this consumer only ever
+    // read `type`, so every authored relation silently fell through to "unknown relation".
+    const relType = r.type || r.kind;
+    const res = compareRelation(a, b, relType);
+    if (!res.pass) diffs.push({
+      element: r.a + " " + relType + " " + r.b, property: "relation", spec: relType,
+      rendered: res.invalid ? "NOT EVALUATED" : "broken",
+      ...(res.invalid ? { invalidSpec: true } : {}),
+      note: res.note,
+    });
   }
   for (const g of opts.gaps || []) {
     const a = boxOfName(g.a), b = boxOfName(g.b);

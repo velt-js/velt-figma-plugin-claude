@@ -122,6 +122,26 @@ for (const s of plan.surfaces || []) {
 
 const selectors = Object.fromEntries(Object.entries(found).map(([k, v]) => [k, v.selector]));
 const missing = Object.keys(ROLE_PRIMITIVE).filter((r) => !found[r]);
+
+// RESOLVING NOTHING IS NOT SUCCESS.
+// Roles are derived from THIS phase's compose tree. A phase that ALIASES an earlier phase's
+// elements rather than re-composing them has no leaves of its own, so every role comes back
+// "not in this plan" — and this exited 0 with an empty map, after which every chrome probe is
+// silently skipped and the Judge's structural half does nothing. Measured on privado 2B: all six
+// roles unresolved, exit 0, probes vacuous. Same shape as the stale-wrapper bug in this file,
+// opposite cause: there a wrong answer, here no answer, both reported as fine.
+// An empty map is INVALID (exit 3, matching judge2-chrome-probes' "measured NOTHING is not a
+// pass"), and a resolved map missing `card` is fatal too — every card probe iterates it.
+if (!Object.keys(selectors).length) {
+  console.error(`✗ probe-selectors resolved NOTHING for this phase — every role is unresolved, so every chrome probe would be silently skipped.`);
+  console.error(`  This is normal for a phase that ALIASES an earlier phase's surfaces instead of composing them. Seed probe-selectors.json from the phase that DOES compose these elements, re-verify the selectors live, and record the provenance.`);
+  if (argv.includes("--write")) console.error(`  Refusing to write an empty probe-selectors.json.`);
+  process.exit(3);
+}
+if (!found.card) {
+  console.error(`✗ probe-selectors resolved ${Object.keys(selectors).length} role(s) but NOT 'card' — every card probe (ring, double-border, rail, gap) iterates it, so all of them would be vacuous.`);
+  process.exit(3);
+}
 if (argv.includes("--write")) {
   await fs.writeFile(P("probe-selectors.json"), JSON.stringify(selectors, null, 2) + "\n");
 }

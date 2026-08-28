@@ -624,12 +624,48 @@ export function stylePlanAuthorshipProblems(planStyle, blocksDoc = null, designS
     }
   }
 
-  const blockN = (blocksDoc?.blocks || []).length || 0;
-  const minRules = Math.max(12, blockN * 3);
-  if (rules.length && rules.length < minRules) {
+  // AUTHORSHIP FLOOR — count what the phase actually COVERS, not what it re-types.
+  // The floor exists to catch a planner that under-ships on a fresh surface. On an INCREMENTAL
+  // phase it inverted: where a previous phase's stylesheet already styles the same nodes, the only
+  // ways to reach blockN*3 are to re-emit existing rules verbatim (a second declaration competing
+  // with the one styles.css owns) or to invent values the design does not carry. Measured on
+  // privado 2B: a correct 10-rule diff was failed, and satisfying the floor would have required 12
+  // verbatim copies (each with a styles.css line number) plus 2 fabricated skeleton rules.
+  // Two credits, both requiring EVIDENCE so an empty claim cannot buy them:
+  //   coveredByExistingSheet[] / forcedDuplicationToReachFloor[] — entries naming a selector AND a
+  //     source line, i.e. "this node is already styled, here is where".
+  //   blocks the design gives NOTHING to style (image-ref RECTANGLEs with empty
+  //     fills/strokes/effects) do not demand 3 rules each; they are exempted when the plan records
+  //     the REST verification that proves the file is empty.
+  const blocksAll = blocksDoc?.blocks || [];
+  // Accept the list at the top level or nested one deep — a planner may wrap it in an explanatory
+  // object (e.g. {statement, wouldHaveToDuplicate:[…]}). Each ENTRY still has to name a selector
+  // AND a source line, so an empty or hand-waved claim buys nothing.
+  const asList = (v) => {
+    if (Array.isArray(v)) return v;
+    if (v && typeof v === "object") return Object.values(v).find(Array.isArray) || [];
+    return [];
+  };
+  const evidenced = (v) => asList(v).filter((e) => e && (e.selector || e.rule) && (e.line || e.sourceLine || e.at)).length;
+  const credited = evidenced(planStyle?.coveredByExistingSheet) + evidenced(planStyle?.forcedDuplicationToReachFloor);
+  // A block the DESIGN gives nothing to style cannot owe 3 rules. Exempt only when the plan names
+  // the block and states why — an image-ref RECTANGLE with empty fills/strokes/effects, verified.
+  const exemptRecords = [
+    ...asList(planStyle?.restVerification),
+    ...(planStyle?.skeletonBlocked ? [planStyle.skeletonBlocked] : []),
+    ...asList(planStyle?.skeletonBlocked),
+  ];
+  const emptyBlockIds = new Set(
+    exemptRecords.flatMap((e) => (e && e.blockId && (e.reason || e.emptyInFile || e.statement) ? [e.blockId] : [])),
+  );
+  const blockN = blocksAll.length || 0;
+  const effectiveBlockN = Math.max(0, blockN - emptyBlockIds.size);
+  const minRules = Math.max(12, effectiveBlockN * 3);
+  const effectiveRules = rules.length + credited;
+  if (rules.length && effectiveRules < minRules) {
     problems.push({
       kind: "thin-rules",
-      note: `only ${rules.length} style rule(s); need ≥${minRules} for ${blockN || "?"} block(s) — style planner under-shipped`,
+      note: `only ${rules.length} style rule(s)${credited ? ` + ${credited} evidenced as already covered = ${effectiveRules}` : ""}; need ≥${minRules} for ${effectiveBlockN || "?"} block(s)${emptyBlockIds.size ? ` (${emptyBlockIds.size} exempt: design carries no properties)` : ""} — style planner under-shipped. If the nodes ARE already styled, declare them in coveredByExistingSheet[] with {selector, line} rather than re-emitting the rules.`,
     });
   }
   return problems;
@@ -910,7 +946,18 @@ async function main() {
       {
         const stateBlocks = (blocks.blocks || []).filter((b) => b.state && !/^(default|state)$/.test(b.state));
         const ruled = new Set(rules.filter((r) => r.purpose === "state-rule").flatMap((r) => r.blockIds || []));
-        const naked = stateBlocks.filter((b) => !ruled.has(b.id));
+        // A block the DESIGN gives nothing to style cannot have an honest state-rule authored for
+        // it either — the same evidence that exempts it from the authorship floor exempts it here.
+        // Demanding one leaves only two outs: invent values (R0), or emit a rule that cites the
+        // block and declares nothing. Measured on privado 2B: an image-ref RECTANGLE whose two
+        // spec nodes both carry cssDecls {} — no row height, gutter, radius or shimmer colour
+        // exists to cite. The plan must NAME the block and say why (skeletonBlocked /
+        // restVerification with a reason); silence still fails.
+        const styleExempt = new Set([
+          ...(Array.isArray(planStyle?.restVerification) ? planStyle.restVerification : Object.values(planStyle?.restVerification || {})),
+          ...(planStyle?.skeletonBlocked ? [planStyle.skeletonBlocked] : []),
+        ].flatMap((e) => (e && e.blockId && (e.reason || e.statement || e.emptyInFile) ? [e.blockId] : [])));
+        const naked = stateBlocks.filter((b) => !ruled.has(b.id) && !styleExempt.has(b.id));
         for (const b of naked.slice(0, 8))
           console.log(`✗ state-rules: block '${b.id}' draws state '${b.state}' but NO state-rule cites it — its values collapse into the resting state and it will render identically.`);
         bad += naked.length;

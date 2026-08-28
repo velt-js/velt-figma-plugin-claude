@@ -314,10 +314,19 @@ async function scaffold() {
       surfaceSelector: s ? `.${s.root.vcClass.split(/\s+/)[0]}` : null,
       // Behavioural smoke checks for a primitives build. The compound-trigger one is the important
       // one: a dead control renders pixel-perfect, so only a real click can tell you it is dead.
-      checks: [
-        { id: "renders", assert: s ? `.${s.root.vcClass.split(/\s+/)[0]}` : null, note: "the composed surface is present and non-zero-size" },
-        { id: "no-wireframe-registered", assert: "velt-wireframe", expectCount: 0, note: "a primitives build must register no wireframe" },
-        { id: "interactive-controls-live", note: "click every composed interactive element with a REAL pointer at freshly-measured coordinates and assert something changed — synthetic .click() silently fails on Velt controls, and a compound-trigger leaf without its -trigger renders perfectly and does nothing" },
+      // `steps`, NOT `checks`: measure-block.mjs smoke() iterates spec.steps. Emitting `checks`
+      // meant every scaffolded suite ran ZERO steps and exited 0 with a tick — the R30 false pass.
+      // Each step also needs a `name` (the runner reports failures by name; unnamed ones read
+      // "(unnamed)") and an assertion in a form the runner actually reads: `assert` (waitVisible),
+      // `assertAbsent` (must-not-be-visible) or `evalAssert` (predicate).
+      steps: [
+        { name: "renders", actions: [], assert: s ? `.${s.root.vcClass.split(/\s+/)[0]}` : null, note: "the composed surface is present and non-zero-size" },
+        // assertAbsent, NOT assert+expectCount:0. `assert` is waitVisible, so asserting a tag that
+        // must NEVER exist waits the full timeout and then fails for the wrong reason — it reads as
+        // "the wireframe is missing" when the truth is "correctly absent". Measured twice: fixed by
+        // hand in one phase, then reappeared verbatim in the next because it is scaffolded here.
+        { name: "no-wireframe-registered", actions: [], assertAbsent: "velt-wireframe", note: "a primitives build must register no wireframe" },
+        { name: "interactive-controls-live", actions: [], _todo_actions: "REAL pointer click on every composed interactive element at freshly-measured coordinates — synthetic .click() silently fails on Velt controls, and a compound-trigger leaf without its -trigger renders perfectly and does nothing. Hover first if the control is hover-revealed (measure it: 0x0 at rest is normal).", _todo_assert: "what must become true after the click — a panel selector, an assertAbsent for a closed state, or an evalAssert. A step that drives without asserting cannot fail." },
       ],
       _todo_expectedTexts: "canonical visible strings this family must render (author/message/counts) taken from the frame text — or [] if none",
     }, null, 2) + "\n");

@@ -1,0 +1,129 @@
+{
+  "runId": "WYAWuEm8DrIk-658-34320-2026-08-28T10-30-23Z",
+  "phaseId": "WYAWuEm8DrIk-658-34320",
+  "app": "velt-figma-plugin-claude",
+  "mode": null,
+  "node": null,
+  "pluginSha": "a4f4992",
+  "publishedAt": "2026-08-28T10:30:23.742Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "BEFORE composing any control that opens a panel/popover/dropdown, read its sdkParents in manifest/velt-primitives.json and confirm (a) at least one listed parent is a primitive you actually compose into your tree, AND (b) that parent has registered:true. Both halves are required. Phase 1 lost Reply, the reaction picker and the sidebar filter because their only sdkParent was velt-comment-sidebar-panel-v2, absent from a hand-owned rail. Phase 2 kept the options dropdown because none of ITS parents is the panel — but two of its three candidate parents (velt-comment-dialog-header, velt-comment-dialog-options) are registered:false, leaving velt-comment-dialog-thread-card-options as the sole usable host. Checking sdkParents without checking registered would have picked a host that does not exist.",
+      "category": "component-difficulty",
+      "severity": "high",
+      "evidence": "manifest sdkParents + live customElements.get() on the running app at @veltdev/react 6.0.7; contrasted against phase 1 WYAWuEm8DrIk-370-29828 learning #12",
+      "destination": "knowledge",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "AN AGENT RUNNING AGAINST A STALE PLUGIN COPY PRODUCES CONFIDENT, SPECIFIC, WRONG FINDINGS — and every one of them looks like a real finding. On this run a 3-day-old ~/.claude/plugins/cache copy produced: two filed plugin defects that were already fixed upstream, and two green-gate claims that were EXIT 2 on disk (the stale brief-scaffold has no smoke-shape lint, so it literally cannot fail on it). It also silently mis-extracted the designSpec: the old figma-extract flattened per-edge Figma strokes into 4-side CSS borders, asserting a full box border on a banner whose design draws a bottom-only rule. PREFLIGHT SHOULD ASSERT the resolved plugin path is a git checkout at a known SHA and fail loud otherwise; a cache dir that is not a repo is not a verifiable plugin.",
+      "category": "pipeline-trap",
+      "severity": "critical",
+      "evidence": "cache a1749666971e dated 26 Aug 12:00 vs checkout main 132b0bf; differing scripts figma-extract/brief-scaffold/verdict-gate-blocks/probe-selectors/measure-block; same 8 brief files gave EXIT 0 on cache and EXIT 2 on checkout; re-extract changed 12 designSpec nodes, 2 in sub-phase A (comment-task-status border -> inset 0px -1px 0px)",
+      "destination": "script",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "console-health.mjs attaches its console listener AFTER openPage(), and openPage reuses an existing tab. Its own comment claims cold-render errors count — they only count when it actually navigates. On a reused tab the gate silently samples steady-state and returns CLEAN, missing exactly the mount-time error batch it exists to catch. Two runs of the same command 30s apart gave STORM(24x) then clean.",
+      "category": "finding",
+      "severity": "high",
+      "evidence": "3 controlled cold loads = 0 errors each; the 24x initializeFromDOM batch reproduces only on HMR re-mount",
+      "destination": "script",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "brief-scaffold --lint accepts evalAssert as a valid smoke-step assertion, but measure-block.mjs smoke() vocabulary is actions/assert/assertAbsent only — it never reads evalAssert. So a step can satisfy the shape lint and still check NOTHING. Found live: fam-empty-placeholder.smoke.json steps[2] ran zero checks and passed on console silence.",
+      "category": "finding",
+      "severity": "medium",
+      "evidence": null,
+      "destination": "lint",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "probe-selectors.mjs CARD FALLBACK only runs `if (!found.card)`. A plan that composes velt-comment-dialog-thread-card ANYWHERE — even a narrow, non-card-shaped wrapper — wins the direct ROLE_PRIMITIVE match and suppresses the fallback. Here it resolved role card to .vc-card-actions-cluster (a 42x32 hover cluster) instead of .vc-comment-card (356x124). It EXITS 0, so nothing flags it, and every judge card probe (ring, double border, inter-card gap) would silently iterate the wrong element. Suggest: prefer the leaf-derived common ancestor when the direct match resolves to an element that is not the deepest common ancestor of the card leaves, or warn on disagreement.",
+      "category": "finding",
+      "severity": "high",
+      "evidence": "plan-primitives.json carried the narrow wrapper P1 disproved; shipped code never used it. After removing the stale nodes, card resolved .vc-comment-card via 8 thread-card leaves.",
+      "destination": "script",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "sdkParents discriminator now has a full phase of evidence: 3 TRUE positives (Reply, reaction picker, sidebar filter — all had velt-comment-sidebar-panel-v2 as sole parent and all open NOTHING) and 2 FALSE alarms (options dropdown: SDK supplies its own CDK overlay so no composed parent is needed; empty placeholder: self-contained, gate evaluates TRUE with no panel). RULE: sdkParents predicts breakage ONLY where the listed parent renders the popover/panel CONTAINER. Everything else is a risk flag to verify empirically, never a verdict. Also check registered:true — 2 of the options dropdown 3 candidate parents are registered:false.",
+      "category": "component-difficulty",
+      "severity": "high",
+      "evidence": null,
+      "destination": "knowledge",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "dom-snapshot.mjs:329 joins liveSelector and drive.assert into ONE comma group and SNAPSHOT_FN:49 roots at the FIRST document-order visible match. A loosely-scoped assert therefore roots the snapshot on an EARLIER card and reports driven:true, stateUnreachable:false — a wrong root that reports success, which no gate catches. Found live: the question-context block captured a 1-node span 303x18.",
+      "category": "finding",
+      "severity": "high",
+      "evidence": null,
+      "destination": "script",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "judge2-to-workorder.mjs:62 re-injects chrome-probe findings into workOrderP0 EVEN IF the judge explicitly discarded them, and stamps demoBreaking:true. On this run card-side-borders-invisible was discarded with pixel evidence (Figma card edge is 255,255,255,255 with no stroke band; only an outward drop shadow, which live reproduces) yet landed in P0 as actionable. A builder obeying the work order would ADD a border the design does not have.",
+      "category": "finding",
+      "severity": "high",
+      "evidence": null,
+      "destination": "script",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    },
+    {
+      "kind": "general",
+      "statement": "figma-extract.mjs writes ONE cssDecls per TEXT node from that node base style and never reads characterStyleOverrides / styleOverrideTable. Consequence: designSpec.json contains ZERO text-decoration keys file-wide and no per-run styling at all. A planner working from designSpec literally cannot see a strikethrough, a mention run weight, or any mixed-style text. Root cause of 3 of the 4 defects fixed in 5d.",
+      "category": "finding",
+      "severity": "high",
+      "evidence": null,
+      "destination": "script",
+      "seenOn": [
+        "privado"
+      ],
+      "verified": true,
+      "scope": "general"
+    }
+  ]
+}

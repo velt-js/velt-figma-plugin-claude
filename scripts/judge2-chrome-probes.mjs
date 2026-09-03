@@ -361,8 +361,129 @@ export async function runJudge2ChromeProbes(phaseDir, { url, ws, write = true, s
       };
     });
 
+    // HEIGHT CHAIN.
+    //
+    // A customer sizes the two ENDS of the chain — the host tag and their own root — and assumes the
+    // SDK-owned divs between them inherit. They do not: a div with no height rule is content-sized,
+    // so the chain silently grows past the container that was supposed to bound it. Everything below
+    // the overflow point is pushed off-screen, and because the container is `overflow:hidden` there
+    // is no scrollbar to reveal it.
+    //
+    // MEASURED, Harvey 651 — and diagnosed correctly by the commit that failed to fix it
+    // ("the chain must carry the height, not just its ends", then styled only the ends):
+    //     velt-comments-sidebar-v2       765   ← styled
+    //     └ div.velt-sidebar-container   828   ← SDK-owned, unstyled  ← +63px
+    //       └ div.velt-sidebar           828   ← SDK-owned, unstyled
+    //         └ div.vc-sidebar           828   ← styled
+    // The page-mode composer's bottom landed at y=891 in an 828px viewport: 72% of the primary write
+    // affordance was unreachable, and scrolling it into view pushed the header off the top instead.
+    //
+    // Reported per BREAK, naming the offending element — the fix is a height rule on that link, and
+    // an unnamed "something overflows" finding is not actionable.
+    const heightBreaks = [];
+    {
+      const seedSel = [SEL.list, SEL.card, ".vc-sidebar", "[class*='vc-']"].filter(Boolean).join(", ");
+      const seed = document.querySelector(seedSel);
+      if (seed) {
+        const chain = [];
+        for (let el = seed; el && el !== document.documentElement; el = el.parentElement) chain.push(el);
+        for (let i = 0; i < chain.length - 1; i++) {
+          const child = chain[i];
+          const parent = chain[i + 1];
+          const ch = child.getBoundingClientRect().height;
+          const ph = parent.getBoundingClientRect().height;
+          if (ph < 1 || ch < 1) continue;
+          const overflow = ch - ph;
+          if (overflow <= 2) continue;                      // sub-pixel / rounding
+          const ps = getComputedStyle(parent);
+          // Only a CLIPPING parent hides the excess. A visible-overflow parent is just tall.
+          if (!/hidden|clip|auto|scroll/.test(ps.overflow + ps.overflowY)) continue;
+          const cs = getComputedStyle(child);
+          const desc = (el) => el.tagName.toLowerCase() + (typeof el.className === "string" && el.className.trim() ? "." + el.className.trim().split(/\s+/)[0] : "");
+          heightBreaks.push({
+            child: desc(child), parent: desc(parent),
+            childH: Math.round(ch), parentH: Math.round(ph), overflowPx: Math.round(overflow),
+            childHeightRule: cs.height, childMinHeight: cs.minHeight, parentOverflow: ps.overflow,
+          });
+        }
+      }
+    }
+    if (heightBreaks.length) {
+      const worst = heightBreaks.reduce((a, b) => (b.overflowPx > a.overflowPx ? b : a));
+      findings.push({
+        id: "height-chain-break",
+        issue: `${worst.child} is ${worst.overflowPx}px taller than its clipping parent ${worst.parent} (${worst.childH} vs ${worst.parentH}) — everything past the overflow point is off-screen with no scrollbar`,
+        blockId: "flow",
+        evidence: { breaks: heightBreaks.slice(0, 6), worst },
+        _domOnly: true,
+      });
+    }
+
+    // FONT RESOLUTION.
+    //
+    // A design names a family; the generator copies it verbatim; nothing loads it; the browser
+    // falls back to its default — a SERIF on every major browser — and the whole surface reads in
+    // the wrong typeface. The retired composed-audit carried two checks for exactly this
+    // (`header-font-sans`, `renders-serif`); judge 2 carried none, and the defect shipped twice:
+    // 'Proxima Nova' on the 651 run and 'Poppins' (38 rules) on the golden.
+    //
+    // `document.fonts.check()` is useless here — it returns true for families it has never heard
+    // of — so the loaded set is read off the FontFaceSet directly. A declaration is only a defect
+    // when the FIRST family is neither loaded nor generic AND nothing later in the stack can
+    // rescue it; a stack ending in `sans-serif` degrades gracefully and is not reported.
+    const loadedFamilies = new Set();
+    try {
+      document.fonts.forEach((f) => {
+        if (f.status === "loaded") loadedFamilies.add(String(f.family).replace(/["']/g, "").toLowerCase());
+      });
+    } catch { /* FontFaceSet unavailable — probe degrades to no finding */ }
+    const GENERIC_FAMILY = /^(serif|sans-serif|monospace|system-ui|ui-serif|ui-sans-serif|ui-monospace|ui-rounded|cursive|fantasy|math|emoji|-apple-system|blinkmacsystemfont)$/i;
+    const fontOffenders = [];
+    const seenFontKey = new Set();
+    const textEls = [...document.querySelectorAll("*")].filter((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.width < 8 || r.height < 8) return false;
+      // Only elements holding their OWN text — otherwise every ancestor reports the same family.
+      return [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim().length > 1);
+    }).slice(0, 500);
+    for (const el of textEls) {
+      const stack = getComputedStyle(el).fontFamily || "";
+      const parts = stack.split(",").map((s) => s.replace(/["']/g, "").trim()).filter(Boolean);
+      if (!parts.length) continue;
+      const first = parts[0];
+      if (GENERIC_FAMILY.test(first)) continue;                   // asked for a generic: fine
+      if (loadedFamilies.has(first.toLowerCase())) continue;      // actually loaded: fine
+      const rescued = parts.slice(1).some((p) => GENERIC_FAMILY.test(p) || loadedFamilies.has(p.toLowerCase()));
+      if (rescued) continue;                                      // stack degrades gracefully
+      const cls = typeof el.className === "string" ? el.className.trim().split(/\s+/)[0] : "";
+      const key = first.toLowerCase() + "|" + el.tagName + "|" + cls;
+      if (seenFontKey.has(key)) continue;
+      seenFontKey.add(key);
+      fontOffenders.push({
+        family: first,
+        stack: stack.slice(0, 120),
+        tag: el.tagName.toLowerCase(),
+        cls,
+        text: (el.textContent || "").trim().slice(0, 40),
+      });
+    }
+    if (fontOffenders.length) {
+      findings.push({
+        id: "font-family-never-loaded",
+        issue: `${fontOffenders.length} visible text element(s) declare a font family that is not loaded and offer no fallback — these render in the browser's default serif, not the design's typeface`,
+        blockId: "flow",
+        evidence: {
+          offenders: fontOffenders.slice(0, 10),
+          distinctFamilies: [...new Set(fontOffenders.map((o) => o.family))],
+          loadedFamilies: [...loadedFamilies].slice(0, 12),
+        },
+        _domOnly: true,
+      });
+    }
+
     return {
       findings,
+      fontOffenders: fontOffenders.length,
       bodies: bodies.length,
       moreRows: moreRows.length,
       gaps,

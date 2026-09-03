@@ -103,6 +103,30 @@ out**; `--lint` refuses a "no published …" claim that cites nothing (`unchecke
 
 **Plan the loading window as a surface.** Before the tags upgrade, every primitive paints at once; after they upgrade but while `uiState.skeletonLoading` is true, content-gated conditions still conclude "empty". Plan the skeleton primitive, and plan the rest of the surface to gate on ITS `data-velt-hidden` — one signal covers both windows.
 
+## Step 4b — States are FLAGS, not one enum
+
+Model every state the design draws as an INDEPENDENT boolean on your own root
+(`data-vc-unread`, `data-vc-hover`, `data-vc-selected`, `data-vc-resolved`, `data-vc-replies-collapsed`).
+Never a single `data-vc-*-state="one-of-eight"`.
+
+MEASURED — this is not a style preference, it decides what the build can express. The Harvey 651 run
+used one enum per card and had to write this in its own source:
+
+> "Returning `unread` from this chain therefore stole the slot from `collapsed`: every unread thread
+> lost its stacked card-behind, so *Thread - collapsed - unread/new reply* could not render at all."
+
+Two of the design's eight thread states became **impossible** — not styled wrong, unreachable — because
+one card can only hold one enum value. The golden build models the same surface with independent
+attributes and renders unread AND collapsed together without special-casing.
+
+The test to apply while planning: **can two of these states be true at once in the design?** A card
+that is unread *and* has replies, hovered *and* selected, resolved *and* expanded — if yes, they are
+orthogonal and each needs its own attribute. Only genuinely mutually-exclusive values (a composer is
+Default XOR Focus XOR Typing) belong in a single enum.
+
+Overlay-shaped states are the usual tell: an unread dot, a highlight tint, a lock banner — they appear
+ON another state rather than replacing it.
+
 ## Step 5 — Flag parent-owned conditions
 
 78 primitives carry visibility conditions the built-in template evaluates and the primitive **cannot evaluate standalone** (89 pending pairs, 9 permanently blocked). Placed by hand, they render whenever mounted. For each one in your tree, either re-express the condition in customer code or record it as an accepted divergence. Do not leave it undecided.

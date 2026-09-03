@@ -1,17 +1,17 @@
 {
-  "_doc": "The stage spine. The run sequence previously existed ONLY as prose in agents/velt-orchestrator.md, so every tool that needed it re-derived or hardcoded it. This file is the single declarative source: which stages exist, who owns each, what each consumes and produces, which gates it must pass and with what exit contract, and what a per-stage review should look at. scripts/run-gate.mjs, scripts/stage-review.mjs and (later) the stage runner all read this. It describes BOTH build flows; `modes` scopes a stage to one of them. Nothing here changes behaviour on its own \u2014 it is a description, and golden/stage-review-calibration.mjs checks it against the orchestrator so it cannot drift.",
+  "_doc": "The stage spine. The run sequence previously existed ONLY as prose in agents/velt-orchestrator.md, so every tool that needed it re-derived or hardcoded it. This file is the single declarative source: which stages exist, who owns each, what each consumes and produces, which gates it must pass and with what exit contract, and what a per-stage review should look at. scripts/run-gate.mjs, scripts/stage-review.mjs and (later) the stage runner all read this. It describes BOTH build flows; `modes` scopes a stage to one of them. Nothing here changes behaviour on its own — it is a description, and golden/stage-review-calibration.mjs checks it against the orchestrator so it cannot drift.",
   "provenance": {
     "derivedFrom": "agents/velt-orchestrator.md Sequence 1-6, cross-checked against each gate script's own exit contract",
-    "note": "Exit contracts are NOT uniform across this codebase \u2014 lint-primitives fails with 1, most gates with 2, console-health and browser-endpoint with 3, block-iter with 4/5. Each gate records its own."
+    "note": "Exit contracts are NOT uniform across this codebase — lint-primitives fails with 1, most gates with 2, console-health and browser-endpoint with 3, block-iter with 4/5. Each gate records its own."
   },
   "severity": {
     "blocking": "the orchestrator may not advance past this stage while the gate fails",
     "advisory": "recorded and surfaced; the human decides"
   },
   "lenses": {
-    "ui": "rendered pixels \u2014 captures, diffs, mock scores",
-    "functional": "does it actually behave \u2014 driven interactions, asserted states, console health",
-    "code": "the source that was emitted \u2014 lints plus the checks lints cannot make"
+    "ui": "rendered pixels — captures, diffs, mock scores",
+    "functional": "does it actually behave — driven interactions, asserted states, console health",
+    "code": "the source that was emitted — lints plus the checks lints cannot make"
   },
   "stages": [
     {
@@ -56,7 +56,7 @@
             0
           ],
           "fail": {
-            "2": "look-alike URL \u2014 this is not the repo's app"
+            "2": "look-alike URL — this is not the repo's app"
           },
           "lens": "functional",
           "why": "pins appUrl to an app that is really this repo AND is really rendering Velt"
@@ -100,7 +100,7 @@
             0
           ],
           "fail": {
-            "3": "no real logged-in browser \u2014 never falls back to headless"
+            "3": "no real logged-in browser — never falls back to headless"
           },
           "lens": "functional"
         }
@@ -309,7 +309,7 @@
             0
           ],
           "fail": {
-            "1": "MODE_BLOCKED \u2014 no primitive counterpart exists for this surface"
+            "1": "MODE_BLOCKED — no primitive counterpart exists for this surface"
           },
           "lens": "code"
         },
@@ -476,7 +476,7 @@
             "1": "P1/P2/P3/P4/P5/P7/P8/P9/P11/P13 errors"
           },
           "lens": "code",
-          "why": "P1 and P9 are the classes no chromatic judge can ever see \u2014 the control renders perfectly and is dead, or the toggle crashes React",
+          "why": "P1 and P9 are the classes no chromatic judge can ever see — the control renders perfectly and is dead, or the toggle crashes React",
           "warnings": [
             "P6",
             "P10",
@@ -552,7 +552,7 @@
           ],
           "fail": {
             "2": "a planned state is unreachable",
-            "1": "usage \u2014 the script needs --url <appUrl>"
+            "1": "usage — the script needs --url <appUrl>"
           },
           "lens": "functional"
         },
@@ -590,9 +590,9 @@
             0
           ],
           "fail": {
-            "2": "a repeating error signature \u2014 a storm",
+            "2": "a repeating error signature — a storm",
             "3": "usage or environment",
-            "1": "usage \u2014 the script needs --url <appUrl>"
+            "1": "usage — the script needs --url <appUrl>"
           },
           "lens": "functional",
           "why": "this early, a storm is a STRUCTURE defect"
@@ -613,7 +613,24 @@
             "2": "unrepairable dead selectors remain"
           },
           "lens": "functional",
-          "why": "the real drive contract \u2014 every brief's drive.steps and drive.assert verified against the DOM tree"
+          "why": "the real drive contract — every brief's drive.steps and drive.assert verified against the DOM tree"
+        },
+        {
+          "id": "state-coverage",
+          "cmd": [
+            "node",
+            "scripts/gate-state-coverage.mjs",
+            "<phaseDir>"
+          ],
+          "blocking": false,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "3": "fewer designed states are reachable than --min requires"
+          },
+          "lens": "functional",
+          "why": "reports, before anything is styled, how many of the design's states this document can actually produce. Harvey 651 reached 2 of 8 and styled the other six blind."
         }
       ],
       "review": {
@@ -691,6 +708,23 @@
           },
           "lens": "code",
           "why": "0 rules in plan-style.json is a HALT, not a pass"
+        },
+        {
+          "id": "suppressed-controls",
+          "cmd": [
+            "node",
+            "scripts/gate-suppressed-controls.mjs",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "2": "a rest rule permanently hides an interactive control"
+          },
+          "lens": "functional",
+          "why": "a Figma frame is one state, not the whole control. Harvey 651 read 'the search input is not drawn' as 'not wanted' and switched search off for good."
         }
       ],
       "review": {
@@ -814,7 +848,7 @@
             0
           ],
           "fail": {
-            "2": "a regression \u2014 revert the structural change that caused it",
+            "2": "a regression — revert the structural change that caused it",
             "3": "no baseline yet"
           },
           "lens": "ui"
@@ -922,7 +956,7 @@
             0
           ],
           "fail": {
-            "2": "a compiled design assertion FAILED \u2014 a named, measured defect"
+            "2": "a compiled design assertion FAILED — a named, measured defect"
           },
           "lens": "ui",
           "why": "the half of the Judge that NAMES defects: 'vc-thread-rail.width expected 1 got (element missing)' instead of a pixel region. Measured on run 5: 141 pass / 26 fail, and those 26 were exactly what a human saw in a screenshot and no gate had said."
@@ -947,7 +981,7 @@
             "3": "environment"
           },
           "lens": "functional",
-          "why": "the pixel half of this stage proves a control LOOKS right and nothing proved it still WORKS \u2014 every 'renders correctly, behaves wrongly' class is invisible to a diff. Keyed to the primitive family, so it is reusable across designs; runs in ~20s."
+          "why": "the pixel half of this stage proves a control LOOKS right and nothing proved it still WORKS — every 'renders correctly, behaves wrongly' class is invisible to a diff. Keyed to the primitive family, so it is reusable across designs; runs in ~20s."
         },
         {
           "id": "judge2-chromatic",
@@ -964,7 +998,7 @@
             0
           ],
           "fail": {
-            "2": "diffs OR blocked states \u2014 a state whose guard failed is a finding, never a silent skip"
+            "2": "diffs OR blocked states — a state whose guard failed is a finding, never a silent skip"
           },
           "lens": "ui"
         },
@@ -1016,9 +1050,26 @@
             0
           ],
           "fail": {
-            "2": "a detector category scored below its recall/precision target \u2014 a detector that cannot fail is not evidence"
+            "2": "a detector category scored below its recall/precision target — a detector that cannot fail is not evidence"
           },
           "lens": "code"
+        },
+        {
+          "id": "unverified-style",
+          "cmd": [
+            "node",
+            "scripts/gate-unverified-style.mjs",
+            "<phaseDir>"
+          ],
+          "blocking": true,
+          "pass": [
+            0
+          ],
+          "fail": {
+            "3": "style rules tagged unknown→verify were never checked against a rendered DOM"
+          },
+          "lens": "ui",
+          "why": "makes the unknown→verify contract executable. It was prose in five files and code in none, so a run could style a whole state blind and still terminate PASS."
         }
       ],
       "review": {
@@ -1079,7 +1130,7 @@
             0
           ],
           "fail": {
-            "4": "soft cap reached \u2014 BLOCKED with evidence",
+            "4": "soft cap reached — BLOCKED with evidence",
             "5": "plateau; layer escalation budget available"
           },
           "lens": "code"

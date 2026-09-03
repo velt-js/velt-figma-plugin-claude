@@ -15,6 +15,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { compareDecls, compareProp, compareText, verdictOf, BROWSER_PROBE, LAYER_PROBE, reconcilePlan, mountMapDiff, CONTRACT_PROBE, STABILITY_PROBE } from "../scripts/delta-compare.mjs";
 import { verdictGateBlocks } from "../scripts/verdict-gate-blocks.mjs";
+import { gateUnverifiedStyle } from "../scripts/gate-unverified-style.mjs";
+import { gateSuppressedControls } from "../scripts/gate-suppressed-controls.mjs";
+import { gateStateCoverage } from "../scripts/gate-state-coverage.mjs";
 import { assignIcons, normalizeBoxes } from "../scripts/figma-extract.mjs";
 import { verdictGate } from "../scripts/verdict-gate.mjs";
 import { buildChecklist } from "../scripts/build-checklist.mjs";
@@ -908,6 +911,100 @@ async function calibrateAccuracyFixes() {
   return true;
 }
 
+// ---------------------------------------------------------------------------
+// unknown→verify — the tag that was prose in five files and code in none until
+// scripts/gate-unverified-style.mjs. Calibrated against the shape that shipped: the Harvey 651
+// expanded-thread rules were tagged honestly and the run still terminated PASS.
+async function calibrateUnverifiedStyle() {
+  const problems = [];
+  const tmp = path.join(ROOT, "golden", ".tmp-unverified-style");
+  await fs.rm(tmp, { recursive: true, force: true });
+  await fs.mkdir(tmp, { recursive: true });
+  const write = (name, obj) => fs.writeFile(path.join(tmp, name), JSON.stringify(obj), "utf8");
+
+  const tagged = (selector, blockIds) => ({ selector, decls: { display: "flex" }, blockIds, state: "default", tags: ["unknown→verify"] });
+
+  // 1. a tagged rule whose block was never driven ⇒ NOT ok, and the selector is NAMED.
+  await write("plan-style.json", { rules: [tagged(".vc-reply-row", ["state-expanded"])] });
+  await write("block-report.json", { blocks: { "state-expanded": { built: true, driven: false } } });
+  let r = await gateUnverifiedStyle(tmp);
+  if (r.ok) problems.push("a tagged rule on an undriven block must not be ok");
+  if (!r.unverified.some((u) => u.selector === ".vc-reply-row")) problems.push("the unverified rule must be named by selector");
+
+  // 2. driven but never compared is still unverified — driving without measuring is the silent-pass shape.
+  await write("block-report.json", { blocks: { "state-expanded": { built: true, driven: true } } });
+  r = await gateUnverifiedStyle(tmp);
+  if (r.ok) problems.push("driven WITHOUT deltaCompare must still be unverified");
+
+  // 3. driven AND compared clears the tag.
+  await write("block-report.json", { blocks: { "state-expanded": { built: true, driven: true, deltaCompare: { ok: true, diffs: [] } } } });
+  r = await gateUnverifiedStyle(tmp);
+  if (!r.ok) problems.push(`a driven+compared block must clear its tagged rules; got ${r.reason}`);
+
+  // 4. a tagged rule with NO blockIds can never be cleared by driving — it must be reported, not skipped.
+  await write("plan-style.json", { rules: [tagged(".vc-orphan", [])] });
+  r = await gateUnverifiedStyle(tmp);
+  if (r.ok) problems.push("a tagged rule with no blockIds must be reported");
+
+  // 5. untagged rules are none of this gate's business.
+  await write("plan-style.json", { rules: [{ selector: ".vc-card", decls: { gap: "8px" }, blockIds: ["nope"] }] });
+  r = await gateUnverifiedStyle(tmp);
+  if (!r.ok || r.tagged !== 0) problems.push("untagged rules must not be gated");
+
+  await fs.rm(tmp, { recursive: true, force: true });
+  if (problems.length) { for (const p of problems) console.error("  ✗ unverified-style-calibration: " + p); return false; }
+  console.log("✓ unknown→verify gate calibrated — a tagged rule passes ONLY when its block was driven AND compared (undriven, driven-but-uncompared, and blockId-less rules all stay unverified)");
+  return true;
+}
+
+// Suppressed interactive controls + designed-state coverage. Both calibrated against the shapes
+// that shipped on Harvey 651: search switched off for good, and 6 of 8 states never rendered.
+async function calibrateControlsAndCoverage() {
+  const problems = [];
+  const tmp = path.join(ROOT, "golden", ".tmp-controls-coverage");
+  await fs.rm(tmp, { recursive: true, force: true });
+  await fs.mkdir(path.join(tmp, "dom-snapshot"), { recursive: true });
+  const w = (rel, obj) => fs.writeFile(path.join(tmp, rel), JSON.stringify(obj), "utf8");
+
+  const tree = {
+    blockId: "flow", driven: true,
+    tree: { tag: "div", classes: ["vc-sidebar"], children: [
+      { tag: "span", classes: ["vc-header-search-input"], children: [
+        { tag: "velt-comment-sidebar-search-v2-input", classes: [], children: [
+          { tag: "input", classes: ["velt-sidebar-search-input"], children: [] }] }] },
+      { tag: "span", classes: ["vc-decor"], children: [{ tag: "div", classes: ["x"], children: [] }] },
+    ] },
+  };
+  await w("dom-snapshot/flow.json", tree);
+
+  // 1. a rest display:none over a real control ⇒ blocked, and the control is NAMED.
+  await w("plan-style.json", { rules: [{ selector: ".vc-header-search-input", decls: { display: "none" }, state: "default" }] });
+  let r = await gateSuppressedControls(tmp);
+  if (r.ok) problems.push("a rest display:none over a search input must be reported");
+  else if (!r.offenders[0].suppresses.some((c) => c.tag === "input")) problems.push("the suppressed native control must be named");
+
+  // 2. the same declaration scoped to a STATE is the correct way to hide something ⇒ clean.
+  await w("plan-style.json", { rules: [{ selector: ".vc-header-search-input", decls: { display: "none" }, state: "hover" }] });
+  r = await gateSuppressedControls(tmp);
+  if (!r.ok) problems.push("a state-scoped suppression must NOT be reported");
+
+  // 3. suppressing decoration stays allowed — the common, correct case.
+  await w("plan-style.json", { rules: [{ selector: ".vc-decor", decls: { display: "none" }, state: "default" }] });
+  r = await gateSuppressedControls(tmp);
+  if (!r.ok) problems.push("suppressing non-interactive chrome must stay allowed");
+
+  // 4. coverage counts a block with no snapshot as unreached, and names it.
+  await w("blocks.json", { blocks: [{ id: "flow" }, { id: "state-expanded" }, { id: "state-locked" }] });
+  const cov = await gateStateCoverage(tmp);
+  if (cov.reached !== 1 || cov.coverage !== 33) problems.push(`coverage should be 1/3 = 33%; got ${cov.reached}/${cov.designed} = ${cov.coverage}%`);
+  if (!cov.unreachable.some((u) => u.id === "state-expanded")) problems.push("an unreached block must be named");
+
+  await fs.rm(tmp, { recursive: true, force: true });
+  if (problems.length) { for (const p of problems) console.error("  ✗ controls-coverage-calibration: " + p); return false; }
+  console.log("✓ suppressed-controls + state-coverage calibrated — a rest display:none over a control is blocked, the same rule scoped to a state is not, decoration stays suppressible, and unreached designed states are counted and named");
+  return true;
+}
+
 async function main() {
   let failed = 0;
   // (the June golden-design fixtures — designs/ + expected/ — were removed 2026-07-22; the
@@ -958,6 +1055,10 @@ async function main() {
   if (!primitivesCalibrated) failed++;
   const stageReviewCalibrated = await calibrateStageReview();
   if (!stageReviewCalibrated) failed++;
+  const unverifiedStyleCalibrated = await calibrateUnverifiedStyle();
+  if (!unverifiedStyleCalibrated) failed++;
+  const controlsCoverageCalibrated = await calibrateControlsAndCoverage();
+  if (!controlsCoverageCalibrated) failed++;
 
   if (failed) { console.error(`\n✗ golden offline guard FAILED for ${failed} check(s)`); process.exit(1); }
   console.log(`\n✓ golden offline guard passed (probe/gate/judge calibration suites all green)`);

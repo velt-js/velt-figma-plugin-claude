@@ -46,6 +46,7 @@ import { promises as fs } from "node:fs";
 import { pathToFileURL } from "node:url";
 import path from "node:path";
 import { obsEvent } from "./obs.mjs";
+import { gateUnverifiedStyle } from "./gate-unverified-style.mjs";
 
 const STATUS_EXIT = { PASS: 0, FAIL: 2, INCOMPLETE: 3, STOPPED: 4 };
 const TERMINAL = new Set(["BLOCKED", "GAP", "STUCK"]);
@@ -250,6 +251,16 @@ async function main() {
   const smoke = a.includes("--no-artifact-audit") ? { missing: [], failures: [] } : await checkFamilySmoke(blocks, report, path.dirname(path.resolve(rp)));
   if (smoke.failures.length) { r.failures.push(...smoke.failures); if (r.verdict === "PASS") r.verdict = "FAIL"; }
   if (smoke.missing.length) { r.missing.push(...smoke.missing); if (r.verdict === "PASS") { r.verdict = "INCOMPLETE"; r.note = "family real-path smoke missing (R30)"; } }
+  // unknown→verify — style rules the planner authored against a DOM nobody rendered. The rule that
+  // "the judge treats them unverified, never passed" existed only as prose in five files until this
+  // call; a run could tag a whole state honestly and still terminate PASS (measured: the Harvey 651
+  // expanded-thread states shipped visibly broken with the tag on them). Escalates PASS only —
+  // a FAIL stays FAIL, and a STOPPED phase is already handing off.
+  const unverified = await gateUnverifiedStyle(path.dirname(path.resolve(rp)));
+  if (!unverified.ok) {
+    r.missing.push(...unverified.unverified.map((u) => `unknown→verify rule never checked: ${u.selector} [${u.state}] — ${u.why}`));
+    if (r.verdict === "PASS") { r.verdict = "INCOMPLETE"; r.note = unverified.reason; }
+  }
   console.log(`VERDICT: ${r.verdict}  (block coverage ${r.coverage}% of ${(blocks.blocks || []).length})`);
   if (r.missing.length) { console.log("  INCOMPLETE — not built / not driven / artifacts missing:"); for (const m of r.missing.slice(0, 24)) console.log("    · " + m); }
   if (r.failures.length) { console.log("  FAIL — built but does not match:"); for (const f of r.failures.slice(0, 24)) console.log("    · " + f); }

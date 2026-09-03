@@ -108,6 +108,8 @@ const VELT_MUTATORS = /\b(setCommentSidebarFilters|setCommentSidebarSort|addComm
 const COND_CHILD_RE = /\{[^{}]*(?:&&|\?(?![.:]))/;
 
 const findings = [];
+// P22 — every mounted primitive, by file, so the whole-build orphan-control check can run after the scan.
+const mountedByFile = new Map();
 const add = (rule, severity, file, line, message, fix) => findings.push({ rule, severity, file, line, message, fix });
 
 // --- tiny JSX scanner --------------------------------------------------------------------------
@@ -207,6 +209,12 @@ function scan(src, file) {
       if (conds.length) add("P6", "warn", file, lineNo,
         `${name} has parent-owned visibility condition(s) it cannot evaluate standalone: ${[...new Set(conds)].join(", ")}.`,
         "Re-express the condition in your own code, or accept that this renders whenever mounted.");
+
+      // P22 — record the mount so the post-scan whole-build check can see what else was mounted.
+      if (known?.tag) {
+        if (!mountedByFile.has(file)) mountedByFile.set(file, []);
+        mountedByFile.get(file).push({ name, tag: known.tag, line: lineNo });
+      }
 
       // P1 — a compound-trigger leaf without its -trigger ancestor is a dead control.
       if (known?.requiresTriggerAncestor) checkTriggerAncestor({ name, meta: known, line: lineNo }, stack, file);
@@ -381,6 +389,51 @@ for (const f of files) {
 }
 if (!files.length) add("P0", "error", roots.join(", "), 0, "no scannable files found — the lint examined nothing, which is not the same as clean.", "Check the path; a passing lint over zero files is a false pass.");
 else if (!primitivesSeen) add("P0", "error", roots.join(", "), 0, `scanned ${files.length} file(s) and found NO Velt primitives — a primitives build that contains no primitives did not build.`, "If this is intentional (pre-build), do not treat this run as a passing gate.");
+
+// --- P22: a control mounted with nothing to open ------------------------------------------------
+// A whole-BUILD check, not a per-node one: the renderer may legitimately live in another file, so
+// this can only be decided once every scanned file is known.
+//
+// MEASURED, Harvey 651. The build mounted `VeltCommentSidebarV2FilterButton` and no filter surface
+// at all. The control was never broken — clicking it flips the SDK container's `aria-expanded`
+// false→true and `toggleMoreFilters()` runs — but `velt-comment-sidebar-filter-dropdown-v2` and
+// `velt-comment-sidebar-filter-container-v2` were nowhere in the DOM, so the state had nothing to
+// render into. It reads to a user as a dead button, and it was filed as an SDK bug for a while.
+//
+// The heuristic is deliberately narrow and WARN-level: a control-shaped primitive (-button /
+// -trigger / -toggle) whose family also publishes a surface-shaped primitive (-dropdown /
+// -container / -content / -panel), where NONE of that family's surfaces is mounted anywhere in the
+// build. A host may legitimately render the surface itself, so this must never block.
+function checkOrphanControls(mountedByFile, byReact) {
+  const SURFACE = /-(dropdown|container|content|panel)(-v\d+)?$/;
+  const CONTROL = /-(button|trigger|toggle)(-v\d+)?$/;
+  const mountedTags = new Set();
+  for (const list of mountedByFile.values()) for (const m of list) if (m.tag) mountedTags.add(m.tag);
+  // family = the tag with its trailing control/surface segment removed
+  const familyOf = (tag) => tag.replace(SURFACE, "").replace(CONTROL, "");
+  const allTags = [...byReact.values()].map((e) => e && e.tag).filter(Boolean);
+  const surfacesByFamily = new Map();
+  for (const tag of allTags) {
+    if (!SURFACE.test(tag)) continue;
+    const fam = familyOf(tag);
+    if (!surfacesByFamily.has(fam)) surfacesByFamily.set(fam, []);
+    surfacesByFamily.get(fam).push(tag);
+  }
+  for (const [file, list] of mountedByFile) {
+    for (const m of list) {
+      if (!m.tag || !CONTROL.test(m.tag)) continue;
+      const fam = familyOf(m.tag);
+      const surfaces = surfacesByFamily.get(fam);
+      if (!surfaces || !surfaces.length) continue;             // no surface exists: standalone control
+      if (surfaces.some((t) => mountedTags.has(t))) continue;  // a surface IS mounted: fine
+      add("P22", "warn", file, m.line,
+        `${m.name} is a control, but none of its family's surfaces (${surfaces.join(", ")}) is mounted anywhere in this build — the control will toggle state that nothing renders.`,
+        `Mount the surface too, or confirm the host renders it. A trigger with no content reads as a dead button.`);
+    }
+  }
+}
+
+checkOrphanControls(mountedByFile, byReact);
 
 const errors = findings.filter((f) => f.severity === "error");
 const warns = findings.filter((f) => f.severity === "warn");

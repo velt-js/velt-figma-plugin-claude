@@ -1,0 +1,120 @@
+{
+  "runId": "WYAWuEm8DrIk-351-15578-2026-09-04T00-21-20Z",
+  "phaseId": "WYAWuEm8DrIk-351-15578",
+  "app": "velt-figma-plugin-claude",
+  "mode": null,
+  "node": null,
+  "pluginSha": "30031f7",
+  "publishedAt": "2026-09-04T00:21:20.091Z",
+  "review": "candidate — promote to its strongest durable form: script fix > lint rule > guide prose. Bar: seen in ≥2 independent runs, verified against ground truth, or reviewer judgment. Contradicted → mark deprecated here (with evidence), don't delete.",
+  "learnings": [
+    {
+      "kind": "general",
+      "statement": "A veltDynamicTemplate anchor that wraps <app-dropdown> MUST pass childrenSlot:false and expose its trigger through CompoundTriggerSlot; otherwise composed children replace the whole dropdown and the popover machinery (open/close, positioning, aria-expanded) disappears silently.",
+      "category": "sdk-contract",
+      "scope": "general",
+      "destination": "guide",
+      "evidence": "comment-sidebar-filter-dropdown-v2 was the one dropdown in the SDK missing it while status/priority/custom-annotation/visibility-banner/thread-card-seen/suggestion-menu all had it. Live before: '.vc-filter app-dropdown' count 0, no aria-expanded, panel permanently expanded at 239px. After SDK fix 2172950bf: .vc-filter 287->48, app-dropdown 1, aria-expanded flips on click, 7 presets mount in a cdk-overlay-pane, preset selection filters and closes.",
+      "seenOn": [
+        "harvey-comments-sidebar-loop1"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "Every consumer of a Figma text node must read the EFFECTIVE weight (node cssDecls overlaid with text.runs[0].decls when all runs agree), not node-level cssDecls alone. Figma routinely paints a run-level override that contradicts the node default, so reading the node level makes correct builds false-fail and incorrect builds false-pass.",
+      "category": "extraction",
+      "scope": "general",
+      "destination": "script",
+      "evidence": "Bit this run TWICE from opposite directions. First the style planner used node-level 400/500 and the judge caught the build painting too light. After the builder corrected to the run-level 700, delta-compare then flagged the SAME nodes as wrong for using 700. Verified node-by-node: Approver/Label/Line/Apr-Jun 2025/Project Managem.../$57,600.00/Comment all read nodeDecl=400-or-500 with run0=700; the control node 'Initial' has run0=undefined and correctly keeps 600. Fix belongs in figma-extract.mjs as one exported helper used by the planner, compile-assertions and delta-compare.",
+      "seenOn": [
+        "harvey-comments-sidebar-loop1"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "A spec slice is THIN when it carries no text, no paint and no assets — not when it has few nodes. A legitimately tiny frame (a badge, a lone label, a bare icon) slices to one or two fully-populated nodes and is perfectly measurable.",
+      "category": "pipeline-gate",
+      "scope": "general",
+      "destination": "script",
+      "evidence": "contract-check.mjs blocked this build on a 'Document Id' frame that is 1 FRAME + 1 TEXT with complete cssDecls and text content. Fixed in plugin commit 757eca4; verified the new predicate still trips on the keying regression it guards (nodes stripped of content) and on an empty slice, and passes a legit tiny frame and an icon-only frame.",
+      "seenOn": [
+        "harvey-comments-sidebar-loop1"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "Golden host-wiring rules must be gated on the plan's layer. pageModeComposerVariant names a <VeltCommentDialogWireframe variant=...> registration, so injecting it on a strictly-primitives run aims velt-comment-dialog-internal at a variant that does not exist and collapses the composer to an empty 320x0 shell.",
+      "category": "pipeline-gate",
+      "scope": "general",
+      "destination": "script",
+      "evidence": "verify-host-wiring.mjs demanded it layer-blind on any pageMode plan. The SDK forwards the prop at comment-sidebar-page-mode-composer-v2.component.html:16 with default 'sidebar'. This is the documented page-mode-composer-variant-unregistered trap in knowledge/host-wiring.json — the rule meant to guarantee a visible composer would have destroyed it. Fixed in plugin commit a5199ff.",
+      "seenOn": [
+        "harvey-comments-sidebar-loop1"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "In embedMode the SDK cannot close a host-owned container, so a sidebar close/collapse control renders but performs no action and emits no sidebarClose event. That wiring is correctly host-side: the host must own the collapse and drive it from its own state.",
+      "category": "integration",
+      "scope": "general",
+      "destination": "guide",
+      "evidence": "A synthetic pointer sequence confirmed landing inside the button (insideBtn true) left .hw-rail at 552 with the panel mounted, and subscribing to sidebarClose/sidebarOpen/close on the comment element captured zero events. Wiring the host's existing setSidebarOpen through to our own .vc-header-collapse wrapper took the rail 552 -> 0 and back.",
+      "seenOn": [
+        "harvey-comments-sidebar-loop1"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "A Chrome tab whose document.visibilityState is 'hidden' never composites: CSS transitions freeze at currentTime 0 forever and CDP Input.dispatchMouseEvent delivers zero DOM events. Neutralise transitions before measuring and drive controls with explicit pointerdown/mousedown/pointerup/mouseup/click sequences at freshly measured coordinates.",
+      "category": "measurement",
+      "scope": "general",
+      "destination": "guide",
+      "evidence": "Cost four wrong diagnoses across three agents on this run. The host rail reported computed width 0px against an inline 552px, which also silently occludes the surface so drives land on the page behind it; one agent waited 50s expecting a boot race. Injecting a transition:none override snapped it 0 -> 552 instantly. Playwright's own .click() is dead for the same reason, which makes judge2-chromatic's state drives report false blocked-state.",
+      "seenOn": [
+        "harvey-comments-sidebar-loop1"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "defaultCondition polarity is inverted from intuition: passing false means 'I take over, always show'. Leaving a readsDefaultCondition primitive un-passed keeps the SDK gate AND silently discards hand-placed children.",
+      "category": "sdk-contract",
+      "scope": "general",
+      "destination": "guide",
+      "evidence": "SDK source: `if (!this.defaultCondition()) return true;`. With the plan's true, the sidebar close button was data-velt-hidden + display:none at 0x0 and ate the composed chevron glyphs.",
+      "seenOn": [
+        "harvey-comments-sidebar-loop1"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "R2 context alone does not resolve comment-dialog leaf primitives. They resolve a comment via commentObj -> commentId -> context comment-id -> commentIndex; supply only annotation-id and the leaves render a skeleton (name) or hide themselves (avatar/time/message). Publish annotationId + commentId + commentIndex together.",
+      "category": "sdk-contract",
+      "scope": "general",
+      "destination": "guide",
+      "evidence": "Measured during the structure build: with annotation-id alone on the list item, thread-card-name rendered a skeleton loader and -avatar/-time/-message hid themselves. An index-resolving descendant handed only an id falls back to position 0, which renders correctly and describes the wrong comment.",
+      "seenOn": [
+        "harvey-comments-sidebar-loop1"
+      ],
+      "verified": true
+    },
+    {
+      "kind": "general",
+      "statement": "delta-compare must not compare wrapper layout properties (flex, align-self, gap, justify-content, flex-direction) on rows the brief itself marks waived. It already records the waiver and then compares anyway, which buries real defects under Figma auto-layout frames that have no live element.",
+      "category": "pipeline-gate",
+      "scope": "general",
+      "destination": "script",
+      "evidence": "386 of 616 residual rows on this phase carried selectorHow same-design-identity / same-declarations / geometric-ancestor / composed-by-ancestor, each with its own note 'design node X has no element of its own in the live markup'. Four of eleven blocks were 100% artifact. The row names (approver-comment, comment-info, approver-info, initials) exist nowhere in designSpec.json.",
+      "seenOn": [
+        "harvey-comments-sidebar-loop1"
+      ],
+      "verified": true
+    }
+  ]
+}
